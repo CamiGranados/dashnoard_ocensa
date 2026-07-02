@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-overview',
   imports: [],
   templateUrl: './overview.html',
-  styleUrl: './overview.scss',
+  styleUrl: './overview.css',
 })
 export class Overview {}

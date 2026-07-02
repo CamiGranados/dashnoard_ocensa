@@ -1,1 +1,57 @@
-<p>topbar-filters works!</p>
+<div class="topbar-filters">
+  <div class="topbar-filters__fields">
+    <div class="topbar-filters__field">
+      <label class="topbar-filters__label" for="tf-tanque">Vista resumen</label>
+      <p-select
+        inputId="tf-tanque"
+        [options]="reviewOptions"
+        [(ngModel)]="Resumen"
+        optionLabel="label"
+        optionValue="value"
+        class="topbar-filters__select"
+      />
+    </div>
+
+    <div class="topbar-filters__field">
+      <label class="topbar-filters__label" for="tf-variable">Variable microbiológica</label>
+      <p-select
+        inputId="tf-variable"
+        [options]="variableOptions"
+        [(ngModel)]="variable"
+        optionLabel="label"
+        optionValue="value"
+        class="topbar-filters__select"
+      />
+    </div>
+
+    <div class="topbar-filters__field">
+      <label class="topbar-filters__label" for="tf-escala">Escala (módulo tolerancia)</label>
+      <p-select
+        inputId="tf-escala"
+        [options]="escalaOptions"
+        [(ngModel)]="escala"
+        optionLabel="label"
+        optionValue="value"
+        class="topbar-filters__select"
+      />
+    </div>
+
+    <div class="topbar-filters__field">
+      <label class="topbar-filters__label" for="tf-period">Período</label>
+      <p-select
+        inputId="tf-period"
+        [options]="periodOptions"
+        [(ngModel)]="period"
+        optionLabel="label"
+        optionValue="value"
+        class="topbar-filters__select"
+      />
+    </div>
+  </div>
+</div>
+
+  <!-- <div class="topbar-filters__alerts">
+    <p-checkbox inputId="tf-alertas" [(ngModel)]="mostrarAlertas" [binary]="true" />
+    <label for="tf-alertas">Mostrar alertas técnicas</label>
+  </div> -->
+<!-- </div> -->

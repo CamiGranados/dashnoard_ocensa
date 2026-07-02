@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-gaps',
   imports: [],
   templateUrl: './gaps.html',
-  styleUrl: './gaps.scss',
+  styleUrl: './gaps.css',
 })
 export class Gaps {}

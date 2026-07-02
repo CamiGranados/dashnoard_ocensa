@@ -1,0 +1,9 @@
+.shell {
+  min-height: 100vh;
+}
+
+.shell__content {
+  margin-inline-start: var(--app-sidebar-width);
+  min-height: 100vh;
+  padding: 1.5rem;
+}

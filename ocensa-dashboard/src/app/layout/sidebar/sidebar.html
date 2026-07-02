@@ -1,1 +1,29 @@
-<p>sidebar works!</p>
+<p-drawer
+  [visible]="true"
+  [modal]="false"
+  [dismissible]="false"
+  [closeOnEscape]="false"
+  [showCloseIcon]="false"
+  position="left"
+  styleClass="app-sidebar"
+>
+  <ng-template #header>
+    <div class="app-sidebar__brand">
+      <span class="app-sidebar__brand-icon">
+        <i class="pi pi-circle-fill"></i>
+      </span>
+      <span class="app-sidebar__brand-text">
+        <span class="app-sidebar__brand-title">OCENSA</span>
+        <span class="app-sidebar__brand-subtitle">Industrial Analytics</span>
+      </span>
+    </div>
+  </ng-template>
+
+  <p-panelmenu [model]="items" [multiple]="true" class="app-sidebar__menu" />
+
+  <ng-template #footer>
+    <div class="app-sidebar_footer">
+      <img src="images/Logo CIC.png" />
+    </div>
+  </ng-template>
+</p-drawer>

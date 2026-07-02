@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-corrosion',
   imports: [],
   templateUrl: './corrosion.html',
-  styleUrl: './corrosion.scss',
+  styleUrl: './corrosion.css',
 })
 export class Corrosion {}

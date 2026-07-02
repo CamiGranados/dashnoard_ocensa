@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-microbiology',
   imports: [],
   templateUrl: './microbiology.html',
-  styleUrl: './microbiology.scss',
+  styleUrl: './microbiology.css',
 })
 export class Microbiology {}

@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-physicochemistry',
   imports: [],
   templateUrl: './physicochemistry.html',
-  styleUrl: './physicochemistry.scss',
+  styleUrl: './physicochemistry.css',
 })
 export class Physicochemistry {}

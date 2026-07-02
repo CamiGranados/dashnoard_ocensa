@@ -4,6 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-thps-tolerance',
   imports: [],
   templateUrl: './thps-tolerance.html',
-  styleUrl: './thps-tolerance.scss',
+  styleUrl: './thps-tolerance.css',
 })
 export class ThpsTolerance {}
