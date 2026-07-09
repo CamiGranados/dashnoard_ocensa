@@ -1,57 +1,76 @@
-<div class="topbar-filters">
-  <div class="topbar-filters__fields">
-    <div class="topbar-filters__field">
-      <label class="topbar-filters__label" for="tf-tanque">Vista resumen</label>
-      <p-select
-        inputId="tf-tanque"
-        [options]="reviewOptions"
-        [(ngModel)]="Resumen"
-        optionLabel="label"
-        optionValue="value"
-        class="topbar-filters__select"
-      />
+<div class="controlbar">
+  <div class="topbar-filters">
+    <div class="topbar-filters__fields">
+      <div class="topbar-filters__field">
+        <label class="topbar-filters__label" for="tf-tank">Tanque</label>
+        <p-select
+          inputId="tf-tank"
+          [options]="tankOptions"
+          [(ngModel)]="tanque"
+          optionLabel="label"
+          optionValue="value"
+          class="topbar-filters__select"
+        />
+      </div>
+
+      <div class="topbar-filters__field">
+        <label class="topbar-filters__label" for="tf-review">Vista resumen</label>
+        <p-select
+          inputId="tf-review"
+          [options]="reviewOptions"
+          [(ngModel)]="resumen"
+          optionLabel="label"
+          optionValue="value"
+          class="topbar-filters__select"
+        />
+      </div>
+
+      <div class="topbar-filters__field">
+        <label class="topbar-filters__label" for="tf-variable">Variable microbiológica</label>
+        <p-select
+          inputId="tf-variable"
+          [options]="variableOptions"
+          [(ngModel)]="variable"
+          optionLabel="label"
+          optionValue="value"
+          class="topbar-filters__select"
+        />
+      </div>
+
+      <div class="topbar-filters__field">
+        <label class="topbar-filters__label" for="tf-escala">Escala (módulo tolerancia)</label>
+        <p-select
+          inputId="tf-escala"
+          [options]="escalaOptions"
+          [(ngModel)]="escala"
+          optionLabel="label"
+          optionValue="value"
+          class="topbar-filters__select"
+        />
+      </div>
+
+      <div class="topbar-filters__field">
+        <label class="topbar-filters__label" for="tf-period">Período</label>
+        <p-select
+          inputId="tf-period"
+          [options]="periodOptions"
+          [(ngModel)]="period"
+          optionLabel="label"
+          optionValue="value"
+          class="topbar-filters__select"
+        />
+      </div>
     </div>
 
-    <div class="topbar-filters__field">
-      <label class="topbar-filters__label" for="tf-variable">Variable microbiológica</label>
-      <p-select
-        inputId="tf-variable"
-        [options]="variableOptions"
-        [(ngModel)]="variable"
-        optionLabel="label"
-        optionValue="value"
-        class="topbar-filters__select"
-      />
-    </div>
-
-    <div class="topbar-filters__field">
-      <label class="topbar-filters__label" for="tf-escala">Escala (módulo tolerancia)</label>
-      <p-select
-        inputId="tf-escala"
-        [options]="escalaOptions"
-        [(ngModel)]="escala"
-        optionLabel="label"
-        optionValue="value"
-        class="topbar-filters__select"
-      />
-    </div>
-
-    <div class="topbar-filters__field">
-      <label class="topbar-filters__label" for="tf-period">Período</label>
-      <p-select
-        inputId="tf-period"
-        [options]="periodOptions"
-        [(ngModel)]="period"
-        optionLabel="label"
-        optionValue="value"
-        class="topbar-filters__select"
-      />
+    <div class="topbar-actions">
+      <p-button label="Importar Datos" (onClick)="loadFiles()" icon="pi pi-upload" iconPos="left"></p-button>
     </div>
   </div>
+
+  <!-- <div class="nav-tab">
+    <p-button label="TK-001" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
+    <p-button label="TK-002" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
+    <p-button label="TK-003" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
+  </div> -->
 </div>
 
-  <!-- <div class="topbar-filters__alerts">
-    <p-checkbox inputId="tf-alertas" [(ngModel)]="mostrarAlertas" [binary]="true" />
-    <label for="tf-alertas">Mostrar alertas técnicas</label>
-  </div> -->
-<!-- </div> -->

@@ -1,0 +1,168 @@
+<header class="data-upload__header">
+  <div class="data-upload__header-main">
+    <p-breadcrumb [model]="breadcrumbItems" class="data-upload__breadcrumb" />
+    <h1 class="data-upload__title">Carga de datos para ensamble</h1>
+    <p class="data-upload__subtitle">
+      Se han detectado los siguientes archivos. Revise la vista preliminar de cada uno y proceda con el
+      procesamiento de datos.
+    </p>
+  </div>
+
+  <div class="data-upload__header-meta">
+    <div class="data-upload__meta-item">
+      <i class="pi pi-clock"></i>
+      <div>
+        <span class="data-upload__meta-label">Última actualización</span>
+        <span class="data-upload__meta-value">{{ lastUpdate }}</span>
+      </div>
+    </div>
+
+    <div class="data-upload__meta-item">
+      <i class="pi pi-box"></i>
+      <div>
+        <span class="data-upload__meta-label">Tanque activo</span>
+        <span class="data-upload__meta-value">{{ activeTank }}</span>
+      </div>
+    </div>
+
+    <div class="data-upload__meta-item">
+      <div>
+        <span class="data-upload__meta-label">Estado general</span>
+        <p-tag [value]="overallStatus" severity="success" icon="pi pi-circle-fill" class="data-upload__status-tag" />
+      </div>
+    </div>
+
+    <img src="images/tanque.png" class="data-upload__watermark" alt="" />
+  </div>
+</header>
+
+<section class="data-upload__panel">
+  <div class="data-upload__panel-header">
+    <div>
+      <h2 class="data-upload__panel-title">1. Archivos seleccionados</h2>
+      <p class="data-upload__panel-subtitle">
+        Revise los archivos detectados. Puede agregar o quitar archivos antes de continuar.
+      </p>
+    </div>
+
+    <div class="data-upload__panel-actions">
+      <input #fileInput type="file" multiple hidden (change)="onFilesPicked($event)" />
+      <p-button
+        label="Agregar más archivos"
+        icon="pi pi-plus"
+        [outlined]="true"
+        (onClick)="addFiles(fileInput)"
+      />
+      <p-button label="Quitar todos" severity="secondary" [text]="true" (onClick)="clearFiles()" />
+    </div>
+  </div>
+
+  <div class="data-upload__files-grid">
+    @for (file of selectedFiles; track file.id) {
+      <div class="file-card">
+        <span class="file-card__icon"><i class="pi pi-file-excel"></i></span>
+        <div class="file-card__info">
+          <span class="file-card__name">{{ file.fileName }}</span>
+          <span class="file-card__meta">{{ file.category }} · {{ file.sizeKb }} KB</span>
+        </div>
+        <i class="pi pi-check-circle file-card__status" [class.file-card__status--error]="file.status === 'error'"></i>
+        <button type="button" class="file-card__remove" (click)="removeFile(file.id)" aria-label="Quitar archivo">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (selectedFiles.length) {
+    <p class="data-upload__files-summary">
+      <i class="pi pi-check-circle"></i>
+      {{ okFilesCount }} de {{ selectedFiles.length }} archivos leídos correctamente
+    </p>
+  }
+</section>
+
+<section class="data-upload__panel">
+  <div class="data-upload__panel-header">
+    <div>
+      <h2 class="data-upload__panel-title">2. Vista preliminar de los archivos</h2>
+      <p class="data-upload__panel-subtitle">
+        Se muestra una vista preliminar de los primeros registros de cada archivo.
+      </p>
+    </div>
+
+    <div class="data-upload__rows-field">
+      <label for="du-rows">Filas a mostrar</label>
+      <p-select
+        inputId="du-rows"
+        [options]="rowsOptions"
+        [(ngModel)]="rowsToShow"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+  </div>
+
+  <div class="data-upload__preview-grid">
+    @for (dataset of previewDatasets; track dataset.id) {
+      <article class="preview-card">
+        <header class="preview-card__header">
+          <span class="preview-card__icon"><i class="pi pi-file-excel"></i></span>
+          <div class="preview-card__info">
+            <span class="preview-card__name">{{ dataset.fileName }}</span>
+            <span class="preview-card__meta">Hoja: {{ dataset.sheetName }}</span>
+          </div>
+          <button type="button" class="preview-card__expand" aria-label="Ver archivo completo">
+            <i class="pi pi-eye"></i>
+          </button>
+        </header>
+
+        <p-table [value]="dataset.rows" [columns]="dataset.columns" class="preview-card__table">
+          <ng-template pTemplate="header" let-columns>
+            <tr>
+              @for (col of columns; track col.field) {
+                <th>{{ col.header }}</th>
+              }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row let-columns="columns">
+            <tr>
+              @for (col of columns; track col.field) {
+                <td>{{ row[col.field] }}</td>
+              }
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <footer class="preview-card__footer">Total filas: {{ dataset.totalRows }}</footer>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="data-upload__footer">
+  <div class="data-upload__notes">
+    <p-message severity="info" [closable]="false" class="data-upload__note">
+      <strong>Validación</strong>
+      <p>Todos los archivos se leyeron correctamente y las columnas requeridas fueron detectadas.</p>
+    </p-message>
+
+    <p-message severity="warn" [closable]="false" class="data-upload__note">
+      <strong>Recomendaciones</strong>
+      <ul>
+        <li>Verifique que las fechas y unidades sean consistentes.</li>
+        <li>Si algún dato no es correcto, puede eliminar el archivo y cargar una nueva versión.</li>
+      </ul>
+    </p-message>
+  </div>
+
+  <div class="data-upload__actions">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+    <p-button class="data-upload__submit" (onClick)="proceed()">
+      <i class="pi pi-cog"></i>
+      <span class="data-upload__submit-text">
+        <span>Proceder con el procesamiento de datos</span>
+        <small>Ensamble y validación</small>
+      </span>
+    </p-button>
+  </div>
+</section>

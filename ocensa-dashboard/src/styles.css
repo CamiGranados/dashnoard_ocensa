@@ -24,6 +24,7 @@ body {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; */
+  font-family: 'DM Sans','Segoe UI',system-ui,-apple-system,sans-serif;
   background: #f4f6f8;
 }

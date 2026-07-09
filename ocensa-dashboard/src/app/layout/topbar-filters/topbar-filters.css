@@ -1,17 +1,17 @@
+/* Topbar Base */
+.controlbar{
+  background: #fff;
+  border: 1px solid #e2e8f2;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(6, 27, 58, 0.3);
+}
 .topbar-filters {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  /* background: #ffffff; */
-  /* background: #dfe4eb; */
-  background: #e5eaf0;
-  border: 1px solid #e7eaee;
-  border-radius: 1rem;
-  padding: 1.1rem 1.5rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  margin-bottom: 1.5rem;
+  gap: 12px;
+  padding: 11px 14px;
 }
 
 .topbar-filters__fields {
@@ -36,14 +36,14 @@
   letter-spacing: 0.8px;
   color: #8794A8;
 }
-
-:host ::ng-deep .topbar-filters__select.p-select {
+/* ------------------  Styles select filters -------------------- */
+:host ::ng-deep .topbar-filters__select .p-select {
   min-width: 0px;
   border: 1px solid #bbc9df;
   border-radius: 7px;
 }
 
-:host ::ng-deep .topbar-filters__select.p-select.p-focus {
+:host ::ng-deep .topbar-filters__select .p-select.p-focus {
   border-color: var(--color-primary-muted);
   box-shadow: 0 0 0 2px var(--color-primary-brand);
 }
@@ -56,7 +56,6 @@
 }
 
 :host ::ng-deep .topbar-filters__select .p-select-dropdown {
-  /* width: 2.25rem; */
   color: #94a3b8;
 }
 
@@ -71,4 +70,87 @@
   font-weight: 600;
   color: #1f2937;
   cursor: pointer;
+}
+
+.topbar-actions{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ------------------  Styles buttons filters -------------------- */
+:host ::ng-deep .topbar-actions .p-button {
+  font-family: 'DM Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  background-color: #061B3A;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(6, 27, 58, 0.15);
+  transition: background-color 0.2s ease-in-out;
+}
+
+:host ::ng-deep .topbar-actions .p-button:hover {
+  background-color: #0d2a52;
+}
+
+:host ::ng-deep .topbar-actions .p-button:active {
+  background-color: #04122a;
+}
+
+.nav-tab {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 11px 20px;
+  align-items: center;
+}
+
+.nav-tab label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #52575e;
+  margin-right: 4px;
+}
+
+:host ::ng-deep .nav-tab .tank-button .p-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fff;
+  border: 1px solid #e2e8f2;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(6, 27, 58, 0.08);
+  padding: 8px 16px 8px 10px;
+  font-family: 'DM Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: 0.2px;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+:host ::ng-deep .nav-tab .tank-button .p-button .p-button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: #eaf2ff;
+  color: var(--color-primary-brand, #2563eb);
+  font-size: 13px;
+}
+
+:host ::ng-deep .nav-tab .tank-button.p-button:hover {
+  border-color: #bbc9df;
+  box-shadow: 0 2px 6px rgba(6, 27, 58, 0.12);
+}
+
+:host ::ng-deep .nav-tab .tank-button.p-button:active {
+  background-color: #f6f9fd;
 }
