@@ -63,7 +63,16 @@
     </div>
 
     <div class="topbar-actions">
-      <p-button label="Importar Datos" (onClick)="loadFiles()" icon="pi pi-upload" iconPos="left"></p-button>
+      <!-- <p-fileUpload
+        mode="advanced"
+        name="demo[]"
+        [customUpload]="true"
+        accept=".xlsx"
+        multiple="true"
+        (onUpload)="loadFiles()" chooseLabel="Importar Datos">
+
+      </p-fileUpload> -->
+      <p-button label="Importar Datos" (onClick)="showAlertLoadedFiles()" icon="pi pi-upload" iconPos="left"></p-button>
     </div>
   </div>
 
@@ -73,4 +82,60 @@
     <p-button label="TK-003" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
   </div> -->
 </div>
+
+<p-dialog
+  [(visible)]="displayModalFiles"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [draggable]="false"
+  [resizable]="false">
+
+  <ng-template #header>
+    <div  class="dialog-card-header">
+      <div class="icon-card">
+        <i class="fa-solid fa-file-excel icon-dialog"></i>
+      </div>
+      <span>Importar archivos</span>
+    </div>
+  </ng-template>
+
+  <p-fileUpload
+    #excelUpload
+    mode="advanced"
+    name="demo[]"
+    [customUpload]="true"
+    accept=".xlsx"
+    [multiple]="true"
+    [maxFileSize]="5000000"
+    [showUploadButton]="false"
+    [showCancelButton]="false"
+    styleClass="upload-box"
+    (onSelect)="onFilesSelected($event)"
+    (onRemove)="onFileRemoved($event)"
+    (onUpload)="loadFiles()">
+
+    <ng-template #header></ng-template>
+
+    <ng-template #content let-files let-removeFileCallback="removeFileCallback" let-chooseCallback="chooseCallback">
+      <div class="upload-dropzone" (click)="chooseCallback()">
+        <i class="pi pi-cloud-upload upload-dropzone__icon"></i>
+        <p class="upload-dropzone__title">Drop files or <span class="upload-dropzone__link">click to browse</span></p>
+        <p class="upload-dropzone__subtitle">Up to 5 MB each</p>
+      </div>
+
+      <ul class="upload-filelist" *ngIf="files?.length">
+        <li class="upload-filelist__item" *ngFor="let file of files; let i = index">
+          <i class="fa-solid fa-file-excel upload-filelist__icon"></i>
+          <div class="upload-filelist__info">
+            <span class="upload-filelist__name">{{ file.name }}</span>
+            <span class="upload-filelist__size">{{ excelUpload.formatSize(file.size) }}</span>
+          </div>
+          <button type="button" class="upload-filelist__remove" (click)="removeFileCallback($event, i)">
+            <i class="pi pi-times"></i>
+          </button>
+        </li>
+      </ul>
+    </ng-template>
+  </p-fileUpload>
+</p-dialog>
 

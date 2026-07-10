@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { Checkbox } from 'primeng/checkbox';
 import { Button } from 'primeng/button';
-import { FileUploadEvent, FileUploadModule } from 'primeng/fileupload';
+import { DialogModule } from 'primeng/dialog';
+import { FileRemoveEvent, FileSelectEvent, FileUploadModule } from 'primeng/fileupload';
 
 interface FilterOption {
   label: string;
@@ -12,25 +14,34 @@ interface FilterOption {
 
 @Component({
   selector: 'app-topbar-filters',
-  imports: [FormsModule, Select, Checkbox, Button, FileUploadModule],
+  imports: [CommonModule, FormsModule, Select, Checkbox, Button, FileUploadModule, DialogModule],
   templateUrl: './topbar-filters.html',
   styleUrl: './topbar-filters.css',
 })
 
 export class TopbarFilters {
-
+  displayModalFiles: boolean = false;
   selectedFiles: File[] = [];
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    console.log(input)
+  onFilesSelected(event: FileSelectEvent): void {
+    this.selectedFiles = event.currentFiles;
   }
 
-  loadFiles(event: FileUploadEvent): void{
-    console.log('Files loaded:', event.files);
+  onFileRemoved(event: FileRemoveEvent): void {
+    this.selectedFiles = this.selectedFiles.filter((file) => file !== event.file);
+  }
+
+  loadFiles(): void{
+    console.log('Files loaded:', this.selectedFiles);
 
   }
 
+  showAlertLoadedFiles(): void {
+    this.displayModalFiles = true;
+  }
+
+
+  // ---------------------------------------    EJEMPLO DE OPCIONES DE FILTRO
   readonly reviewOptions: FilterOption[] = [
     { label: 'Resumen', value: 'resumen' },
     { label: 'Detalle', value: 'detalle' },

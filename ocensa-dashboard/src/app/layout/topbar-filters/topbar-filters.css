@@ -154,3 +154,154 @@
 :host ::ng-deep .nav-tab .tank-button.p-button:active {
   background-color: #f6f9fd;
 }
+
+/* --------------------------------------- Modal style ------------------- */
+.dialog-card-header{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-card-header span {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.15));
+}
+
+.icon-card{
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  background: var(--color-primary-light);
+}
+
+.icon-dialog{
+  color: var(--color-primary);
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.2));
+  font-size: 25px;
+}
+
+/* --------------------------------------- File upload dropzone ------------------- */
+:host ::ng-deep .upload-box .p-fileupload-header {
+  display: none;
+}
+
+:host ::ng-deep .upload-box .p-fileupload-content {
+  border: none;
+  padding: 0;
+}
+
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 40px 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--color-primary-brand, #2563eb);
+  background: var(--color-primary-light, #eaf2ff);
+}
+
+:host ::ng-deep .upload-box .p-fileupload-content.p-fileupload-highlight .upload-dropzone {
+  border-color: var(--color-primary-brand, #2563eb);
+  background: var(--color-primary-light, #eaf2ff);
+}
+
+.upload-dropzone__icon {
+  font-size: 28px;
+  color: var(--color-primary, #061B3A);
+}
+
+.upload-dropzone__title {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.upload-dropzone__link {
+  color: var(--color-primary-brand, #2563eb);
+  text-decoration: underline;
+}
+
+.upload-dropzone__subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #8794A8;
+}
+
+.upload-filelist {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-filelist__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.upload-filelist__icon {
+  color: #16a34a;
+  font-size: 16px;
+}
+
+.upload-filelist__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-filelist__name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-filelist__size {
+  font-size: 11px;
+  color: #8794A8;
+}
+
+.upload-filelist__remove {
+  border: none;
+  background: transparent;
+  color: #8794A8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.upload-filelist__remove:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
