@@ -1,11 +1,46 @@
 <header class="dashboard-header">
   <img src="images/tanque.png" class="watermark-icon">
-  <p class="dashboard-header__eyebrow">CIC · OCENSA · DASHBOARD TÉCNICO</p>
-  <h1 class="dashboard-header__title">Dashboard técnico de decisión · Desescalamiento THPS OCENSA</h1>
-  <p class="dashboard-header__subtitle">
-    Integración de tratamiento químico, agua libre, microbiología, fisicoquímica, corrosión y calidad de datos, para 
-    optimización del tratatamiento químico en tanques de almacenamiento y transporte de hidrocarburos.
-  </p>
+  <div class="dashboard-header-main">
+    <p class="dashboard-header_eyebrow">CIC · OCENSA · DASHBOARD TÉCNICO</p>
+    <h1 class="dashboard-header_title">Dashboard técnico de decisión · Desescalamiento THPS OCENSA</h1>
+    <p class="dashboard-header_subtitle">
+      Integración de análisis químico, microbiológico y fisicoquímico para optimizar el tratamiento químico en tanques de hidrocarburos.
+    </p>
+  </div>
+
+  <div class="dashboard-header-meta">
+    <div class="data-upload_meta-item">
+      <i class="pi pi-clock"></i>
+      <div>
+        <span class="data-upload_meta-label">Última actualización</span>
+        <span class="data-upload_meta-value">{{ lastUpdate }}</span>
+      </div>
+    </div>
+
+    <span class="dashboard-header-meta_divider"></span>
+
+    <div class="data-upload_meta-item">
+      <i class="fa-solid fa-glass-water-droplet"></i>
+      <div>
+        <span class="data-upload_meta-label">Tanque activo</span>
+        <span class="data-upload_meta-value">{{ activeTank }}</span>
+      </div>
+    </div>
+
+    <span class="dashboard-header-meta_divider"></span>
+
+    <div class="data-upload_meta-item">
+      <div>
+        <span class="data-upload_meta-label">Estado general</span>
+        <span class="data-upload_meta-value data-upload_meta-value--status">
+          <i class="pi pi-circle-fill"></i>
+          {{ overallStatus }}
+        </span>
+      </div>
+    </div>
+  </div>
 </header>
 
 <app-topbar-filters />
+
+<router-outlet />

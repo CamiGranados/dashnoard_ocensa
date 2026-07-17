@@ -1,30 +1,28 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
-import { Tag } from 'primeng/tag';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Message } from 'primeng/message';
-import { Breadcrumb } from 'primeng/breadcrumb';
-import { MenuItem } from 'primeng/api';
-
-interface SelectedFile {
-  id: string;
-  fileName: string;
-  category: string;
-  sizeKb: number;
-  status: 'ok' | 'error';
-}
+import * as XLSX from 'xlsx';
+import { FilesStore } from '../../../core/services/file-store.service';
+import { Spinner } from '../../../core/shared/components/spinner/spinner';
 
 interface PreviewColumn {
   field: string;
   header: string;
 }
 
-interface PreviewDataset {
+type FileStatus = 'ok' | 'empty' | 'error';
+
+interface FileDataset {
   id: string;
   fileName: string;
+  category: string;
+  sizeKb: number;
+  status: FileStatus;
+  errorMessage?: string;
   sheetName: string;
   columns: PreviewColumn[];
   rows: Record<string, string>[];
@@ -36,26 +34,34 @@ interface RowsOption {
   value: number;
 }
 
+const CATEGORY_RULES: { pattern: RegExp; label: string }[] = [
+  { pattern: /microbiolog/i, label: 'Microbiología' },
+  { pattern: /fisicoqu[ií]m/i, label: 'Fisicoquímica' },
+  { pattern: /corros/i, label: 'Corrosión' },
+  { pattern: /agua.?libre/i, label: 'Agua libre' },
+];
+
+function categoryFromFileName(fileName: string): string {
+  return CATEGORY_RULES.find((rule) => rule.pattern.test(fileName))?.label ?? 'Archivo';
+}
+
+function datasetId(file: File): string {
+  return `${file.name}__${file.size}__${file.lastModified}`;
+}
+
 @Component({
   selector: 'app-data-upload',
-  imports: [FormsModule, Button, Tag, Select, TableModule, Message, Breadcrumb],
+  imports: [FormsModule, Button, Select, TableModule, Message, Spinner],
   templateUrl: './data-upload.html',
   styleUrl: './data-upload.css',
 })
 export class DataUpload {
+  private readonly filesStore = inject(FilesStore);
   private readonly router = inject(Router);
 
-  readonly breadcrumbItems: MenuItem[] = [
-    { label: 'CIC' },
-    { label: 'OCENSA' },
-    { label: 'Dashboard Técnico' },
-    { label: 'Vista Ejecutiva' },
-    { label: 'Carga de datos' },
-  ];
-
-  readonly activeTank = 'TK-001';
-  readonly lastUpdate = '10 Jul 2026 · 09:35 AM';
-  readonly overallStatus = 'Normal';
+  readonly files = this.filesStore.validFiles;
+  readonly datasets = signal<FileDataset[]>([]);
+  readonly parsing = signal(false);
 
   readonly rowsOptions: RowsOption[] = [
     { label: '10', value: 10 },
@@ -64,88 +70,88 @@ export class DataUpload {
   ];
   rowsToShow = 10;
 
-  selectedFiles: SelectedFile[] = [
-    { id: 'microbiology', fileName: 'Microbiologia_TK001_20250710.xlsx', category: 'Microbiologia', sizeKb: 78, status: 'ok' },
-    { id: 'physicochemistry', fileName: 'Fisicoquimica_TK001_20250710.xlsx', category: 'Fisicoquimica', sizeKb: 124, status: 'ok' },
-    { id: 'corrosion', fileName: 'Corrosion_TK001_20250710.xlsx', category: 'Corrosion', sizeKb: 96, status: 'ok' },
-    { id: 'free-water', fileName: 'AguaLibre_TK001_20250710.xlsx', category: 'Agua Libre', sizeKb: 65, status: 'ok' },
-  ];
+  readonly okCount = computed(() => this.datasets().filter((d) => d.status === 'ok').length);
+  readonly errorCount = computed(() => this.datasets().filter((d) => d.status === 'error').length);
 
-  readonly previewDatasets: PreviewDataset[] = [
-    {
-      id: 'microbiology',
-      fileName: 'Microbiologia_TK001_20250710.xlsx',
-      sheetName: 'BSR',
-      columns: [
-        { field: 'fecha', header: 'Fecha / Hora' },
-        { field: 'bsr', header: 'BSR (cel/mL)' },
-        { field: 'observaciones', header: 'Observaciones' },
-      ],
-      rows: [
-        { fecha: '10/07/2026 09:00', bsr: '2.4 × 10⁵', observaciones: '–' },
-        { fecha: '10/07/2026 08:00', bsr: '1.8 × 10⁵', observaciones: '–' },
-        { fecha: '10/07/2026 07:00', bsr: '1.6 × 10⁵', observaciones: '–' },
-        { fecha: '10/07/2026 06:00', bsr: '1.2 × 10⁵', observaciones: '–' },
-      ],
-      totalRows: 24,
-    },
-    {
-      id: 'physicochemistry',
-      fileName: 'Fisicoquimica_TK001_20250710.xlsx',
-      sheetName: 'Parametros',
-      columns: [
-        { field: 'fecha', header: 'Fecha / Hora' },
-        { field: 'ph', header: 'pH' },
-        { field: 'conductividad', header: 'Conductividad (uS/cm)' },
-        { field: 'temp', header: 'Temp (°C)' },
-      ],
-      rows: [
-        { fecha: '10/07/2026 09:00', ph: '7.25', conductividad: '1,250', temp: '32.1' },
-        { fecha: '10/07/2026 08:00', ph: '7.18', conductividad: '1,240', temp: '31.8' },
-        { fecha: '10/07/2026 07:00', ph: '7.22', conductividad: '1,210', temp: '31.6' },
-        { fecha: '10/07/2026 06:00', ph: '7.20', conductividad: '1,200', temp: '31.4' },
-      ],
-      totalRows: 24,
-    },
-    {
-      id: 'corrosion',
-      fileName: 'Corrosion_TK001_20250710.xlsx',
-      sheetName: 'Corrosion',
-      columns: [
-        { field: 'fecha', header: 'Fecha / Hora' },
-        { field: 'corrosion', header: 'Corrosión (mpy)' },
-        { field: 'tasa', header: 'Tasa (mpy)' },
-        { field: 'metodo', header: 'Método' },
-      ],
-      rows: [
-        { fecha: '10/07/2026 09:00', corrosion: '1.32', tasa: '1.32', metodo: 'LPR' },
-        { fecha: '10/07/2026 08:00', corrosion: '1.41', tasa: '1.41', metodo: 'LPR' },
-        { fecha: '10/07/2026 07:00', corrosion: '1.38', tasa: '1.38', metodo: 'LPR' },
-        { fecha: '10/07/2026 06:00', corrosion: '1.35', tasa: '1.35', metodo: 'LPR' },
-      ],
-      totalRows: 24,
-    },
-    {
-      id: 'free-water',
-      fileName: 'AguaLibre_TK001_20250710.xlsx',
-      sheetName: 'Agua Libre',
-      columns: [
-        { field: 'fecha', header: 'Fecha / Hora' },
-        { field: 'aguaLibre', header: 'Agua libre (%)' },
-        { field: 'metodo', header: 'Método' },
-      ],
-      rows: [
-        { fecha: '10/07/2026 09:00', aguaLibre: '18', metodo: 'ASTM D4377' },
-        { fecha: '10/07/2026 08:00', aguaLibre: '16', metodo: 'ASTM D4377' },
-        { fecha: '10/07/2026 07:00', aguaLibre: '15', metodo: 'ASTM D4377' },
-        { fecha: '10/07/2026 06:00', aguaLibre: '14', metodo: 'ASTM D4377' },
-      ],
-      totalRows: 24,
-    },
-  ];
+  constructor() {
+    effect(() => {
+      const files = this.files();
+      untracked(() => this.parseFiles(files));
+    });
+  }
 
-  get okFilesCount(): number {
-    return this.selectedFiles.filter((file) => file.status === 'ok').length;
+  private async parseFiles(files: File[]): Promise<void> {
+    if (!files.length) {
+      this.datasets.set([]);
+      return;
+    }
+
+    this.parsing.set(true);
+    try {
+      const parsed = await Promise.all(files.map((file) => this.parseFile(file)));
+      this.datasets.set(parsed);
+    } finally {
+      this.parsing.set(false);
+    }
+  }
+
+  private async parseFile(file: File): Promise<FileDataset> {
+    const base = {
+      id: datasetId(file),
+      fileName: file.name,
+      category: categoryFromFileName(file.name),
+      sizeKb: Math.round(file.size / 1024),
+    };
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+      const headerRow = (XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })[0] ?? []) as string[];
+      const dataRows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: '', raw: false });
+
+      const columns: PreviewColumn[] = headerRow.length
+        ? headerRow.map((header, index) => ({
+            field: header?.toString().trim() || `col_${index}`,
+            header: header?.toString().trim() || `Columna ${index + 1}`,
+          }))
+        : dataRows.length
+          ? Object.keys(dataRows[0]).map((field) => ({ field, header: field }))
+          : [];
+
+      return {
+        ...base,
+        status: dataRows.length ? 'ok' : 'empty',
+        sheetName,
+        columns,
+        rows: dataRows,
+        totalRows: dataRows.length,
+      };
+    } catch {
+      return {
+        ...base,
+        status: 'error',
+        errorMessage: 'No se pudo leer el archivo. Verifique que no esté dañado o protegido con contraseña.',
+        sheetName: '',
+        columns: [],
+        rows: [],
+        totalRows: 0,
+      };
+    }
+  }
+
+  visibleRows(dataset: FileDataset): Record<string, string>[] {
+    return dataset.rows.slice(0, this.rowsToShow);
+  }
+
+  removeFile(id: string): void {
+    this.filesStore.setFiles(this.files().filter((file) => datasetId(file) !== id));
+  }
+
+  clearFiles(): void {
+    this.filesStore.clear();
   }
 
   addFiles(input: HTMLInputElement): void {
@@ -154,26 +160,22 @@ export class DataUpload {
   }
 
   onFilesPicked(event: Event): void {
-    const files = (event.target as HTMLInputElement).files;
-    if (!files) return;
+    const picked = (event.target as HTMLInputElement).files;
+    if (!picked?.length) return;
 
-    Array.from(files).forEach((file) => {
-      this.selectedFiles.push({
-        id: `${file.name}-${Date.now()}`,
-        fileName: file.name,
-        category: 'Nuevo archivo',
-        sizeKb: Math.round(file.size / 1024),
-        status: 'ok',
-      });
-    });
-  }
+    const current = this.files();
+    const seen = new Set(current.map((file) => datasetId(file)));
+    const merged = [...current];
 
-  removeFile(id: string): void {
-    this.selectedFiles = this.selectedFiles.filter((file) => file.id !== id);
-  }
+    for (const file of Array.from(picked)) {
+      const id = datasetId(file);
+      if (!seen.has(id)) {
+        seen.add(id);
+        merged.push(file);
+      }
+    }
 
-  clearFiles(): void {
-    this.selectedFiles = [];
+    this.filesStore.setFiles(merged);
   }
 
   cancel(): void {

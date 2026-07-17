@@ -227,6 +227,10 @@
   color: #dc2626;
 }
 
+.file-card__status--warn {
+  color: #d97706;
+}
+
 .file-card__remove {
   display: flex;
   align-items: center;
@@ -255,6 +259,46 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: #16a34a;
+}
+
+.data-upload__files-summary--warn {
+  color: #d97706;
+}
+
+/* ------------------ Parsing / empty states ------------------ */
+.data-upload__parsing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.5rem 0;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.data-upload__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #8794a8;
+}
+
+.data-upload__empty i {
+  font-size: 1.75rem;
+  color: #c3cbd8;
+}
+
+.data-upload__empty p {
+  margin: 0;
+  font-size: 0.82rem;
+  max-width: 42ch;
+}
+
+.preview-card__notice {
+  padding: 12px;
 }
 
 /* ------------------ Preview cards ------------------ */

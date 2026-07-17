@@ -1,1 +1,6 @@
+@if (loadingState.isLoading()) {
+  <div class="global-loading-overlay">
+    <app-spinner size="120px" />
+  </div>
+}
 <router-outlet />

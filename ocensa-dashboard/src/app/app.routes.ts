@@ -8,9 +8,14 @@ export const routes: Routes = [{
       path: '',
       loadComponent: () => import('./features/dashboard/dashboard-shell/dashboard-shell')
         .then(m => m.DashboardShell),
-    }, {
-      path: 'carga-datos',
-      loadComponent: () => import('./features/dashboard/data-upload/data-upload')
-        .then(m => m.DataUpload),
+      children: [{
+        path: '',
+        loadComponent: () => import('./features/dashboard/overview/overview')
+          .then(m => m.Overview),
+      }, {
+        path: 'carga-datos',
+        loadComponent: () => import('./features/dashboard/data-upload/data-upload')
+          .then(m => m.DataUpload),
+      }],
     }],
 }];

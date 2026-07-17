@@ -1,3 +1,5 @@
+<p-toast />
+
 <div class="controlbar">
   <div class="topbar-filters">
     <div class="topbar-filters__fields">
@@ -63,39 +65,28 @@
     </div>
 
     <div class="topbar-actions">
-      <!-- <p-fileUpload
-        mode="advanced"
-        name="demo[]"
-        [customUpload]="true"
-        accept=".xlsx"
-        multiple="true"
-        (onUpload)="loadFiles()" chooseLabel="Importar Datos">
-
-      </p-fileUpload> -->
       <p-button label="Importar Datos" (onClick)="showAlertLoadedFiles()" icon="pi pi-upload" iconPos="left"></p-button>
     </div>
   </div>
-
-  <!-- <div class="nav-tab">
-    <p-button label="TK-001" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
-    <p-button label="TK-002" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
-    <p-button label="TK-003" icon="pi pi-tint" iconPos="left" class="tank-button"></p-button>
-  </div> -->
 </div>
 
 <p-dialog
   [(visible)]="displayModalFiles"
   [modal]="true"
-  [style]="{ width: '600px' }"
+  [style]="{ width: '900px' }"
   [draggable]="false"
-  [resizable]="false">
+  [resizable]="false"
+  styleClass="w-[90vw] md:w-[75vw] lg:w-[50vw]">
 
   <ng-template #header>
     <div  class="dialog-card-header">
       <div class="icon-card">
         <i class="fa-solid fa-file-excel icon-dialog"></i>
       </div>
-      <span>Importar archivos</span>
+      <div class="dialog-header-text">
+        <span>Importar archivos</span>
+        <p>Selecciona uno o varios archivos Excel para cargarlos al sistema</p>
+      </div>
     </div>
   </ng-template>
 
@@ -106,36 +97,57 @@
     [customUpload]="true"
     accept=".xlsx"
     [multiple]="true"
-    [maxFileSize]="5000000"
+    [fileLimit]="max_files"
     [showUploadButton]="false"
     [showCancelButton]="false"
     styleClass="upload-box"
     (onSelect)="onFilesSelected($event)"
-    (onRemove)="onFileRemoved($event)"
-    (onUpload)="loadFiles()">
+    (onRemove)="onFileRemoved($event)">
 
     <ng-template #header></ng-template>
 
     <ng-template #content let-files let-removeFileCallback="removeFileCallback" let-chooseCallback="chooseCallback">
-      <div class="upload-dropzone" (click)="chooseCallback()">
-        <i class="pi pi-cloud-upload upload-dropzone__icon"></i>
-        <p class="upload-dropzone__title">Drop files or <span class="upload-dropzone__link">click to browse</span></p>
-        <p class="upload-dropzone__subtitle">Up to 5 MB each</p>
+      <div class="upload-dropzone" (click)="files?.length < max_files && chooseCallback()" [class.upload-dropzone--disabled]="files?.length >= max_files">
+        <i class="pi pi-cloud-upload upload-dropzone_icon"></i>
+        <p class="upload-dropzone_title">Arrastra archivos aquí o <span class="upload-dropzone_link">selecciona desde tu equipo</span></p>
+        <p class="upload-dropzone_subtitle">● Se permiten archivos .xlsx .xls    ● Máximo {{ max_files }} archivos ({{ files?.length || 0 }}/{{ max_files }})</p>
       </div>
 
       <ul class="upload-filelist" *ngIf="files?.length">
-        <li class="upload-filelist__item" *ngFor="let file of files; let i = index">
-          <i class="fa-solid fa-file-excel upload-filelist__icon"></i>
-          <div class="upload-filelist__info">
-            <span class="upload-filelist__name">{{ file.name }}</span>
-            <span class="upload-filelist__size">{{ excelUpload.formatSize(file.size) }}</span>
+        <li class="upload-filelist_item" *ngFor="let file of files; let i = index">
+          <i class="fa-solid fa-file-excel upload-filelist_icon"></i>
+          <div class="upload-filelist_info">
+            <span class="upload-filelist_name">{{ file.name }}</span>
+            <span class="upload-filelist_size">{{ excelUpload.formatSize(file.size) }}</span>
           </div>
-          <button type="button" class="upload-filelist__remove" (click)="removeFileCallback($event, i)">
+          <button type="button" class="upload-filelist_remove" (click)="removeFileCallback($event, i)">
             <i class="pi pi-times"></i>
           </button>
         </li>
       </ul>
     </ng-template>
   </p-fileUpload>
+
+  <ng-template #footer>
+    <div class="modal-footer">
+      <div class="info-banner">
+        <i class="pi pi-info-circle info-banner_icon"></i>
+        <div class="info-banner_text">
+          <strong>Importante</strong>
+          <p>Los archivos se validarán antes de ser procesados. Solo se cargarán los datos que pasen la validación.</p>
+        </div>
+      </div>
+      <div class="modal-footer_actions">
+        <button type="button" pButton class="btn-outline">Cancelar</button>
+        <button type="button" pButton class="btn-solid" (click)="loadFiles()" [disabled]="validating()">Cargar y Validar</button>
+        @if (validating()) {
+          <div class="validating-box">
+            <app-spinner size="60px" />
+            <span>Validando archivos…</span>
+          </div>
+        }
+      </div>
+    </div>
+  </ng-template>
 </p-dialog>
 

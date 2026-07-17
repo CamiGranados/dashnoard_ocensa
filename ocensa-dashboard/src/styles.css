@@ -11,6 +11,32 @@
   --color-primary-light: #e7eef4;
   --color-primary-muted: #447da2;
   --color-primary-brand: #e5effc;
+  --color-primary-sub:   #458ccc;
+
+  /* — Grises — */
+  --color-gray-light:     #e5e5e5;
+  --color-gray:           #C3C6D1;
+  --color-gray-mid:       #7c8799;
+  --color-gray-dark:      #43474F;
+  --color-background:     #f4f6fb;
+
+  /* — Paleta semántica — */
+  --color-green:          #287a2c;
+  --color-green-light:    #e2fae2;
+  --color-green-mid:      #239a59;
+  --color-green-dark:     #0c4f30;
+  --color-orange:         #e8590c;
+  --color-orange-dark:    #c94a08;
+  --color-orange-light:   #fdece0;
+  --color-text:           #0d1b2e;
+  --color-muted:          #6b7a99;
+  --color-faint:          #a8b4cc;
+
+
+  /* Sombras */
+  --shadow-sm: 0 2px 8px rgba(0, 52, 102, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 52, 102, 0.10);
+  --shadow-lg: 0 16px 40px rgba(0, 52, 102, 0.2);
 }
 
 * {
@@ -27,4 +53,42 @@ body {
   /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; */
   font-family: 'DM Sans','Segoe UI',system-ui,-apple-system,sans-serif;
   background: #f4f6f8;
+}
+
+/* ------------------ Botones genéricos para modales ------------------ */
+button.btn-outline,
+button.btn-solid {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 20px !important;
+  border-radius: 12px !important;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+button.btn-outline {
+  background: #fff !important;
+  border: 1px solid var(--color-gray-light) !important;
+  color: var(--color-primary) !important;
+}
+
+button.btn-outline:hover {
+  border-color: var(--color-primary-muted) !important;
+  background: var(--color-primary-light) !important;
+}
+
+button.btn-solid {
+  border: none !important;
+  background: var(--color-green) !important;
+  color: #fff !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+button.btn-solid:hover {
+  background: var(--color-green-dark) !important;
 }

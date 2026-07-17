@@ -1,11 +1,13 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
+import { provideLottieOptions } from 'ngx-lottie';
+import { loadingInterceptor } from './core/shared/interceptors/loading.interceptor';
 // import Aura from '@primeng/themes/aura';
 import Lara from '@primeng/themes/lara';
 
 import { routes } from './app.routes';
-import { definePreset } from '@primeng/themes';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 // const MiTema = definePreset(Lara, {
 //   semantic: {
@@ -37,5 +39,7 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
+    provideLottieOptions({ player: () => import('lottie-web') }),
+    provideHttpClient(withInterceptors([loadingInterceptor])),
   ]
 };
