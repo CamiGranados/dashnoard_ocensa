@@ -2,7 +2,6 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { provideLottieOptions } from 'ngx-lottie';
-import { loadingInterceptor } from './core/shared/interceptors/loading.interceptor';
 // import Aura from '@primeng/themes/aura';
 import Lara from '@primeng/themes/lara';
 
@@ -39,7 +38,5 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    provideLottieOptions({ player: () => import('lottie-web') }),
-    provideHttpClient(withInterceptors([loadingInterceptor])),
   ]
 };

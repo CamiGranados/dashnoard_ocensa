@@ -20,9 +20,9 @@
   </div>
 
   @if (parsing()) {
-    <div class="data-upload__parsing">
-      <app-spinner size="42px" />
-      <span>Leyendo archivos…</span>
+    <div class="data-upload__parsing-overlay">
+      <app-spinner size="140px" />
+      <p class="data-upload__parsing-text">Leyendo archivos…</p>
     </div>
   } @else if (datasets().length === 0) {
     <div class="data-upload__empty">
