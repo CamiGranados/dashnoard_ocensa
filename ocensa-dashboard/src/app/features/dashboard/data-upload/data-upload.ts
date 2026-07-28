@@ -1,12 +1,17 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Message } from 'primeng/message';
 import * as XLSX from 'xlsx';
+import { Api } from '../../../core/services/api';
 import { FilesStore } from '../../../core/services/file-store.service';
+import { ProcessedDataStore } from '../../../core/services/processed-data-store.service';
+import { ProcesarArchivosError } from '../../../core/models/procesar-archivos.model';
 import { Spinner } from '../../../core/shared/components/spinner/spinner';
 
 interface PreviewColumn {
@@ -51,17 +56,22 @@ function datasetId(file: File): string {
 
 @Component({
   selector: 'app-data-upload',
-  imports: [FormsModule, Button, Select, TableModule, Message, Spinner],
+  imports: [FormsModule, Button, Select, TableModule, Message, Spinner, DialogModule],
   templateUrl: './data-upload.html',
   styleUrl: './data-upload.css',
 })
 export class DataUpload {
   private readonly filesStore = inject(FilesStore);
   private readonly router = inject(Router);
+  private readonly api = inject(Api);
+  private readonly processedDataStore = inject(ProcessedDataStore);
 
   readonly files = this.filesStore.validFiles;
   readonly datasets = signal<FileDataset[]>([]);
   readonly parsing = signal(false);
+  readonly processing = signal(false);
+  readonly processErrorModalVisible = signal(false);
+  readonly processError = signal<ProcesarArchivosError | null>(null);
 
   readonly rowsOptions: RowsOption[] = [
     { label: '10', value: 10 },
@@ -182,8 +192,39 @@ export class DataUpload {
     this.router.navigate(['/']);
   }
 
-  proceed(): void {
-    // Punto de integración con el servicio de ensamble y validación de datos.
-    this.router.navigate(['/']);
+  async proceed(): Promise<void> {
+    this.processing.set(true);
+    try {
+      this.processedDataStore.fileProcessor(this.files()).subscribe({
+        next: (data) => {
+          const resultado = data
+          console.log(resultado)
+        },
+        error: (err) => {
+          console.log(err)
+        },
+      });
+      // const resultado = await this.api.procesarArchivos(this.files());
+      // this.processedDataStore.set(resultado);
+      // this.router.navigate(['/resultados']);
+      console.log(this.processedDataStore)
+    } catch (err) {
+      const httpError = err as HttpErrorResponse;
+      const body = httpError.error as ProcesarArchivosError | undefined;
+      this.processError.set({
+        exito: false,
+        mensaje:
+          body?.mensaje ??
+          'No se pudo conectar con el servidor para procesar los archivos. Verifique la conexión e intente nuevamente.',
+        errores: body?.errores ?? [],
+      });
+      this.processErrorModalVisible.set(true);
+    } finally {
+      this.processing.set(false);
+    }
+  }
+
+  closeProcessErrorModal(): void {
+    this.processErrorModalVisible.set(false);
   }
 }

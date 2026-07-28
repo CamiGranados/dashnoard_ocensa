@@ -523,3 +523,44 @@
     justify-content: flex-end;
   }
 }
+
+/* ------------------ Procesamiento en el backend ------------------ */
+.data-upload__processing-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.data-upload__error-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.data-upload__error-modal-header i {
+  font-size: 1.1rem;
+}
+
+.data-upload__error-list {
+  margin: 0.9rem 0;
+  padding-left: 1.1rem;
+  max-height: 260px;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  color: #334155;
+}
+
+.data-upload__error-list li {
+  margin-bottom: 0.4rem;
+}
+
+.data-upload__error-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}

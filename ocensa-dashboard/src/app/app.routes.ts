@@ -16,6 +16,10 @@ export const routes: Routes = [{
         path: 'carga-datos',
         loadComponent: () => import('./features/dashboard/data-upload/data-upload')
           .then(m => m.DataUpload),
+      }, {
+        path: 'resultados',
+        loadComponent: () => import('./features/dashboard/resultados/resultados')
+          .then(m => m.Resultados),
       }],
     }],
 }];

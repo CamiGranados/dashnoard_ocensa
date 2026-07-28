@@ -165,10 +165,10 @@
   </div>
 
   <div class="data-upload__actions">
-    <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="processing()" (onClick)="cancel()" />
     <p-button
       class="data-upload__submit"
-      [disabled]="datasets().length === 0 || errorCount() > 0 || parsing()"
+      [disabled]="datasets().length === 0 || errorCount() > 0 || parsing() || processing()"
       (onClick)="proceed()"
     >
       <i class="pi pi-cog"></i>
@@ -177,5 +177,60 @@
         <small>Ensamble y validación</small>
       </span>
     </p-button>
+    @if (processing()) {
+      <div class="data-upload__processing-box">
+        <app-spinner size="28px" />
+        <span>Procesando archivos en el servidor…</span>
+      </div>
+    }
   </div>
 </section>
+
+<p-dialog
+  [visible]="processErrorModalVisible()"
+  (visibleChange)="processErrorModalVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '640px' }"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="w-[90vw] md:w-[70vw] lg:w-[40vw]"
+>
+  <ng-template #header>
+    <div class="data-upload__error-modal-header">
+      <i class="pi pi-times-circle"></i>
+      <span>No se pudo procesar los archivos</span>
+    </div>
+  </ng-template>
+
+  @if (processError(); as error) {
+    <p-message severity="error" [closable]="false">{{ error.mensaje }}</p-message>
+
+    @if (error.errores.length > 0) {
+      <ul class="data-upload__error-list">
+        @for (item of error.errores; track $index) {
+          <li>
+            <strong>{{ item.archivo }}</strong>
+            @if (item.fila) {
+              · fila {{ item.fila }}
+            }
+            @if (item.columna) {
+              · columna "{{ item.columna }}"
+            }
+            : {{ item.motivo }}
+            @if (item.valorEncontrado) {
+              (valor: "{{ item.valorEncontrado }}")
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    <p class="data-upload__error-hint">
+      Corrija o reemplace los archivos indicados y vuelva a intentarlo.
+    </p>
+  }
+
+  <ng-template #footer>
+    <p-button label="Entendido, volver a cargar archivos" (onClick)="closeProcessErrorModal()" />
+  </ng-template>
+</p-dialog>

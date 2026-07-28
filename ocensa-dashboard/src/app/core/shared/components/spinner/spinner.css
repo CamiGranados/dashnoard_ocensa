@@ -43,5 +43,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bars-loader span { animation-duration: 3s; }
+  .bars-loader span { animation-duration: 2s; }
 }
