@@ -17,9 +17,9 @@ export const routes: Routes = [{
         loadComponent: () => import('./features/dashboard/data-upload/data-upload')
           .then(m => m.DataUpload),
       }, {
-        path: 'resultados',
-        loadComponent: () => import('./features/dashboard/resultados/resultados')
-          .then(m => m.Resultados),
+        path: 'corrosion',
+        loadComponent: () => import('./features/dashboard/tabs/corrosion/corrosion')
+          .then(m => m.Corrosion),
       }],
     }],
 }];

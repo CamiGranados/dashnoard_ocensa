@@ -19,6 +19,7 @@
     "@angular/router": "^21.2.0",
     "@fortawesome/fontawesome-free": "^7.3.0",
     "@primeng/themes": "^21.0.4",
+    "chart.js": "^4.5.1",
     "lottie-web": "^5.13.0",
     "ngx-lottie": "^21.2.0",
     "primeicons": "^7.0.0",

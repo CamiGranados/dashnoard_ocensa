@@ -1,1 +1,52 @@
-<p>corrosion works!</p>
+<div class="corrosion">
+  <!-- Cabecera con leyendas de cada eje -->
+  <div class="corrosion__header">
+    <div class="corrosion__axis-legend">
+      <span class="corrosion__axis-title">Eje izquierdo · agua</span>
+      <span class="corrosion__axis-subtitle">Inventario por visita · bbl</span>
+    </div>
+    <div class="corrosion__axis-legend corrosion__axis-legend--right">
+      <span class="corrosion__axis-title">Eje derecho · biocida</span>
+      <span class="corrosion__axis-subtitle">Aplicaciones individuales por evento · gal</span>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="corrosion__chart">
+    @if (measurements().length) {
+      <p-chart type="bar" [data]="chartData()" [options]="chartOptions" />
+    } @else {
+      <div class="corrosion__empty">
+        <i class="pi pi-chart-bar"></i>
+        <p>No hay datos para los filtros seleccionados.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Slider de ventana visible -->
+  @if (allDates().length > 1) {
+    <div class="corrosion__window">
+      <div class="corrosion__window-info">
+        <span class="corrosion__window-title">Ventana visible · gráfica completa</span>
+        <span class="corrosion__window-range">
+          {{ formatDate(allDates()[visibleRange()[0]]) }}
+          →
+          {{ formatDate(allDates()[visibleRange()[1]]) }}
+        </span>
+      </div>
+
+      <p-slider
+        [range]="true"
+        [min]="0"
+        [max]="allDates().length - 1"
+        [ngModel]="visibleRange()"
+        (ngModelChange)="visibleRange.set($event)"
+        class="corrosion__slider"
+      />
+
+      <button class="corrosion__reset" (click)="resetZoom()">
+        Restablecer zoom
+      </button>
+    </div>
+  }
+</div>

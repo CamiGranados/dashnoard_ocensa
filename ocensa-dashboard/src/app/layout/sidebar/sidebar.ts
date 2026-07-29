@@ -23,7 +23,7 @@ export class Sidebar {
       expanded: true,
       items: [
         { label: 'Tanque', icon: 'pi pi-circle' },
-        { label: 'Operación e Inyección', icon: 'pi pi-bolt' },
+        { label: 'Operación e Inyección', icon: 'pi pi-bolt', routerLink: '/corrosion'},
         { label: 'Escenarios', icon: 'pi pi-chart-bar' },
       ],
     },

@@ -16,14 +16,6 @@ export class ProcessedDataStore {
   private readonly _result = signal<ProcesarArchivosResultado | null>(null);
   readonly result = this._result.asReadonly();
 
-  // set(result: ProcesarArchivosResultado): void {
-  //   this._result.set(result);
-  // }
-
-  // clear(): void {
-  //   this._result.set(null);
-  // }
-
   fileProcessor(files: File[]): Observable<FinalTable> {
     const formData = new FormData();
     files.forEach(file =>{

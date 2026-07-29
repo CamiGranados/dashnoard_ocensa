@@ -206,7 +206,7 @@ export class DataUpload {
       });
       // const resultado = await this.api.procesarArchivos(this.files());
       // this.processedDataStore.set(resultado);
-      // this.router.navigate(['/resultados']);
+      this.router.navigate(['/']);
       console.log(this.processedDataStore)
     } catch (err) {
       const httpError = err as HttpErrorResponse;

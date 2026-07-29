@@ -8,34 +8,37 @@
         <p-select
           inputId="tf-tank"
           [options]="tankOptions"
-          [(ngModel)]="tanque"
+          [(ngModel)]="tank"
           optionLabel="label"
           optionValue="value"
           class="topbar-filters__select"
+          (onChange)="onFiltersChange()"
         />
       </div>
 
       <div class="topbar-filters__field">
-        <label class="topbar-filters__label" for="tf-review">Vista resumen</label>
+        <label class="topbar-filters__label" for="tf-year">Año</label>
         <p-select
-          inputId="tf-review"
-          [options]="reviewOptions"
-          [(ngModel)]="resumen"
+          inputId="tf-year"
+          [options]="yearOptions"
+          [(ngModel)]="selectedYear"
           optionLabel="label"
           optionValue="value"
           class="topbar-filters__select"
+          (onChange)="onFiltersChange()"
         />
       </div>
 
       <div class="topbar-filters__field">
-        <label class="topbar-filters__label" for="tf-variable">Variable microbiológica</label>
+        <label class="topbar-filters__label" for="tf-month">Mes</label>
         <p-select
-          inputId="tf-variable"
-          [options]="variableOptions"
-          [(ngModel)]="variable"
+          inputId="tf-month"
+          [options]="monthOptions"
+          [(ngModel)]="selectedMonth"
           optionLabel="label"
           optionValue="value"
           class="topbar-filters__select"
+          (onChange)="onFiltersChange()"
         />
       </div>
 

@@ -1,4 +1,4 @@
-import { Component, signal, viewChild} from '@angular/core';
+import { Component, signal, viewChild,} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
@@ -10,7 +10,10 @@ import { ToastModule } from 'primeng/toast';
 import { Spinner } from '../../core/shared/components/spinner/spinner';
 import { FilesStore } from '../../core/services/file-store.service';
 import { Router } from '@angular/router';
-
+import { FiltersService } from '../../core/services/filters.service';
+import { FiltersStateService } from '../../core/services/filters-state.service';
+import { ChangeDetectorRef } from '@angular/core';
+import { forkJoin } from 'rxjs';
 interface FilterOption {
   label: string;
   value: string;
@@ -21,6 +24,11 @@ export interface fileError {
   error: string;
 }
 
+export interface Tank {
+  id: string;
+  name: string;
+}
+
 @Component({
   selector: 'app-topbar-filters',
   imports: [CommonModule, FormsModule, Select, Button, FileUploadModule, DialogModule, ToastModule, Spinner],
@@ -29,7 +37,7 @@ export interface fileError {
   providers: [MessageService],
 })
 
-export class TopbarFilters {
+export class TopbarFilters{
   excelUpload = viewChild.required<FileUpload>('excelUpload');
 
   readonly max_files = 5; // Maximum number of files allowed
@@ -38,9 +46,73 @@ export class TopbarFilters {
   firstFilterErrors = signal<fileError[]>([]);
   validating = signal(false);
 
-  constructor(private messageService: MessageService, private filesStore: FilesStore, private router: Router) {}
+  tankOptions: { label: string; value: any }[] = [];
+  tank: any;
 
-  // -------------------------------------------------- Sets the file limit
+  yearOptions: { label: string; value: number }[] = [];
+  selectedYear!: number;
+
+  monthOptions = [
+    { label: 'Todos', value: null },
+    { label: 'Enero', value: 1 },
+    { label: 'Febrero', value: 2 },
+    { label: 'Marzo', value: 3 },
+    { label: 'Abril', value: 4 },
+    { label: 'Mayo', value: 5 },
+    { label: 'Junio', value: 6 },
+    { label: 'Julio', value: 7 },
+    { label: 'Agosto', value: 8 },
+    { label: 'Septiembre', value: 9 },
+    { label: 'Octubre', value: 10 },
+    { label: 'Noviembre', value: 11 },
+    { label: 'Diciembre', value: 12 },
+  ];
+
+  selectedMonth: number | null = null;
+
+  constructor(private messageService: MessageService, private filesStore: FilesStore, private router: Router, private FiltersService:FiltersService, private cdr: ChangeDetectorRef, private filtersState: FiltersStateService) {}
+
+
+  // --------------------------------------------------- SELECTS --------------------------------------
+  ngOnInit(): void {
+      forkJoin({
+      years: this.FiltersService.getYears(),
+      tanks: this.FiltersService.getTanks(),
+    }).subscribe({
+      next: ({ years, tanks }) => {
+        // años
+        this.yearOptions = years.map(y => ({ label: y.toString(), value: y }));
+        if (this.yearOptions.length) {
+          this.selectedYear = this.yearOptions[this.yearOptions.length - 1].value;
+        }
+
+        // tanques
+        this.tankOptions = tanks.map(t => ({ label: t.name, value: t.id }));
+        if (this.tankOptions.length) {
+          this.tank = this.tankOptions[this.tankOptions.length - 1].value;
+        }
+
+        // publica los defaults YA con ambos listos
+        this.filtersState.setFilters({
+          tanque: this.tank,
+          year: this.selectedYear,
+          months: this.selectedMonth ? [this.selectedMonth] : [],
+        });
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error cargando filtros', err),
+    });
+  }
+
+  onFiltersChange(): void {
+    this.filtersState.setFilters({
+      tanque: this.tank,
+      year: this.selectedYear,
+      months: this.selectedMonth ? [this.selectedMonth] : []
+    });
+  }
+  // -------------------------------------------------------------- Sets the file limit
   onFilesSelected(event: FileSelectEvent): void {
     const upload = this.excelUpload();
     const files = upload.files;
@@ -55,7 +127,7 @@ export class TopbarFilters {
     }
   }
 
-  // -------------------------------- Review of the files selected  -------------------------------
+  // ----------------------------------------------------------- Review of the files selected  -------------------------------
   private async readFirstBytes(file: File, numBytes:8): Promise<Uint8Array> {
     const blob = file.slice(0, numBytes);
     const arrayBuffer = await blob.arrayBuffer();
@@ -170,16 +242,6 @@ export class TopbarFilters {
 
 
   // --------------------------------------------------    EJEMPLO DE OPCIONES DE FILTRO
-  readonly reviewOptions: FilterOption[] = [
-    { label: 'Resumen', value: 'resumen' },
-    { label: 'Detalle', value: 'detalle' },
-  ];
-
-  readonly variableOptions: FilterOption[] = [
-    { label: 'BSR + BPA', value: 'bsr_bpa' },
-    { label: 'BSR', value: 'bsr' },
-    { label: 'BPA', value: 'bpa' },
-  ];
 
   readonly escalaOptions: FilterOption[] = [
     { label: 'Logarítmica', value: 'log' },
@@ -192,15 +254,6 @@ export class TopbarFilters {
     { label: 'Últimos 30 días', value: '30d' },
   ];
 
-  readonly tankOptions: FilterOption[] = [
-    { label: 'TK-001', value: 'tk1' },
-    { label: 'TK-002', value: 'tk2' },
-    { label: 'TK-003', value: 'tk3' },
-  ];
-
-  tanque = 'tk1';
-  resumen = 'resumen';
-  variable = 'bsr_bpa';
   escala = 'log';
   period = '24h';
   mostrarAlertas = true;

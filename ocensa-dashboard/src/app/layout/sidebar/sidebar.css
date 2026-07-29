@@ -110,7 +110,13 @@
 :host ::ng-deep .app-sidebar__menu .p-panelmenu-item-link-active {
   background: var(--color-primary-brand);
   color: var(--color-primary);
+  font-weight: 600;
   box-shadow: inset 3px 0 0 var(--color-primary);
+}
+/* Item anidado activo: texto oscuro */
+:host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu .p-panelmenu-item-link-active {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
 }
 
 /* Nested items */
@@ -128,7 +134,7 @@
 }
 
 :host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu .p-panelmenu-item-link:hover {
-  color: #475569;
+  color: var(--color-primary);
 }
 
 :host ::ng-deep .app-sidebar__menu .p-disabled .p-panelmenu-item-link {
