@@ -1,0 +1,126 @@
+.corrosion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* --- Cabecera de ejes --- */
+.corrosion__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.corrosion__axis-legend {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e7eaee;
+  border-radius: 0.65rem;
+  min-width: 220px;
+}
+
+.corrosion__axis-legend--right {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.corrosion__axis-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.corrosion__axis-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+/* --- Gráfico --- */
+.corrosion__chart {
+  height: 420px;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e7eaee;
+  border-radius: 0.75rem;
+}
+
+.corrosion__empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+}
+
+.corrosion__empty i {
+  font-size: 2rem;
+}
+
+/* --- Slider de ventana --- */
+.corrosion__window {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e7eaee;
+  border-radius: 0.75rem;
+}
+
+.corrosion__window-info {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-width: 180px;
+}
+
+.corrosion__window-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.corrosion__window-range {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+.corrosion__slider {
+  flex: 1;
+}
+
+.corrosion__reset {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.corrosion__reset:hover {
+  background: #f3f5f7;
+  border-color: #94a3b8;
+}
+
+/* --- Personalizar el p-slider al verde de acento --- */
+:host ::ng-deep .corrosion__slider .p-slider-range {
+  background: #10b981;
+}
+
+:host ::ng-deep .corrosion__slider .p-slider-handle {
+  border-color: #10b981;
+  background: #10b981;
+}
