@@ -18,12 +18,13 @@
 
       <div class="topbar-filters__field">
         <label class="topbar-filters__label" for="tf-year">Año</label>
-        <p-select
+        <p-multiSelect
           inputId="tf-year"
           [options]="yearOptions"
-          [(ngModel)]="selectedYear"
+          [(ngModel)]="selectedYears"
           optionLabel="label"
           optionValue="value"
+          placeholder="Todos los años"
           class="topbar-filters__select"
           (onChange)="onFiltersChange()"
         />
@@ -43,23 +44,11 @@
       </div>
 
       <div class="topbar-filters__field">
-        <label class="topbar-filters__label" for="tf-escala">Escala (módulo tolerancia)</label>
+        <label class="topbar-filters__label" for="tf-escala">Origen</label>
         <p-select
           inputId="tf-escala"
           [options]="escalaOptions"
           [(ngModel)]="escala"
-          optionLabel="label"
-          optionValue="value"
-          class="topbar-filters__select"
-        />
-      </div>
-
-      <div class="topbar-filters__field">
-        <label class="topbar-filters__label" for="tf-period">Período</label>
-        <p-select
-          inputId="tf-period"
-          [options]="periodOptions"
-          [(ngModel)]="period"
           optionLabel="label"
           optionValue="value"
           class="topbar-filters__select"

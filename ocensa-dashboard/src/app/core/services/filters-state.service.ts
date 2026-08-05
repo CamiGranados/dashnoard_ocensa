@@ -3,7 +3,7 @@ import { Injectable, signal } from '@angular/core';
 
 export interface DashboardFilters {
   tanque: string | null;
-  year: number | null;
+  years: number[] | null;
   months: number[];
 }
 
@@ -12,7 +12,7 @@ export class FiltersStateService {
   // estado reactivo de los filtros
   private readonly _filters = signal<DashboardFilters>({
     tanque: null,
-    year: null,
+    years: null,
     months: [],
   });
 

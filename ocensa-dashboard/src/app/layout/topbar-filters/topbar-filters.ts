@@ -1,4 +1,4 @@
-import { Component, signal, viewChild,} from '@angular/core';
+import { Component, signal, viewChild, OnInit, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Select } from 'primeng/select';
@@ -13,7 +13,10 @@ import { Router } from '@angular/router';
 import { FiltersService } from '../../core/services/filters.service';
 import { FiltersStateService } from '../../core/services/filters-state.service';
 import { ChangeDetectorRef } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { MultiSelect } from 'primeng/multiselect';
+
 interface FilterOption {
   label: string;
   value: string;
@@ -31,13 +34,13 @@ export interface Tank {
 
 @Component({
   selector: 'app-topbar-filters',
-  imports: [CommonModule, FormsModule, Select, Button, FileUploadModule, DialogModule, ToastModule, Spinner],
+  imports: [CommonModule, FormsModule, Select, Button, FileUploadModule, DialogModule, ToastModule, Spinner, MultiSelect],
   templateUrl: './topbar-filters.html',
   styleUrl: './topbar-filters.css',
   providers: [MessageService],
 })
 
-export class TopbarFilters{
+export class TopbarFilters implements OnInit, OnDestroy {
   excelUpload = viewChild.required<FileUpload>('excelUpload');
 
   readonly max_files = 5; // Maximum number of files allowed
@@ -50,7 +53,7 @@ export class TopbarFilters{
   tank: any;
 
   yearOptions: { label: string; value: number }[] = [];
-  selectedYear!: number;
+  selectedYears: number[] = [];
 
   monthOptions = [
     { label: 'Todos', value: null },
@@ -69,6 +72,7 @@ export class TopbarFilters{
   ];
 
   selectedMonth: number | null = null;
+  private filtrosChanged$ = new Subject<void>();
 
   constructor(private messageService: MessageService, private filesStore: FilesStore, private router: Router, private FiltersService:FiltersService, private cdr: ChangeDetectorRef, private filtersState: FiltersStateService) {}
 
@@ -83,7 +87,7 @@ export class TopbarFilters{
         // años
         this.yearOptions = years.map(y => ({ label: y.toString(), value: y }));
         if (this.yearOptions.length) {
-          this.selectedYear = this.yearOptions[this.yearOptions.length - 1].value;
+          this.selectedYears = [this.yearOptions[this.yearOptions.length - 1].value];
         }
 
         // tanques
@@ -95,7 +99,7 @@ export class TopbarFilters{
         // publica los defaults YA con ambos listos
         this.filtersState.setFilters({
           tanque: this.tank,
-          year: this.selectedYear,
+          years: this.selectedYears,
           months: this.selectedMonth ? [this.selectedMonth] : [],
         });
 
@@ -103,15 +107,20 @@ export class TopbarFilters{
       },
       error: (err) => console.error('Error cargando filtros', err),
     });
+
+     this.filtrosChanged$.pipe(debounceTime(400)).subscribe(() => {
+      this.filtersState.setFilters({
+        tanque: this.tank,
+        years: this.selectedYears,
+        months: this.selectedMonth ? [this.selectedMonth] : [],
+      });
+    });
   }
 
   onFiltersChange(): void {
-    this.filtersState.setFilters({
-      tanque: this.tank,
-      year: this.selectedYear,
-      months: this.selectedMonth ? [this.selectedMonth] : []
-    });
+    this.filtrosChanged$.next();
   }
+
   // -------------------------------------------------------------- Sets the file limit
   onFilesSelected(event: FileSelectEvent): void {
     const upload = this.excelUpload();
@@ -125,6 +134,14 @@ export class TopbarFilters{
         detail: `Solo se permiten ${this.max_files} archivos. Los archivos adicionales fueron descartados.`
       });
     }
+  }
+
+  onYearsChange(): void {
+    this.filtrosChanged$.next();
+  }
+
+  ngOnDestroy(): void {
+    this.filtrosChanged$.complete();
   }
 
   // ----------------------------------------------------------- Review of the files selected  -------------------------------

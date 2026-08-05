@@ -1,4 +1,44 @@
 <div class="corrosion">
+  <div class="corrosion_controls">
+    @for (variable of getSeriesKeys(); track variable) {
+      @let config = getSeriesConfig()[variable];
+      @let currentType = seriesTypes()[variable];
+      @let isVisible = visibleSeries()[variable];
+
+      <div class="corrosion__series-card">
+        <input
+          type="checkbox"
+          [checked]="isVisible"
+          (change)="toggleSeriesVisibility(variable)"
+          class="corrosion__checkbox"
+          [id]="'series-' + variable"
+        />
+        <label [for]="'series-' + variable" class="corrosion__series-name">
+          <span class="corrosion__series-dot" [style.backgroundColor]="config.border"></span>
+          {{ config.label }}
+        </label>
+
+        <div class="corrosion__type-buttons">
+          <button
+            class="corrosion__type-btn"
+            [class.corrosion__type-btn--active]="currentType === 'bar'"
+            (click)="toggleSeriesType(variable, 'bar')"
+          >
+            Barras
+          </button>
+          <button
+            class="corrosion__type-btn"
+            [class.corrosion__type-btn--active]="currentType === 'line'"
+            (click)="toggleSeriesType(variable, 'line')"
+          >
+            Línea
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+
   <!-- Cabecera con leyendas de cada eje -->
   <div class="corrosion__header">
     <div class="corrosion__axis-legend">

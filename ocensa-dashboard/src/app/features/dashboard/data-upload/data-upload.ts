@@ -199,27 +199,28 @@ export class DataUpload {
         next: (data) => {
           const resultado = data
           console.log(resultado)
+          this.router.navigate(['/']);
         },
         error: (err) => {
           console.log(err)
+          // Capturar el error del backend
+          const httpError = err as HttpErrorResponse;
+          const body = httpError.error as ProcesarArchivosError | undefined;
+
+          this.processError.set({
+            exito: false,
+            mensaje:
+              body?.mensaje ??
+              'Archivo no válido. Por favor, verifique el contenido de los datos y asegúrese de que cumpla con el formato esperado.',
+            errores: body?.errores ?? [],
+          });
+          this.processErrorModalVisible.set(true);
+        },
+        complete: () => {
+          this.processing.set(false);
         },
       });
-      // const resultado = await this.api.procesarArchivos(this.files());
-      // this.processedDataStore.set(resultado);
-      this.router.navigate(['/']);
-      console.log(this.processedDataStore)
     } catch (err) {
-      const httpError = err as HttpErrorResponse;
-      const body = httpError.error as ProcesarArchivosError | undefined;
-      this.processError.set({
-        exito: false,
-        mensaje:
-          body?.mensaje ??
-          'No se pudo conectar con el servidor para procesar los archivos. Verifique la conexión e intente nuevamente.',
-        errores: body?.errores ?? [],
-      });
-      this.processErrorModalVisible.set(true);
-    } finally {
       this.processing.set(false);
     }
   }

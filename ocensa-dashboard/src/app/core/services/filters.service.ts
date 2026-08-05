@@ -28,10 +28,12 @@ export class FiltersService {
     return this.http.get<Tank[]>(`${this.apiUrl}/Tanks/listTanks`);
   }
 
-  getMeasurements(tankId: string, year: number, months: number[] = []): Observable<Measurement[]> {
+  getMeasurements(tankId: string, year: number[] = [], months: number[] = []): Observable<Measurement[]> {
     let params = new HttpParams()
       .set('tankId', tankId)
-      .set('year', year);
+
+    // cada año como parámetro repetido: years=2022&years=2025...
+    year.forEach(y => { params = params.append('years', y); });
 
     // agrega cada mes como parámetro repetido: months=1&months=2...
     months.forEach(m => { params = params.append('months', m); });
