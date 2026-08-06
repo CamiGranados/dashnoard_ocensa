@@ -1,38 +1,33 @@
-<div class="corrosion">
+<div class="page">
   <div class="corrosion_controls">
     @for (variable of getSeriesKeys(); track variable) {
       @let config = getSeriesConfig()[variable];
-      @let currentType = seriesTypes()[variable];
       @let isVisible = visibleSeries()[variable];
 
-      <div class="corrosion__series-card">
-        <input
+      <div class="corrosion_card">
+        <div class="corrosion_series-card">
+          <input
           type="checkbox"
           [checked]="isVisible"
           (change)="toggleSeriesVisibility(variable)"
-          class="corrosion__checkbox"
+          class="corrosion_checkbox"
           [id]="'series-' + variable"
-        />
-        <label [for]="'series-' + variable" class="corrosion__series-name">
-          <span class="corrosion__series-dot" [style.backgroundColor]="config.border"></span>
-          {{ config.label }}
-        </label>
+          />
+          <label [for]="'series-' + variable" class="corrosion_series-name">
+            <span class="corrosion_series-dot" [style.backgroundColor]="config.border"></span>
+            {{ config.label }}
+          </label>
 
-        <div class="corrosion__type-buttons">
-          <button
-            class="corrosion__type-btn"
-            [class.corrosion__type-btn--active]="currentType === 'bar'"
-            (click)="toggleSeriesType(variable, 'bar')"
-          >
-            Barras
-          </button>
-          <button
-            class="corrosion__type-btn"
-            [class.corrosion__type-btn--active]="currentType === 'line'"
-            (click)="toggleSeriesType(variable, 'line')"
-          >
-            Línea
-          </button>
+          <div class="corrosion__type-buttons">
+            <p-selectButton
+              [ngModel]="seriesTypes()[variable]"
+              [options]="chartTypeOptions"
+              optionLabel="label"
+              optionValue="value"
+              (onChange)="toggleSeriesType(variable, $event.value)"
+            >
+            </p-selectButton>
+          </div>
         </div>
       </div>
     }
@@ -40,7 +35,7 @@
 
 
   <!-- Cabecera con leyendas de cada eje -->
-  <div class="corrosion__header">
+  <!-- <div class="corrosion__header">
     <div class="corrosion__axis-legend">
       <span class="corrosion__axis-title">Eje izquierdo · agua</span>
       <span class="corrosion__axis-subtitle">Inventario por visita · bbl</span>
@@ -49,7 +44,7 @@
       <span class="corrosion__axis-title">Eje derecho · biocida</span>
       <span class="corrosion__axis-subtitle">Aplicaciones individuales por evento · gal</span>
     </div>
-  </div>
+  </div> -->
 
   <!-- Gráfico -->
   <div class="corrosion__chart">
@@ -76,11 +71,10 @@
       </div>
 
       <p-slider
-        [range]="true"
         [min]="0"
-        [max]="allDates().length - 1"
-        [ngModel]="visibleRange()"
-        (ngModelChange)="visibleRange.set($event)"
+        [max]="Math.max(0, allDates().length - windowSize)"
+        [(ngModel)]="sliderPosition"
+        (ngModelChange)="onSliderChange($event)"
         class="corrosion__slider"
       />
 

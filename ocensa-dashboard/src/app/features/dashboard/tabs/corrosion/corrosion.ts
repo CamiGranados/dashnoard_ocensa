@@ -2,6 +2,7 @@ import { Component,computed, effect, inject, signal} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
 
@@ -10,13 +11,6 @@ export interface Measurement {
   numericValue: number;
   date: string;
 }
-// const SERIES_CONFIG: Record<string, { label: string; axis: 'y' | 'y1'; type: 'line' | 'bar'; color: string, border:string }> = {
-//   'FWV reportada':        { label: 'Agua reportada',     axis: 'y',  type: 'line', color: '#f8f8f8', border:'#2f80d7' },
-//   'FWV estimada':         { label: 'Agua estimada',      axis: 'y',  type: 'line', color: '#ffffff', border:'#4da7e9' },
-//   'FWV calculada':        { label: 'Agua ajustada',      axis: 'y',  type: 'line', color: '#fdfdfd', border:'#22ba76' },
-//   'FWV incrementada':     { label: 'Agua incrementada', axis: 'y1', type: 'bar',  color: '#fdfdfd', border:'#f3a12b'},
-//   'gsv(bls)':             { label: 'GSV',  axis: 'y1', type: 'bar',  color: '#fdfdfd', border:'#d8dbde' },
-// };
 
 const SERIES_CONFIG: Record<string, {
   label: string;
@@ -26,23 +20,17 @@ const SERIES_CONFIG: Record<string, {
   border: string;
   dashed?: boolean;
 }> = {
-  'FWV reportada':        { label: 'Agua reportada',     axis: 'y',  defaultType: 'line', color: '#f8f8f8', border:'#2f80d7', dashed: false },
-  'FWV estimada':         { label: 'Agua estimada',      axis: 'y',  defaultType: 'line', color: '#ffffff', border:'#4da7e9', dashed: true },  // ← punteada
-  'FWV calculada':        { label: 'Agua ajustada',      axis: 'y',  defaultType: 'line', color: '#fdfdfd', border:'#22ba76', dashed: false },
-  'FWV incrementada':     { label: 'Agua incrementada', axis: 'y1', defaultType: 'bar',  color: '#fdfdfd', border:'#f3a12b', dashed: false },
-  'gsv(bls)':             { label: 'GSV',  axis: 'y1', defaultType: 'bar',  color: '#fdfdfd', border:'#d8dbde', dashed: false },
+  'FWV reportada':        { label: 'FWV Reportada',     axis: 'y',  defaultType: 'line', color: '#2f80d7', border:'#2f80d7', dashed: false },
+  'FWV estimada':         { label: 'FWV Estimada',      axis: 'y',  defaultType: 'line', color: '#4da7e9', border:'#4da7e9', dashed: true },  // ← punteada
+  'FWV calculada':        { label: 'FWV Calculada',      axis: 'y',  defaultType: 'line', color: '#22ba76', border:'#22ba76', dashed: false },
+  'FWV incrementada':     { label: 'FWV Incrementada', axis: 'y', defaultType: 'bar',  color: '#f3a12b', border:'#f3a12b', dashed: false },
+  'gsv(bls)':             { label: 'GSV',  axis: 'y1', defaultType: 'bar',  color: '#d8dbde', border:'#d8dbde', dashed: false },
 };
 
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 @Component({
   selector: 'app-corrosion',
-  imports: [ChartModule, SliderModule, FormsModule],
+  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule],
   templateUrl: './corrosion.html',
   styleUrl: './corrosion.css',
 })
@@ -54,11 +42,17 @@ export class Corrosion {
   measurements = signal<Measurement[]>([]);
   visibleRange = signal<[number, number]>([0, 0]);
   noData = signal(false);
+  windowSize = 60;
+  sliderPosition = signal(0);
+  Math = Math;
 
   allDates = computed(() =>
     [...new Set(this.measurements().map(m => m.date))].sort()
   );
-
+  chartTypeOptions = [
+    { label: 'Barras', value: 'bar' },
+    { label: 'Línea', value: 'line' }
+  ];
   // Control de visualización por serie (line/bar)
   seriesTypes = signal<Record<string, 'line' | 'bar'>>(
     Object.entries(SERIES_CONFIG).reduce((acc, [key, cfg]) => {
@@ -75,12 +69,11 @@ export class Corrosion {
     }, {} as Record<string, boolean>)
   );
 
+
   constructor() {
     // se re-ejecuta automáticamente cuando cambian los filtros
     effect(() => {
       const f = this.filtersState.filters();
-
-      // no dispares si aún no hay tanque/año
       if (!f.tanque || !f.years) return;
 
       this.dataService.getMeasurements(f.tanque, f.years, f.months).subscribe({
@@ -94,7 +87,10 @@ export class Corrosion {
           this.noData.set(false);
           this.measurements.set(data);
           const total = new Set(data.map(m => m.date)).size;
-          this.visibleRange.set([0, Math.max(0, total - 1)]);
+
+          const startIdx = Math.max(0, total - this.windowSize);
+          this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
+          this.sliderPosition.set(startIdx);
         },
         error: (err) => console.error('Error mediciones', err),
       });
@@ -105,8 +101,8 @@ export class Corrosion {
   chartData = computed(() => {
     const data = this.measurements();
     const dates = this.allDates();
-    const visible = this.visibleSeries();  // ← Usar visibilidad
-    const types = this.seriesTypes();      // ← Usar tipos dinámicos
+    const visible = this.visibleSeries();
+    const types = this.seriesTypes();
 
     if (!dates.length) return { labels: [], datasets: [] };
 
@@ -114,22 +110,24 @@ export class Corrosion {
     const visibles = dates.slice(start, end + 1);
 
     const datasets = Object.entries(SERIES_CONFIG)
-      .filter(([key]) => visible[key])  // ← Filtrar por visibilidad
+      .filter(([key]) => visible[key])
       .map(([variable, cfg]) => {
-        const currentType = types[variable];  // ← Obtener tipo actual
+        const currentType = types[variable];
+        const isBar = currentType === 'bar';
 
         return {
           type: currentType,
           label: cfg.label,
           yAxisID: cfg.axis,
           borderColor: cfg.border,
-          borderDash: cfg.dashed && currentType === 'line' ? [5, 5] : [],  // ← Línea punteada
-          backgroundColor: currentType === 'bar' ? hexToRgba(cfg.color, 0.30) : cfg.color,
-          borderRadius: currentType === 'bar' ? 6 : undefined,
-          borderSkipped: currentType === 'bar' ? false : undefined,
-          borderWidth: currentType === 'bar' ? 2 : 2,
-          pointHoverRadius: currentType === 'bar' ? undefined : 7,
-          pointRadius: currentType === 'bar' ? undefined : 4,
+          borderDash: cfg.dashed && currentType === 'line' ? [5, 5] : [],
+          backgroundColor: cfg.color,
+          order: isBar ? 999 : 0,
+          borderRadius: isBar ? 0 : undefined,
+          borderSkipped: isBar ? false : undefined,
+          borderWidth: isBar ? 0 : 0,
+          pointHoverRadius: isBar ? undefined : 0,
+          pointRadius: isBar ? undefined : 0,
           tension: 0.3,
           spanGaps: true,
           data: visibles.map(d => {
@@ -149,9 +147,13 @@ export class Corrosion {
     plugins: { legend: { position: 'top' as const } },
     scales: {
       y:  { type: 'linear', position: 'left',  title: { display: true, text: 'BBL' } },
-      y1: { type: 'linear', position: 'right', title: { display: true, text: 'GAL' },
+      y1: { type: 'linear', position: 'right', title: { display: true, text: 'BBL' },
             grid: { drawOnChartArea: false } },
     },
+    bar: {
+      barPercentage: 0.5,
+      categoryPercentage: 0.8,
+    }
   };
 
   toggleSeriesType(variable: string, newType: 'line' | 'bar'): void {
@@ -172,9 +174,17 @@ export class Corrosion {
     return `${dt.getDate()} ${meses[dt.getMonth()]}`;
   }
 
+  onSliderChange(newPosition: number): void {
+    const end = Math.min(newPosition + this.windowSize, this.allDates().length - 1);
+    this.visibleRange.set([newPosition, end]);
+  }
+
   resetZoom(): void {
     const total = this.allDates().length;
-    this.visibleRange.set([0, Math.max(0, total - 1)]);
+    const windowSize = 60;
+    const startIdx = Math.max(0, total - windowSize);
+    this.sliderPosition.set(startIdx);
+    this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
   }
 
   getSeriesConfig() {
