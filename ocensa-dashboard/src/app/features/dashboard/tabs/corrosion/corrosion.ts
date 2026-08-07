@@ -23,7 +23,7 @@ const SERIES_CONFIG: Record<string, {
   'FWV reportada':        { label: 'FWV Reportada',     axis: 'y',  defaultType: 'line', color: '#2f80d7', border:'#2f80d7', dashed: false },
   'FWV estimada':         { label: 'FWV Estimada',      axis: 'y',  defaultType: 'line', color: '#4da7e9', border:'#4da7e9', dashed: true },  // ← punteada
   'FWV calculada':        { label: 'FWV Calculada',      axis: 'y',  defaultType: 'line', color: '#22ba76', border:'#22ba76', dashed: false },
-  'FWV incrementada':     { label: 'FWV Incrementada', axis: 'y', defaultType: 'bar',  color: '#f3a12b', border:'#f3a12b', dashed: false },
+  'FWV incrementada':     { label: 'FWV Incrementada', axis: 'y', defaultType: 'line',  color: '#f3a12b', border:'#f3a12b', dashed: false },
   'gsv(bls)':             { label: 'GSV',  axis: 'y1', defaultType: 'bar',  color: '#d8dbde', border:'#d8dbde', dashed: false },
 };
 
@@ -125,9 +125,9 @@ export class Corrosion {
           order: isBar ? 999 : 0,
           borderRadius: isBar ? 0 : undefined,
           borderSkipped: isBar ? false : undefined,
-          borderWidth: isBar ? 0 : 0,
-          pointHoverRadius: isBar ? undefined : 0,
-          pointRadius: isBar ? undefined : 0,
+          borderWidth: isBar ? 0 : 2,
+          pointHoverRadius: isBar ? undefined : 3,
+          pointRadius: isBar ? undefined : 1,
           tension: 0.3,
           spanGaps: true,
           data: visibles.map(d => {
@@ -144,10 +144,36 @@ export class Corrosion {
   chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { position: 'top' as const } },
+    plugins: {
+      legend: { position: 'top' as const },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+        backgroundColor: '#1f3a52',
+        padding: 12,
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: '#2a4f6b',
+        borderWidth: 1,
+        cornerRadius: 6,
+        titleFont: { size: 14, weight: 'bold' },
+        bodyFont: { size: 13 },
+        displayColors: true,
+        callbacks: {
+          title: (context: any) => {
+            return context[0].label;
+          },
+          label: (context: any) => {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y?.toLocaleString() || context.parsed;
+            return `${label}  ${value}`;
+          }
+        }
+      }
+    },
     scales: {
-      y:  { type: 'linear', position: 'left',  title: { display: true, text: 'BBL' } },
-      y1: { type: 'linear', position: 'right', title: { display: true, text: 'BBL' },
+      y:  { type: 'linear', position: 'left',  title: { display: true, text: 'Agua (BBL)' } },
+      y1: { type: 'linear', position: 'right', title: { display: true, text: 'GSV (BBL)' },
             grid: { drawOnChartArea: false } },
     },
     bar: {
@@ -171,7 +197,7 @@ export class Corrosion {
   formatDate(d: string): string {
     const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const dt = new Date(d);
-    return `${dt.getDate()} ${meses[dt.getMonth()]}`;
+    return `${meses[dt.getMonth()]} ${dt.getFullYear()}`;
   }
 
   onSliderChange(newPosition: number): void {

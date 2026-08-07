@@ -1,1 +1,39 @@
-<p>overview works!</p>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1 class="dashboard-title">Vista ejecutiva</h1>
+    </div>
+    <div class="header-right">
+      <span class="registros-info">{{ registrosVisibles | number }} registros visibles</span>
+      <button pButton
+              type="button"
+              label="Exportar CSV"
+              icon="pi pi-download"
+              (click)="exportarCSV()"
+              class="p-button-outlined p-button-secondary"></button>
+      <button pButton
+              type="button"
+              label="Exportar PDF"
+              icon="pi pi-file-pdf"
+              (click)="exportarPDF()"
+              class="p-button-outlined p-button-secondary"></button>
+    </div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="metrics-grid">
+    <div *ngFor="let metric of metrics" class="metric-card-wrapper">
+      <div [ngClass]="['metric-card', 'metric-' + metric.color]">
+        <div class="metric-header">
+          <h3 class="metric-title">{{ metric.title }}</h3>
+          <i [ngClass]="metric.icon" class="metric-icon"></i>
+        </div>
+        <div class="metric-value">
+          {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
+        </div>
+        <p class="metric-subtitle">{{ metric.subtitle }}</p>
+      </div>
+    </div>
+  </div>
+</div>
