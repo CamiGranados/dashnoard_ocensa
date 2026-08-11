@@ -48,7 +48,11 @@
 
   <!-- Gráfico -->
   <div class="corrosion__chart">
-    @if (measurements().length) {
+    @if (loadingMeasurements()) {
+      <div class="corrosion__loading">
+        <app-spinner size="80px" />
+      </div>
+    } @else if (measurements().length) {
       <p-chart type="bar" [data]="chartData()" [options]="chartOptions" />
     } @else {
       <div class="corrosion__empty">

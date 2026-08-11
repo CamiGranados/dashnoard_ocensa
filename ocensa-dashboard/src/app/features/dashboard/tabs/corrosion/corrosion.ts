@@ -3,8 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { finalize } from 'rxjs';
 import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
+import { Spinner } from '../../../../core/shared/components/spinner/spinner';
 
 export interface Measurement {
   variable: string;
@@ -30,7 +32,7 @@ const SERIES_CONFIG: Record<string, {
 
 @Component({
   selector: 'app-corrosion',
-  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule],
+  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule, Spinner],
   templateUrl: './corrosion.html',
   styleUrl: './corrosion.css',
 })
@@ -42,6 +44,7 @@ export class Corrosion {
   measurements = signal<Measurement[]>([]);
   visibleRange = signal<[number, number]>([0, 0]);
   noData = signal(false);
+  loadingMeasurements = signal(false);
   windowSize = 60;
   sliderPosition = signal(0);
   Math = Math;
@@ -71,29 +74,36 @@ export class Corrosion {
 
 
   constructor() {
-    // se re-ejecuta automáticamente cuando cambian los filtros
-    effect(() => {
+    // se re-ejecuta automáticamente cada vez que cambian los filtros (tanque, años, meses)
+    effect((onCleanup) => {
       const f = this.filtersState.filters();
       if (!f.tanque || !f.years) return;
 
-      this.dataService.getMeasurements(f.tanque, f.years, f.months).subscribe({
-        next: (data) => {
-          if (!data || data.length === 0) {
-            this.noData.set(true);
-            this.measurements.set([]);
-            this.visibleRange.set([0, 0]);
-            return;
-          }
-          this.noData.set(false);
-          this.measurements.set(data);
-          const total = new Set(data.map(m => m.date)).size;
+      this.loadingMeasurements.set(true);
 
-          const startIdx = Math.max(0, total - this.windowSize);
-          this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
-          this.sliderPosition.set(startIdx);
-        },
-        error: (err) => console.error('Error mediciones', err),
-      });
+      const subscription = this.dataService.getMeasurements(f.tanque, f.years, f.months)
+        .pipe(finalize(() => this.loadingMeasurements.set(false)))
+        .subscribe({
+          next: (data) => {
+            if (!data || data.length === 0) {
+              this.noData.set(true);
+              this.measurements.set([]);
+              this.visibleRange.set([0, 0]);
+              return;
+            }
+            this.noData.set(false);
+            this.measurements.set(data);
+            const total = new Set(data.map(m => m.date)).size;
+
+            const startIdx = Math.max(0, total - this.windowSize);
+            this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
+            this.sliderPosition.set(startIdx);
+          },
+          error: (err) => console.error('Error mediciones', err),
+        });
+
+      // si los filtros vuelven a cambiar antes de que responda, se cancela la petición anterior
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 
