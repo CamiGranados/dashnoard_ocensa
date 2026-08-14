@@ -22,18 +22,39 @@
   </div>
 
   <!-- Cards Grid -->
-  <div class="metrics-grid">
-    <div *ngFor="let metric of metrics" class="metric-card-wrapper">
-      <div [ngClass]="['metric-card', 'metric-' + metric.color]">
-        <div class="metric-header">
-          <h3 class="metric-title">{{ metric.title }}</h3>
-          <i [ngClass]="metric.icon" class="metric-icon"></i>
+  @if (summary.isLoading()) {
+    <p>Cargando resumen…</p>
+  } @else if (summary.error()) {
+    <p>No se pudo cargar el resumen.</p>
+    <!-- <button (click)="reload()">Reintentar</button> -->
+  } @else if (metrics().length) {
+    <div class="metrics-grid">
+      @for (metric of metrics(); track metric.title) {
+        <div class="metric-card-wrapper">
+          <div [class]="['metric-card', 'metric-' + metric.color]">
+            <div class="metric-header">
+              <h3 class="metric-title">{{ metric.title }}</h3>
+              <i [class]="metric.icon + ' metric-icon'"></i>
+            </div>
+            <div class="metric-value">
+              {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
+            </div>
+            <p class="metric-subtitle">{{ metric.subtitle }}</p>
+          </div>
         </div>
-        <div class="metric-value">
-          {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
-        </div>
-        <p class="metric-subtitle">{{ metric.subtitle }}</p>
-      </div>
+      }
     </div>
+  } @else {
+    <p>Selecciona un tanque para ver el resumen.</p>
+  }
+</div>
+
+<div class="flex flex-col md:flex-row gap-4 h-full">
+  <div class="flex-1">
+    
   </div>
+  <div class="flex-1">
+    
+  </div>
+  
 </div>

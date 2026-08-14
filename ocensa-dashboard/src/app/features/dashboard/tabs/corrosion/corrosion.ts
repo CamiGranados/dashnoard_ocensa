@@ -77,11 +77,11 @@ export class Corrosion {
     // se re-ejecuta automáticamente cada vez que cambian los filtros (tanque, años, meses)
     effect((onCleanup) => {
       const f = this.filtersState.filters();
-      if (!f.tanque || !f.years) return;
+      if (!f.tank || !f.years) return;
 
       this.loadingMeasurements.set(true);
 
-      const subscription = this.dataService.getMeasurements(f.tanque, f.years, f.months)
+      const subscription = this.dataService.getMeasurements(f.tank, f.years, f.months)
         .pipe(finalize(() => this.loadingMeasurements.set(false)))
         .subscribe({
           next: (data) => {

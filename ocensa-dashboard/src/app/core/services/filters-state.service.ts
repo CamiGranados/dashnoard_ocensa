@@ -1,26 +1,38 @@
 // filters-state.service.ts
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 
 export interface DashboardFilters {
-  tanque: string | null;
+  tank: string | null;
   years: number[] | null;
   months: number[];
 }
 
+const arrayEqual = {
+  equal: (a: readonly number[], b: readonly number[]) =>
+    a.length === b.length && a.every((v, i) => v === b[i]),
+};
+
 @Injectable({ providedIn: 'root' })
 export class FiltersStateService {
-  // estado reactivo de los filtros
-  private readonly _filters = signal<DashboardFilters>({
-    tanque: null,
-    years: null,
-    months: [],
-  });
+  private readonly _tank = signal<string | null>(null);
+  private readonly _years = signal<number[]>([], arrayEqual);
+  private readonly _months = signal<number[]>([], arrayEqual);
 
-  // lectura pública (readonly) para que los hijos la consuman
-  readonly filters = this._filters.asReadonly();
+  readonly tanque = this._tank.asReadonly();
+  readonly years = this._years.asReadonly();
+  readonly months = this._months.asReadonly();
+
+
+  readonly filters = computed<DashboardFilters>(() => ({
+    tank: this._tank(),
+    years: this._years(),
+    months: this._months(),
+  }));
 
   // el topbar llama esto cuando cambian los filtros
   setFilters(filters: Partial<DashboardFilters>): void {
-    this._filters.update(current => ({ ...current, ...filters }));
+    if ('tank' in filters) this._tank.set(filters.tank ?? null);
+    if ('years'  in filters) this._years.set(filters.years ?? []);
+    if ('months' in filters) this._months.set(filters.months ?? []);
   }
 }

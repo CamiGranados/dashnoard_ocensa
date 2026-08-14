@@ -98,7 +98,7 @@ export class TopbarFilters implements OnInit, OnDestroy {
 
         // publica los defaults YA con ambos listos
         this.filtersState.setFilters({
-          tanque: this.tank,
+          tank: this.tank,
           years: this.selectedYears,
           months: this.selectedMonth ? [this.selectedMonth] : [],
         });
@@ -110,7 +110,7 @@ export class TopbarFilters implements OnInit, OnDestroy {
 
      this.filtrosChanged$.pipe(debounceTime(400)).subscribe(() => {
       this.filtersState.setFilters({
-        tanque: this.tank,
+        tank: this.tank,
         years: this.selectedYears,
         months: this.selectedMonth ? [this.selectedMonth] : [],
       });
