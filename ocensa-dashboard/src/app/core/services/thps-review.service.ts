@@ -19,13 +19,11 @@ export class ThpsReviewService {
 
     return {
       url: `${this.apiUrl}/Tanks/thps-review`,
-      method: 'GET',
+      method: 'POST',
       body: {
         tankId: tank,
         years: years,
-        months: months,
-        page: 1,
-        pageSize: 50,
+        months: months
       },
     };
   });

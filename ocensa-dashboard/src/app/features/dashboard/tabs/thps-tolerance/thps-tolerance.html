@@ -32,6 +32,203 @@
       }
     </div>
 
+    <div class="page thps-bands">
+      <div class="thps-band">
+        <h3 class="thps-band__heading">Aplicación de Dosis Biocida</h3>
+        @if (band1Empty()) {
+          <div class="thps-band__empty">
+            <i class="pi pi-chart-bar"></i>
+            <p>Sin datos para esta banda.</p>
+          </div>
+        } @else {
+          <div class="thps-band__controls">
+            @for (cfg of band1Series; track cfg.key) {
+              <div class="thps-series-card">
+                <input
+                  type="checkbox"
+                  [checked]="visibleSeries()[cfg.key]"
+                  (change)="toggleSeriesVisibility(cfg.key)"
+                  class="thps-checkbox"
+                  [id]="'series-' + cfg.key"
+                />
+                <label [for]="'series-' + cfg.key" class="thps-series-name">
+                  <span class="thps-series-dot" [style.backgroundColor]="cfg.color"></span>
+                  {{ cfg.label }}
+                </label>
+                <p-selectButton
+                  [ngModel]="seriesTypes()[cfg.key]"
+                  [options]="chartTypeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  (onChange)="toggleSeriesType(cfg.key, $event.value)"
+                />
+              </div>
+            }
+          </div>
+          <div class="thps-band__chart">
+            <p-chart type="bar" [data]="band1Data()" [options]="band1Options()" [plugins]="band1Plugins" />
+          </div>
+        }
+      </div>
+
+      <div class="thps-band">
+        <h3 class="thps-band__heading">Residual %</h3>
+        @if (band2Empty()) {
+          <div class="thps-band__empty">
+            <i class="pi pi-chart-line"></i>
+            <p>Sin datos para esta banda.</p>
+          </div>
+        } @else {
+          <div class="thps-band__controls">
+            @for (cfg of band2Series; track cfg.key) {
+              <div class="thps-series-card">
+                <input
+                  type="checkbox"
+                  [checked]="visibleSeries()[cfg.key]"
+                  (change)="toggleSeriesVisibility(cfg.key)"
+                  class="thps-checkbox"
+                  [id]="'series-' + cfg.key"
+                />
+                <label [for]="'series-' + cfg.key" class="thps-series-name">
+                  <span class="thps-series-dot" [style.backgroundColor]="cfg.color"></span>
+                  {{ cfg.label }}
+                </label>
+                <p-selectButton
+                  [ngModel]="seriesTypes()[cfg.key]"
+                  [options]="chartTypeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  (onChange)="toggleSeriesType(cfg.key, $event.value)"
+                />
+              </div>
+            }
+          </div>
+          <div class="thps-band__chart">
+            <p-chart type="line" [data]="band2Data()" [options]="band2Options()" [plugins]="band2Plugins" />
+          </div>
+        }
+      </div>
+
+      <div class="thps-band">
+        <h3 class="thps-band__heading">FWV</h3>
+        @if (band3Empty()) {
+          <div class="thps-band__empty">
+            <i class="pi pi-chart-line"></i>
+            <p>Sin datos para esta banda.</p>
+          </div>
+        } @else {
+          <div class="thps-band__controls">
+            @for (cfg of band3Series; track cfg.key) {
+              <div class="thps-series-card">
+                <input
+                  type="checkbox"
+                  [checked]="visibleSeries()[cfg.key]"
+                  (change)="toggleSeriesVisibility(cfg.key)"
+                  class="thps-checkbox"
+                  [id]="'series-' + cfg.key"
+                />
+                <label [for]="'series-' + cfg.key" class="thps-series-name">
+                  <span class="thps-series-dot" [style.backgroundColor]="cfg.color"></span>
+                  {{ cfg.label }}
+                </label>
+                <p-selectButton
+                  [ngModel]="seriesTypes()[cfg.key]"
+                  [options]="chartTypeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  (onChange)="toggleSeriesType(cfg.key, $event.value)"
+                />
+              </div>
+            }
+          </div>
+          <div class="thps-band__chart">
+            <p-chart type="line" [data]="band3Data()" [options]="band3Options()" [plugins]="band3Plugins" />
+          </div>
+        }
+      </div>
+
+      <div class="thps-band thps-band--last">
+        <h3 class="thps-band__heading">Respuesta microbiológica</h3>
+        @if (band4Empty()) {
+          <div class="thps-band__empty">
+            <i class="pi pi-chart-line"></i>
+            <p>Sin datos para esta banda.</p>
+          </div>
+        } @else {
+          <div class="thps-band__controls">
+            @for (cfg of band4Series; track cfg.key) {
+              <div class="thps-series-card">
+                <input
+                  type="checkbox"
+                  [checked]="visibleSeries()[cfg.key]"
+                  (change)="toggleSeriesVisibility(cfg.key)"
+                  class="thps-checkbox"
+                  [id]="'series-' + cfg.key"
+                />
+                <label [for]="'series-' + cfg.key" class="thps-series-name">
+                  <span class="thps-series-dot" [style.backgroundColor]="cfg.color"></span>
+                  {{ cfg.label }}
+                </label>
+                <p-selectButton
+                  [ngModel]="seriesTypes()[cfg.key]"
+                  [options]="chartTypeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  (onChange)="toggleSeriesType(cfg.key, $event.value)"
+                />
+              </div>
+            }
+          </div>
+          <div class="thps-band__chart">
+            <p-chart type="line" [data]="band4Data()" [options]="band4Options()" [plugins]="band4Plugins" />
+          </div>
+        }
+      </div>
+
+      @if (hoveredRow(); as hr) {
+        <div
+          class="thps-crosshair-tooltip"
+          [style.left.px]="hoveredPixel().x"
+          [style.top.px]="hoveredPixel().y"
+        >
+          <div class="thps-crosshair-tooltip__date">{{ hr.timestamp | date: "d 'de' MMM 'de' y" }}</div>
+
+          @for (cfg of band1Series; track cfg.key) {
+            @if (hr[cfg.key] !== null) {
+              <div class="thps-crosshair-tooltip__row">
+                <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
+                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+              </div>
+            }
+          }
+          @for (cfg of band2Series; track cfg.key) {
+            @if (hr[cfg.key] !== null) {
+              <div class="thps-crosshair-tooltip__row">
+                <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
+                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+              </div>
+            }
+          }
+          @for (cfg of band3Series; track cfg.key) {
+            @if (hr[cfg.key] !== null) {
+              <div class="thps-crosshair-tooltip__row">
+                <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
+                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+              </div>
+            }
+          }
+          @for (cfg of band4Series; track cfg.key) {
+            @if (hr[cfg.key] !== null) {
+              <div class="thps-crosshair-tooltip__row">
+                <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
+                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+
     <div class="thps-table-panel">
       <h3 class="thps-table-title">Registros históricos</h3>
       <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="thps-table">
@@ -39,7 +236,6 @@
           <tr>
             <th>Fecha</th>
             <th>Dosis inyectada real</th>
-            <th>Volumen real</th>
             <th>THPS residual</th>
             <th>BSR planctónica</th>
             <th>BPA planctónica</th>
@@ -50,9 +246,8 @@
         <ng-template pTemplate="body" let-record>
           <tr>
             <td>{{ record.date | date: "d 'de' MMM 'de' y" }}</td>
-            <td>{{ record.actualInjectedDose ?? '—' }}</td>
-            <td>{{ record.actualVolume ?? '—' }}</td>
-            <td>{{ record.residualThps ?? '—' }}</td>
+            <td>{{ record.realInjectedDose ?? '—' }}</td>
+            <td>{{ record.residual_per ?? '—' }}</td>
             <td>{{ record.bsrPlanct ?? '—' }}</td>
             <td>{{ record.bpaPlanct ?? '—' }}</td>
             <td>{{ record.bhtPlanct ?? '—' }}</td>
@@ -61,7 +256,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="8">Sin registros para los filtros seleccionados.</td>
+            <td colspan="7">Sin registros para los filtros seleccionados.</td>
           </tr>
         </ng-template>
       </p-table>

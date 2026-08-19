@@ -121,3 +121,133 @@
   font-weight: 700;
   color: var(--color-primary);
 }
+
+/* --- Bandas sincronizadas (Aplicación / Residual / FWV / Microbiología) --- */
+.thps-bands {
+  margin-bottom: 32px;
+  gap: 1.25rem;
+}
+
+.thps-band {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+}
+
+.thps-band--last {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.thps-band__heading {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.thps-band__chart {
+  height: 200px;
+}
+
+.thps-band--last .thps-band__chart {
+  height: 240px;
+}
+
+.thps-band__chart p-chart {
+  display: block;
+  height: 100%;
+}
+
+.thps-band__empty {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-faint);
+}
+
+.thps-band__empty i {
+  font-size: 1.75rem;
+}
+
+/* --- Controles por serie: mostrar/ocultar y tipo de gráfica (barras/línea) --- */
+.thps-band__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.thps-series-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-white);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.thps-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary-sub);
+  flex-shrink: 0;
+}
+
+.thps-series-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.thps-series-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* --- Tooltip único, sincronizado con el crosshair de las 4 bandas --- */
+.thps-crosshair-tooltip {
+  position: fixed;
+  z-index: 1000;
+  transform: translate(16px, -8px);
+  min-width: 200px;
+  max-width: 280px;
+  background: var(--color-primary-mid);
+  color: var(--color-white);
+  border-radius: 0.5rem;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  font-size: 0.8rem;
+}
+
+.thps-crosshair-tooltip__date {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.thps-crosshair-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.thps-crosshair-tooltip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
