@@ -22,6 +22,7 @@
   --color-gray-mid:       #7c8799;
   --color-gray-dark:      #43474F;
   --color-background:     #f4f6fb;
+  --color-border:         #e2e8f2;
 
   /* — Paleta semántica — */
   --color-green:          #287a2c;
@@ -41,6 +42,12 @@
   --shadow-sm: 0 2px 8px rgba(0, 52, 102, 0.06);
   --shadow-md: 0 8px 24px rgba(0, 52, 102, 0.10);
   --shadow-lg: 0 16px 40px rgba(0, 52, 102, 0.2);
+
+  /* Sombra Img - Text */
+  --shadow-img: 0 2px 8px rgba(0, 52, 102, 0.06);
+
+  /* Radios */
+  --radius-md: 14px;
 }
 
 * {
@@ -74,6 +81,15 @@ body {
   gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); */
+}
+
+/* ------------------ Recuadro blanco reutilizable (anidable) ------------------ */
+.panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
 }
 
 /* ------------------ Botones genéricos para modales ------------------ */

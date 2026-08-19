@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { provideLottieOptions } from 'ngx-lottie';
@@ -30,6 +30,7 @@ import { loadingInterceptor } from './core/shared/interceptors/loading.intercept
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    { provide: LOCALE_ID, useValue: 'es-CO' },
     provideRouter(routes),
     provideHttpClient(withInterceptors([loadingInterceptor])),
     providePrimeNG({

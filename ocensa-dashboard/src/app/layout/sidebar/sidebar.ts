@@ -35,6 +35,7 @@ export class Sidebar {
         { label: 'Microbiología', icon: 'pi pi-search' },
         { label: 'Fisicoquímica', icon: 'pi pi-chart-line' },
         { label: 'Corrosión', icon: 'pi pi-exclamation-triangle' },
+        { label: 'Tratamiento y Residual', icon: 'pi pi-shield', routerLink: '/thps-tolerance' },
       ],
     },
     {

@@ -47,14 +47,65 @@
   } @else {
     <p>Selecciona un tanque para ver el resumen.</p>
   }
+
+
+  <div class="layout">
+    <aside class="col-left panel last-values">
+      <h4 class="last-values__title">Porqué un tanque requiere atención</h4>
+      <p class="last-values__subtitle">Valores reales y criterios transparentes; esta vista no crea un ranking.</p>
+      <div class="last-values_panel">
+        <div class="last-values__header">
+          <div class="last-values__icon">
+            <img src="images/drop.png" alt="" />
+          </div>
+          <div class="last-values__heading">
+            <h3 class="last-values__title">Últimos valores registrados</h3>
+            <p class="last-values__subtitle">
+              @if (lastMeasurementDate()) {
+                corte {{ lastMeasurementDate() | date: "d 'de' MMM 'de' y" }}
+              } @else {
+                Sin fecha de corte disponible
+              }
+            </p>
+          </div>
+        </div>
+
+        <div class="last-values-list">
+          @for (row of lastValueRows(); track row.key) {
+            <div class="last-value-row">
+              <div class="last-value-row__main">
+                <span class="last-value-row__label">{{ row.label }}</span>
+                <span class="last-value-row__value">
+                  @if (row.value === null || row.value === undefined) {
+                    —
+                  } @else if (row.key === 'company') {
+                    {{ row.value }}
+                  } @else {
+                    {{ row.value | number: '1.0-2' }}
+                  }
+                </span>
+              </div>
+              <span class="last-value-row__date">
+                {{ row.date ? (row.date | date: "d 'de' MMM 'de' y") : '—' }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="last-values-note">
+        <i class="pi pi-info-circle last-values-note__icon"></i>
+        <span class="last-values-note__text">
+          Variación de agua = rango intercuartílico de FWV reportada.
+          Galones = mediana por aplicación; no suma mensual.
+        </span>
+      </div>
+    </aside>
+    <main class="col-right panel">
+
+    </main>
+  </div>
+
 </div>
 
-<div class="flex flex-col md:flex-row gap-4 h-full">
-  <div class="flex-1">
-    
-  </div>
-  <div class="flex-1">
-    
-  </div>
-  
-</div>
+

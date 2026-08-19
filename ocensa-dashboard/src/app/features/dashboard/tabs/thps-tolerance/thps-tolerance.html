@@ -1,1 +1,72 @@
-<p>thps-tolerance works!</p>
+<div class="thps-container">
+  <div class="thps-header">
+    <h1 class="thps-title">Tolerancia THPS</h1>
+    @if (totalRecords()) {
+      <span class="thps-registros-info">{{ totalRecords() | number }} registros</span>
+    }
+  </div>
+
+  @if (review.isLoading()) {
+    <p>Cargando revisión de THPS…</p>
+  } @else if (review.error()) {
+    <p>No se pudo cargar la revisión de THPS.</p>
+  } @else if (metrics().length) {
+    <div class="metrics-grid">
+      @for (metric of metrics(); track metric.title) {
+        <div class="metric-card-wrapper">
+          <div [class]="['metric-card', 'metric-' + metric.color]">
+            <div class="metric-header">
+              <h3 class="metric-title">{{ metric.title }}</h3>
+              <i [class]="metric.icon + ' metric-icon'"></i>
+            </div>
+            <div class="metric-value">
+              @if (metric.value === null || metric.value === undefined) {
+                —
+              } @else {
+                {{ metric.value | number: '1.0-2' }}
+              }
+              <span class="metric-unit">{{ metric.unit }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="thps-table-panel">
+      <h3 class="thps-table-title">Registros históricos</h3>
+      <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="thps-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Dosis inyectada real</th>
+            <th>Volumen real</th>
+            <th>THPS residual</th>
+            <th>BSR planctónica</th>
+            <th>BPA planctónica</th>
+            <th>BHT planctónica</th>
+            <th>BAnT planctónica</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-record>
+          <tr>
+            <td>{{ record.date | date: "d 'de' MMM 'de' y" }}</td>
+            <td>{{ record.actualInjectedDose ?? '—' }}</td>
+            <td>{{ record.actualVolume ?? '—' }}</td>
+            <td>{{ record.residualThps ?? '—' }}</td>
+            <td>{{ record.bsrPlanct ?? '—' }}</td>
+            <td>{{ record.bpaPlanct ?? '—' }}</td>
+            <td>{{ record.bhtPlanct ?? '—' }}</td>
+            <td>{{ record.bAntPlanct ?? '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="8">Sin registros para los filtros seleccionados.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  } @else {
+    <p>Selecciona un tanque para ver la revisión de THPS.</p>
+  }
+</div>

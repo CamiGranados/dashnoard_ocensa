@@ -20,6 +20,10 @@ export const routes: Routes = [{
         path: 'corrosion',
         loadComponent: () => import('./features/dashboard/tabs/corrosion/corrosion')
           .then(m => m.Corrosion),
+      }, {
+        path: 'thps-tolerance',
+        loadComponent: () => import('./features/dashboard/tabs/thps-tolerance/thps-tolerance')
+          .then(m => m.ThpsTolerance),
       }],
     }],
 }];

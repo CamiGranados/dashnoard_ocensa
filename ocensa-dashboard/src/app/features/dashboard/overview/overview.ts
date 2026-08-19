@@ -3,7 +3,25 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { OverviewService } from '../../../core/services/overview.service';
+import { LastValues } from '../../../core/models/overview.model';
 // import { GridModule } from 'primeng/grid';
+
+type LastValueKey = keyof Omit<LastValues, 'lastMeasurementDate'>;
+
+interface LastValueRowConfig {
+  key: LastValueKey;
+  label: string;
+}
+
+const LAST_VALUE_ROWS: LastValueRowConfig[] = [
+  { key: 'bAnT', label: 'Bacterias anaerobias totales (BAnT)' },
+  { key: 'bht', label: 'Bacterias heterótrofas totales (BHT)' },
+  { key: 'bpa', label: 'Bacterias productoras de ácido (BPA)' },
+  { key: 'bsr', label: 'Bacterias sulfato-reductoras (BSR)' },
+  { key: 'thps', label: 'Tolerancia a THPS' },
+  { key: 'reportedFwv', label: 'FWV reportada' },
+  { key: 'company', label: 'Empresa' },
+];
 
 @Component({
   selector: 'app-overview',
@@ -20,7 +38,6 @@ export class Overview{
     const data = this.summary.value();
     const resume = data?.summary;
     if (!resume) return [];
-    console.log(data)
 
     return [
       {
@@ -57,6 +74,27 @@ export class Overview{
       },
     ];
   });
+
+  readonly lastValueRows = computed(() => {
+    const lastValues = this.summary.value()?.lastValues;
+    if (!lastValues) return [];
+
+    const safeLastValues: Partial<LastValues> = lastValues;
+
+    return LAST_VALUE_ROWS.map(({ key, label }) => {
+      const measurement = safeLastValues[key];
+      return {
+        key,
+        label,
+        value: measurement?.value ?? null,
+        date: measurement?.date ?? null,
+      };
+    });
+  });
+
+  readonly lastMeasurementDate = computed(
+    () => this.summary.value()?.lastValues?.lastMeasurementDate ?? null,
+  );
 
   registrosVisibles = 2850;
   constructor() { }
