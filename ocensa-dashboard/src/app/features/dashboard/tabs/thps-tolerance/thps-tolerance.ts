@@ -107,6 +107,7 @@ function buildLinearDataset(rows: ThpsChartRow[], cfg: BandSeriesConfig, type: '
     borderWidth: type === 'line' ? 2 : 0,
     pointRadius: type === 'line' ? 2 : undefined,
     pointHoverRadius: type === 'line' ? 4 : undefined,
+    barThickness: type === 'bar' ? 8 : undefined,
     tension: 0.25,
     spanGaps: true,
     data: rows.map((r) => ({ x: r.timestamp, y: r[cfg.key] })),
@@ -286,7 +287,6 @@ export class ThpsTolerance {
 
   readonly xDomain = computed(() => {
     const rows = this.sortedRows();
-    // return { min: rows[0]?.timestamp ?? 0, max: rows[rows.length - 1]?.timestamp ?? 0 };
     return { min: rows[0]?.timestamp ?? 0, max: rows[rows.length - 1]?.timestamp ?? 0 };
   });
 

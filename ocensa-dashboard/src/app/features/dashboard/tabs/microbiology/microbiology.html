@@ -1,1 +1,48 @@
-<p>microbiology works!</p>
+<div class="micro-container">
+  <div class="micro-header">
+    <h1 class="micro-title">Microbiología</h1>
+    @if (totalRecords()) {
+      <span class="micro-registros-info">{{ totalRecords() | number }} registros</span>
+    }
+  </div>
+
+  @if (review.isLoading()) {
+    <p>Cargando datos de microbiología…</p>
+  } @else if (review.error()) {
+    <p>No se pudo cargar la información de microbiología.</p>
+  } @else if (records().length) {
+    <div class="micro-table-panel">
+      <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="micro-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo de muestreo</th>
+            <th>BSR planctónica</th>
+            <th>BPA planctónica</th>
+            <th>BHT planctónica</th>
+            <th>BAnT planctónica</th>
+            <th>THPS %</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-record>
+          <tr>
+            <td>{{ record.date | date: "d 'de' MMM 'de' y" }}</td>
+            <td>{{ record.standardSamplingType || '—' }}</td>
+            <td>{{ record.bsrPlanct ?? '—' }}</td>
+            <td>{{ record.bpaPlanct ?? '—' }}</td>
+            <td>{{ record.bhtPlanct ?? '—' }}</td>
+            <td>{{ record.bAntPlanct ?? '—' }}</td>
+            <td>{{ record.thpsPercent ?? '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7">Sin registros para los filtros seleccionados.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  } @else {
+    <p>Selecciona un tanque para ver los datos de microbiología.</p>
+  }
+</div>

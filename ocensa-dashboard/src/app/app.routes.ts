@@ -24,6 +24,10 @@ export const routes: Routes = [{
         path: 'thps-tolerance',
         loadComponent: () => import('./features/dashboard/tabs/thps-tolerance/thps-tolerance')
           .then(m => m.ThpsTolerance),
+      }, {
+        path: 'microbiology',
+        loadComponent: () => import('./features/dashboard/tabs/microbiology/microbiology')
+          .then(m => m.Microbiology),
       }],
     }],
 }];

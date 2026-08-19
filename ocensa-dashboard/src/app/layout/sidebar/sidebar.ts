@@ -32,7 +32,7 @@ export class Sidebar {
       icon: 'pi pi-verified',
       expanded: true,
       items: [
-        { label: 'Microbiología', icon: 'pi pi-search' },
+        { label: 'Microbiología', icon: 'pi pi-search', routerLink: '/microbiology' },
         { label: 'Fisicoquímica', icon: 'pi pi-chart-line' },
         { label: 'Corrosión', icon: 'pi pi-exclamation-triangle' },
         { label: 'Tratamiento y Residual', icon: 'pi pi-shield', routerLink: '/thps-tolerance' },
