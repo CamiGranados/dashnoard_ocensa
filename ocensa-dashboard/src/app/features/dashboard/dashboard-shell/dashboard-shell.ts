@@ -16,9 +16,15 @@ export class DashboardShell {
   private readonly filtersState = inject(FiltersStateService);
 
   readonly activeTank = computed(() => this.filtersState.tanque() ?? '—');
-  readonly publishedAt = computed(() => this.releaseStore.release()?.publishedAt ?? null);
-  readonly datasetStatus = computed(() =>
-    this.releaseStore.hasPublishedRelease() ? 'Publicado' : 'Bloqueado',
-  );
+  readonly approvedAt = computed(() => this.releaseStore.release()?.approvedAt ?? null);
+  readonly datasetStatus = computed(() => {
+    if (this.releaseStore.hasPublishedRelease()) return 'Publicado';
+    if (this.releaseStore.isDevelopmentAnalysis()) {
+      return 'Desarrollo · descriptivo provisional';
+    }
+    return 'Bloqueado';
+  });
   readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
+  readonly hasQueryableRelease = this.releaseStore.hasQueryableRelease;
+  readonly isDevelopmentAnalysis = this.releaseStore.isDevelopmentAnalysis;
 }

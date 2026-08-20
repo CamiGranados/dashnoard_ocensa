@@ -2,4 +2,7 @@
 
 Aplicación Angular del dashboard técnico. El código ejecutable está en [`ocensa-dashboard/`](ocensa-dashboard/README.md).
 
-La rama `codex/thps-p0-safety-contracts` es un corte de seguridad y trazabilidad para revisión. No debe fusionarse ni desplegarse sin CI verde y sin que el backend publique releases persistidos y auditables.
+La rama de trabajo `codex/thps-phase3-functional-analytics` añade los primeros
+slices descriptivos trazables sobre el corte seguro. No debe fusionarse ni
+desplegarse sin CI verde en frontend y backend, prueba SQL aislada y revisión de
+las decisiones científicas que permanecen bloqueadas.

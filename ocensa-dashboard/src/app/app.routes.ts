@@ -25,17 +25,29 @@ export const routes: Routes = [{
         loadComponent: () => import('./features/dashboard/tabs/physicochemistry/physicochemistry')
           .then(m => m.Physicochemistry),
       }, {
+        path: 'corrosion/coupon',
+        loadComponent: () => import('./features/dashboard/corrosion-coupon/corrosion-coupon')
+          .then(m => m.CorrosionCoupon),
+      }, {
         path: 'corrosion',
-        loadComponent: () => import('./features/dashboard/tabs/corrosion/corrosion')
-          .then(m => m.Corrosion),
+        redirectTo: 'corrosion/coupon',
+        pathMatch: 'full',
       }, {
         path: 'thps-tolerance',
-        loadComponent: () => import('./features/dashboard/tabs/thps-tolerance/thps-tolerance')
-          .then(m => m.ThpsTolerance),
+        redirectTo: '',
+        pathMatch: 'full',
+      }, {
+        path: 'microbiology/distribution',
+        loadComponent: () => import('./features/dashboard/microbiology-distribution/microbiology-distribution')
+          .then(m => m.MicrobiologyDistribution),
       }, {
         path: 'microbiology',
-        loadComponent: () => import('./features/dashboard/tabs/microbiology/microbiology')
-          .then(m => m.Microbiology),
+        redirectTo: 'microbiology/distribution',
+        pathMatch: 'full',
+      }, {
+        path: 'coverage',
+        loadComponent: () => import('./features/dashboard/coverage/coverage')
+          .then(m => m.Coverage),
       }],
     }],
 }];

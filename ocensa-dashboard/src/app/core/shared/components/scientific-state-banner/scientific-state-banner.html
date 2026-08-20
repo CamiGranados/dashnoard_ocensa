@@ -1,0 +1,22 @@
+<section
+  class="state-banner"
+  [class]="'state-banner state-banner--' + view().tone"
+  [attr.role]="view().tone === 'danger' ? 'alert' : 'status'"
+  [attr.aria-live]="view().tone === 'danger' ? 'assertive' : 'polite'"
+  [attr.data-blocking]="view().blocking"
+>
+  <i [class]="view().icon" aria-hidden="true"></i>
+  <div class="state-banner__body">
+    <p class="state-banner__title">{{ label() || view().title }}</p>
+    @if (message()) {
+      <p class="state-banner__message">{{ message() }}</p>
+    }
+    @if (warnings().length) {
+      <ul class="state-banner__warnings" aria-label="Advertencias del resultado">
+        @for (warning of warnings(); track warning) {
+          <li>{{ warning }}</li>
+        }
+      </ul>
+    }
+  </div>
+</section>

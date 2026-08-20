@@ -70,7 +70,8 @@
               "buildTarget": "ocensa-dashboard:build:production"
             },
             "development": {
-              "buildTarget": "ocensa-dashboard:build:development"
+              "buildTarget": "ocensa-dashboard:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

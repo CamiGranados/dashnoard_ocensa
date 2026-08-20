@@ -1,9 +1,23 @@
+<button
+  type="button"
+  class="app-sidebar-toggle"
+  aria-label="Abrir navegación principal"
+  aria-controls="primary-navigation"
+  [attr.aria-expanded]="visible()"
+  (click)="openNavigation()"
+>
+  <i class="pi pi-bars" aria-hidden="true"></i>
+  <span>Menú</span>
+</button>
+
 <p-drawer
-  [visible]="true"
-  [modal]="false"
-  [dismissible]="false"
-  [closeOnEscape]="false"
-  [showCloseIcon]="false"
+  id="primary-navigation"
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="mobile()"
+  [dismissible]="mobile()"
+  [closeOnEscape]="mobile()"
+  [showCloseIcon]="mobile()"
   position="left"
   styleClass="app-sidebar"
 >
@@ -19,7 +33,9 @@
     </div>
   </ng-template>
 
-  <p-panelmenu [model]="items" [multiple]="true" class="app-sidebar__menu" />
+  <nav aria-label="Navegación principal">
+    <p-panelmenu [model]="items" [multiple]="true" class="app-sidebar__menu" />
+  </nav>
 
   <ng-template #footer>
     <div class="app-sidebar_footer">

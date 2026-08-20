@@ -1,0 +1,231 @@
+<section class="h08-page" aria-labelledby="h08-title">
+  <header class="h08-header">
+    <div>
+      <p class="h08-eyebrow">H08 · perfil descriptivo microbiológico</p>
+      <h1 id="h08-title">Distribución microbiológica por grupo</h1>
+      <p>
+        Positivos exactos en Bac/mL y estados no exactos separados. No demuestra eficacia,
+        cumplimiento ni causalidad operacional.
+      </p>
+    </div>
+    <span>THPS.MICRO.GROUP.CONTROL.V1</span>
+  </header>
+
+  @if (failure(); as failed) {
+    <app-blocked-chart-placeholder
+      [status]="failed.status"
+      title="Distribución H08 no publicable"
+      [message]="failed.message"
+      [reasons]="failed.reasons"
+      requiredAction="Servir un ChartSpec H08 versionado, trazable y autorizado para el release solicitado."
+      owner="Datos / API"
+      reference="H08 · THPS.MICRO.GROUP.CONTROL.V1"
+    />
+  } @else if (!hasQueryableRelease()) {
+    <app-release-gate />
+  } @else if (loading()) {
+    <div class="h08-loading" role="status" aria-live="polite" aria-busy="true">
+      <app-spinner size="64px" />
+      <p>Consultando la distribución H08…</p>
+    </div>
+  } @else if (result(); as distribution) {
+    <app-result-identity-strip [identity]="distribution" />
+
+    @if (!visibleResult()) {
+      <app-blocked-chart-placeholder
+        [status]="distribution.approvalStatus"
+        title="Distribución microbiológica bloqueada"
+        [message]="distribution.approvalLabel"
+        [reasons]="distribution.warnings"
+        requiredAction="Autorizar explícitamente el perfil descriptivo y su población exacta."
+        owner="Microbiología / auditoría"
+        reference="ChartSpec H08"
+      />
+    } @else {
+      <app-scientific-state-banner
+        [status]="distribution.approvalStatus"
+        [label]="distribution.approvalLabel"
+        [message]="
+          distribution.approvalStatus === 'provisional_descriptive'
+            ? 'Perfil descriptivo provisional. No usar como conclusión de control, eficacia o desempeño.'
+            : 'El release, la población y el ChartSpec fueron declarados por la API.'
+        "
+        [warnings]="distribution.warnings"
+      />
+
+      @if (distribution.partialPeriod) {
+        <app-scientific-state-banner
+          status="partial_period"
+          message="El periodo mostrado es parcial y conserva el corte declarado por la API."
+        />
+      }
+
+      <div class="h08-watermarked">
+        <span class="h08-watermark" aria-hidden="true">PERFIL DESCRIPTIVO · NO OPERACIONAL</span>
+
+        @for (view of facetViews(); track view.facet.facetId) {
+          <article class="h08-facet" [attr.aria-labelledby]="view.facet.facetId + '-title'">
+            <div class="h08-facet__heading">
+              <div>
+                <p>{{ view.facet.tankLabel }} · grupo {{ view.facet.group }}</p>
+                <h2 [id]="view.facet.facetId + '-title'">{{ view.facet.label }}</h2>
+                <span>
+                  Positivos exactos declarados: {{ view.facet.distributionN }}/{{
+                    view.facet.eligibleN
+                  }}
+                  @if (view.facet.coverageDisplay) {
+                    · {{ view.facet.coverageDisplay }}
+                  }
+                </span>
+                <span>TraceSet {{ view.facet.traceSetId }}</span>
+                <app-analytical-trace-link
+                  [endpoint]="view.facet.traceEndpoint"
+                  label="Traza de faceta"
+                  [contextLabel]="view.facet.label"
+                />
+              </div>
+              <app-equivalent-representation-selector
+                [series]="view.facet.series"
+                [selectedMode]="view.mode"
+                (modeChange)="setMode(view.facet, $event)"
+              />
+            </div>
+
+            <div class="h08-reference" role="note">
+              <strong>{{ distribution.thresholds[0].label }}</strong>
+              <span>Referencia visible; cero, ND y censura no se posicionan sobre el eje log.</span>
+            </div>
+
+            <div
+              class="h08-chart"
+              role="img"
+              [attr.aria-label]="
+                'Distribución de positivos exactos para ' +
+                view.facet.label +
+                '. Eje logarítmico en Bac/mL.'
+              "
+            >
+              <p-chart
+                aria-hidden="true"
+                type="scatter"
+                [data]="view.data"
+                [options]="view.options"
+              />
+            </div>
+
+            @if (view.mode === 'box' && view.facet.boxSummary; as summary) {
+              <dl class="h08-summary" aria-label="Resumen de cinco números calculado por la API">
+                <div>
+                  <dt>Mín.</dt>
+                  <dd>{{ summary.minDisplay }}</dd>
+                </div>
+                <div>
+                  <dt>Q1</dt>
+                  <dd>{{ summary.q1Display }}</dd>
+                </div>
+                <div>
+                  <dt>Mediana</dt>
+                  <dd>{{ summary.medianDisplay }}</dd>
+                </div>
+                <div>
+                  <dt>Q3</dt>
+                  <dd>{{ summary.q3Display }}</dd>
+                </div>
+                <div>
+                  <dt>Máx.</dt>
+                  <dd>{{ summary.maxDisplay }}</dd>
+                </div>
+              </dl>
+              <div class="h08-summary-trace">
+                <app-analytical-trace-link
+                  [endpoint]="summary.traceEndpoint"
+                  label="Traza del resumen"
+                  [contextLabel]="'caja de ' + view.facet.label"
+                />
+              </div>
+            }
+
+            <section class="h08-lanes" [attr.aria-labelledby]="view.facet.facetId + '-lanes'">
+              <h3 [id]="view.facet.facetId + '-lanes'">
+                Carriles de estados fuera de la distribución exacta
+              </h3>
+              <ul>
+                @for (lane of view.facet.statusLanes; track lane.status) {
+                  <li [style.--lane-color]="lane.color">
+                    <span aria-hidden="true">{{ lane.symbol }}</span>
+                    <strong>{{ lane.label }}</strong>
+                    <small>{{ lane.displayCount }}</small>
+                  </li>
+                }
+              </ul>
+              <p>
+                Los conteos son entregados por la API; estas observaciones no reciben un piso
+                artificial.
+              </p>
+            </section>
+
+            <div
+              class="h08-table-wrap"
+              tabindex="0"
+              [attr.aria-label]="'Tabla equivalente paginada de ' + view.facet.label"
+            >
+              <p-table
+                [value]="view.facet.points"
+                [paginator]="view.facet.points.length > 25"
+                [rows]="25"
+                [rowsPerPageOptions]="[25, 50]"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Filas {first}–{last} de {totalRecords}"
+                styleClass="h08-data-table"
+              >
+                <ng-template pTemplate="caption">
+                  <span>
+                    Página de la misma población y ResultSet {{ distribution.resultSetId }}. El
+                    valor raw, estado y celdas fuente se conservan sin imputación.
+                  </span>
+                </ng-template>
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Tanque / drenaje</th>
+                    <th scope="col">Valor raw</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Celda fuente</th>
+                    <th scope="col">Punto</th>
+                    <th scope="col">Traza</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-point>
+                  <tr [attr.data-point-id]="point.pointId">
+                    <td>{{ point.sampleDate || '—' }}</td>
+                    <td>{{ point.tank }}{{ point.drain ? ' · ' + point.drain : '' }}</td>
+                    <td>
+                      {{ point.rawValue ?? '—' }} <small>{{ point.qualifier || '' }}</small>
+                    </td>
+                    <td>
+                      <strong>{{ point.statusLabel }}</strong>
+                    </td>
+                    <td>{{ point.sourceCellIds.join(', ') }}</td>
+                    <td>{{ point.pointId }}</td>
+                    <td>
+                      <app-analytical-trace-link
+                        [endpoint]="point.traceEndpoint"
+                        [contextLabel]="'punto ' + point.pointId"
+                      />
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else {
+    <app-blocked-chart-placeholder
+      status="no_eligible_data"
+      title="Sin distribución H08"
+      message="La API no entregó una población trazable para los filtros activos."
+    />
+  }
+</section>

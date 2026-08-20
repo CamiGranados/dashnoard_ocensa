@@ -1,0 +1,150 @@
+@if (safeEndpoint()) {
+  <button
+    #trigger
+    class="analytical-trace-link"
+    type="button"
+    [attr.aria-expanded]="viewerOpen()"
+    [attr.aria-controls]="viewerId"
+    [attr.aria-label]="accessibleLabel()"
+    (click)="openViewer()"
+  >
+    <i class="pi pi-search" aria-hidden="true"></i>
+    <span>{{ label() }}</span>
+  </button>
+}
+
+@if (viewerOpen()) {
+  <div class="trace-backdrop" (click)="closeViewer()">
+    <section
+      #viewer
+      class="trace-viewer"
+      role="dialog"
+      aria-modal="true"
+      [id]="viewerId"
+      [attr.aria-labelledby]="viewerId + '-title'"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="onViewerKeydown($event)"
+    >
+      <header class="trace-viewer__header">
+        <div>
+          <p>TRACE.V1 · metadatos autorizados</p>
+          <h2 [id]="viewerId + '-title'">{{ viewerTitle() }}</h2>
+        </div>
+        <button
+          type="button"
+          class="trace-viewer__close"
+          aria-label="Cerrar visor"
+          (click)="closeViewer()"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <p class="trace-viewer__notice">
+        Solo se muestran coordenadas, clasificación y huellas autorizadas; los contenidos de origen
+        y valores de medición permanecen ocultos.
+      </p>
+
+      @if (loading()) {
+        <div class="trace-viewer__state" role="status" aria-live="polite" aria-busy="true">
+          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+          Consultando página {{ requestedPage() }}…
+        </div>
+      } @else if (errorMessage(); as error) {
+        <div class="trace-viewer__state trace-viewer__state--error" role="alert">
+          <strong>Trazabilidad no verificable</strong>
+          <span>{{ error }}</span>
+          <button type="button" (click)="retry()">Reintentar</button>
+        </div>
+      } @else if (response(); as trace) {
+        <dl class="trace-viewer__identity">
+          <div>
+            <dt>ResultSet</dt>
+            <dd>{{ trace.resultSetId }}</dd>
+          </div>
+          <div>
+            <dt>Punto</dt>
+            <dd>{{ trace.pointId }}</dd>
+          </div>
+          <div>
+            <dt>Celdas fuente</dt>
+            <dd>{{ trace.totalCells }}</dd>
+          </div>
+        </dl>
+
+        @if (trace.cells.length) {
+          <div
+            class="trace-viewer__table-wrap"
+            tabindex="0"
+            aria-label="Tabla desplazable de metadatos de trazabilidad"
+          >
+            <table>
+              <caption>
+                Metadatos de celdas fuente; no contiene valores de medición.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Celda</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Encabezado</th>
+                  <th scope="col">Regla</th>
+                  <th scope="col">Calificador / unidad</th>
+                  <th scope="col">Huella de linaje</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (cell of trace.cells; track cell.sourceCellId) {
+                  <tr>
+                    <td>
+                      <code>{{ cell.sourceCellId }}</code>
+                    </td>
+                    <td>{{ cell.status }}</td>
+                    <td>{{ cell.headerText ?? '—' }}</td>
+                    <td>
+                      <code>{{ cell.parseRuleId }}</code>
+                    </td>
+                    <td>{{ cell.qualifier ?? '—' }} / {{ cell.unit ?? '—' }}</td>
+                    <td>
+                      <code>{{ cell.lineageSha256 }}</code>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="trace-viewer__empty">
+            Este punto no contiene celdas fuente en la población exacta.
+          </p>
+        }
+
+        <footer class="trace-viewer__footer">
+          <span>
+            @if (trace.totalPages) {
+              Página {{ trace.page }} de {{ trace.totalPages }}
+            } @else {
+              Sin páginas de celdas
+            }
+          </span>
+          <div class="trace-viewer__actions">
+            <button type="button" [disabled]="!trace.hasPreviousPage" (click)="previousPage()">
+              <i class="pi pi-chevron-left" aria-hidden="true"></i>
+              Anterior
+            </button>
+            <button type="button" [disabled]="!trace.hasNextPage" (click)="nextPage()">
+              Siguiente
+              <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
+            @if (currentJsonEndpoint(); as jsonEndpoint) {
+              <a [href]="jsonEndpoint" target="_blank" rel="noopener noreferrer">
+                JSON técnico
+                <i class="pi pi-external-link" aria-hidden="true"></i>
+              </a>
+            }
+          </div>
+        </footer>
+      }
+    </section>
+  </div>
+}

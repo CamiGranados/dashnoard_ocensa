@@ -96,6 +96,10 @@
   color: #fbbf24;
 }
 
+.data-upload_meta-value--uat {
+  color: #ffb07c;
+}
+
 .data-upload_meta-value--status i {
   font-size: 8px;
   color: #22c55e;

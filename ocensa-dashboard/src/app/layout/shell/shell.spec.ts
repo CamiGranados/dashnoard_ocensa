@@ -21,4 +21,13 @@ describe('Shell', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('provides a keyboard skip link to the main content', () => {
+    fixture.detectChanges();
+    const link = fixture.nativeElement.querySelector('.shell__skip-link');
+    const main = fixture.nativeElement.querySelector('#main-content');
+
+    expect(link?.getAttribute('href')).toBe('#main-content');
+    expect(main).not.toBeNull();
+  });
 });

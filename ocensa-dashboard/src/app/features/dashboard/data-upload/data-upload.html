@@ -73,6 +73,12 @@
         <strong>Release publicado.</strong> {{ importState().message }}
       </p-message>
     }
+    @case ('approved_uat') {
+      <p-message severity="warn" [closable]="false">
+        <strong>Desarrollo · descriptivo provisional.</strong>
+        {{ importState().message }} Solo se habilita Cobertura del archivo; no es publicación productiva.
+      </p-message>
+    }
     @case ('blocked') {
       <p-message severity="warn" [closable]="false">
         <strong>Publicación bloqueada · {{ importState().code }}</strong> {{ importState().message }}
@@ -113,7 +119,11 @@
   <div class="data-upload__notes">
     <p-message severity="warn" [closable]="false" class="data-upload__note">
       <strong>Control de decisión</strong>
-      <p>Seleccionar un archivo nuevo invalida inmediatamente cualquier release y resultado anterior. Solo una respuesta explícita <em>published</em> vuelve a habilitar el dashboard.</p>
+      <p>
+        Seleccionar un archivo nuevo invalida inmediatamente cualquier release y resultado anterior.
+        <em>published</em> habilita los módulos productivos; <em>approved_uat</em> habilita
+        únicamente los módulos descriptivos incluidos en la lista autorizada de desarrollo.
+      </p>
     </p-message>
   </div>
 

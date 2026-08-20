@@ -1,0 +1,242 @@
+:host {
+  display: inline-flex;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+.analytical-trace-link,
+.trace-viewer__actions button,
+.trace-viewer__actions a,
+.trace-viewer__state button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  min-height: 1.9rem;
+  padding: 0.3rem 0.5rem;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border: 1px solid #b6cad8;
+  border-radius: 7px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.analytical-trace-link:hover,
+.trace-viewer__actions button:hover:not(:disabled),
+.trace-viewer__actions a:hover,
+.trace-viewer__state button:hover {
+  color: #fff;
+  background: var(--color-primary-mid);
+  border-color: var(--color-primary-mid);
+}
+
+button:focus-visible,
+a:focus-visible,
+.trace-viewer:focus-visible,
+.trace-viewer__table-wrap:focus-visible {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+.trace-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(3 18 35 / 72%);
+}
+
+.trace-viewer {
+  display: grid;
+  width: min(72rem, 100%);
+  max-height: min(46rem, calc(100vh - 2rem));
+  overflow: auto;
+  color: var(--color-gray-dark);
+  background: #fff;
+  border: 1px solid #9fb3c5;
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 32%);
+}
+
+.trace-viewer__header,
+.trace-viewer__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.trace-viewer__header {
+  color: #fff;
+  background: linear-gradient(130deg, #061c3c, #1c4463);
+}
+
+.trace-viewer__header p,
+.trace-viewer__header h2 {
+  margin: 0;
+}
+
+.trace-viewer__header p {
+  color: #8fc8df;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trace-viewer__header h2 {
+  margin-top: 0.2rem;
+  font-size: 1rem;
+}
+
+.trace-viewer__close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 52%);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.trace-viewer__notice,
+.trace-viewer__empty {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  color: var(--color-muted);
+  background: #fff4eb;
+  border-bottom: 1px solid #ffd6bd;
+  font-size: 0.75rem;
+}
+
+.trace-viewer__identity {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+
+.trace-viewer__identity div {
+  min-width: 0;
+  padding: 0.55rem;
+  background: var(--color-primary-light);
+  border-radius: 8px;
+}
+
+.trace-viewer__identity dt {
+  color: var(--color-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.trace-viewer__identity dd {
+  margin: 0.18rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.trace-viewer__state {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  min-height: 11rem;
+  padding: 2rem;
+  place-content: center;
+  color: var(--color-primary);
+}
+
+.trace-viewer__state--error {
+  color: #8f1d14;
+  background: #fff5f4;
+}
+
+.trace-viewer__table-wrap {
+  margin: 0 1rem;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  min-width: 62rem;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+
+caption {
+  padding: 0.6rem;
+  color: var(--color-muted);
+  text-align: start;
+}
+
+th,
+td {
+  padding: 0.55rem;
+  text-align: start;
+  vertical-align: top;
+  border-top: 1px solid var(--color-border);
+}
+
+th {
+  color: #fff;
+  background: var(--color-primary);
+}
+
+td code {
+  color: var(--color-primary-mid);
+  overflow-wrap: anywhere;
+}
+
+.trace-viewer__footer {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.trace-viewer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.trace-viewer__actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .trace-viewer__header,
+  .trace-viewer__footer {
+    align-items: stretch;
+  }
+
+  .trace-viewer__footer {
+    flex-direction: column;
+  }
+
+  .trace-viewer__identity {
+    grid-template-columns: 1fr;
+  }
+
+  .trace-viewer__actions {
+    justify-content: flex-start;
+  }
+}

@@ -87,6 +87,8 @@ export class DataUpload {
       this.releaseStore.completeImport(response);
       if (this.releaseStore.hasPublishedRelease()) {
         await this.router.navigate(['/']);
+      } else if (this.releaseStore.hasQueryableRelease()) {
+        await this.router.navigate(['/coverage']);
       }
     } catch (error) {
       this.releaseStore.failImport(classifyImportFailure(error));

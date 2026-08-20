@@ -1,10 +1,13 @@
 <header class="dashboard-header">
-  <img src="images/tanque.png" class="watermark-icon">
+  <img src="images/tanque.png" class="watermark-icon" />
   <div class="dashboard-header-main">
-    <p class="dashboard-header_eyebrow">CIC · OCENSA · DASHBOARD TÉCNICO</p>
-    <h1 class="dashboard-header_title">Dashboard técnico de decisión · Desescalamiento THPS OCENSA</h1>
+    <p class="dashboard-header_eyebrow">CIC · OCENSA · PERFIL DESCRIPTIVO TRAZABLE</p>
+    <h1 class="dashboard-header_title">
+      Dashboard descriptivo para preparación del desescalamiento THPS OCENSA
+    </h1>
     <p class="dashboard-header_subtitle">
-      Integración de análisis químico, microbiológico y fisicoquímico para optimizar el tratamiento químico en tanques de hidrocarburos.
+      Lectura coordinada de microbiología, corrosión y cobertura. Las decisiones operativas
+      permanecen bloqueadas hasta aprobar agua, dosificación y sus bases técnicas.
     </p>
   </div>
 
@@ -12,9 +15,9 @@
     <div class="data-upload_meta-item">
       <i class="pi pi-clock"></i>
       <div>
-        <span class="data-upload_meta-label">Última actualización</span>
+        <span class="data-upload_meta-label">Aprobado el</span>
         <span class="data-upload_meta-value">
-          {{ publishedAt() ? (publishedAt() | date: "d MMM y · HH:mm") : '—' }}
+          {{ approvedAt() ? (approvedAt() | date: 'd MMM y · HH:mm') : '—' }}
         </span>
       </div>
     </div>
@@ -36,9 +39,15 @@
         <span class="data-upload_meta-label">Estado del dataset</span>
         <span
           class="data-upload_meta-value data-upload_meta-value--status"
-          [class.data-upload_meta-value--blocked]="!hasPublishedRelease()"
+          [class.data-upload_meta-value--blocked]="!hasQueryableRelease()"
+          [class.data-upload_meta-value--uat]="isDevelopmentAnalysis()"
         >
-          <i class="pi" [class.pi-check-circle]="hasPublishedRelease()" [class.pi-lock]="!hasPublishedRelease()"></i>
+          <i
+            class="pi"
+            [class.pi-check-circle]="hasPublishedRelease()"
+            [class.pi-eye]="isDevelopmentAnalysis()"
+            [class.pi-lock]="!hasQueryableRelease()"
+          ></i>
           {{ datasetStatus() }}
         </span>
       </div>

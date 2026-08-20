@@ -1,5 +1,4 @@
-import { Component, Input} from '@angular/core';
-import spinnerData from '../../../../../../public/animations/spinner-fixed.json';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-spinner',

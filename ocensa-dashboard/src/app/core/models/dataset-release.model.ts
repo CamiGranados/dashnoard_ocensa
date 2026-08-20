@@ -2,12 +2,7 @@ export const MAX_IMPORT_BATCH_BYTES = 25 * 1024 * 1024;
 export const MAX_IMPORT_FILES = 1;
 
 export type ScientificValueStatus =
-  | 'observed'
-  | 'reported_zero'
-  | 'censored'
-  | 'not_detected'
-  | 'missing'
-  | 'invalid';
+  'observed' | 'reported_zero' | 'censored' | 'not_detected' | 'missing' | 'invalid';
 
 /**
  * A measured value as published by the backend. Status is mandatory so the UI never
@@ -22,11 +17,123 @@ export interface ScientificValue<T> {
 
 export interface DatasetRelease {
   releaseId: string;
-  status: 'published';
-  publishedAt: string;
+  status: 'published' | 'approved_uat';
+  publishedAt: string | null;
+  approvedAt: string;
+  isPublished: boolean;
+  analyticsReadEnabled: boolean;
   sourceSha256: string;
   classifierVersion: string;
-  recordCount?: number | null;
+  /** Count of persisted raw cells, never presented as samples or business records. */
+  storedRawCellCount?: number | null;
+}
+
+/** Exact camelCase wire contract returned by GET /api/v1/dataset-releases/{identity}. */
+export interface DatasetReleaseMetadataResponse {
+  releaseIdentity: string;
+  importBatchId: string;
+  fileSha256: string;
+  schemaVersion: string;
+  classifierVersion: string;
+  state: 'blocked' | 'pending_approval' | 'approved' | 'published';
+  isPublished: boolean;
+  approvedBy: string | null;
+  approvedAtUtc: string | null;
+  createdAtUtc: string;
+  declaredSheetCount: number;
+  storedSheetCount: number;
+  declaredCellCount: number;
+  storedRawCellCount: number;
+  analyticsReadEnabled: boolean;
+  allowedMetricIds: string[];
+  allowedChartIds: string[];
+}
+
+export function isCanonicalSha256(value: unknown): value is string {
+  return typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
+}
+
+/**
+ * Checks only server metadata invariants. The candidate remains untrusted until
+ * this exact response is received; nothing from sessionStorage is treated as approval.
+ */
+export function validateApprovedUatMetadata(candidate: string, wire: unknown): string[] {
+  if (typeof wire !== 'object' || wire === null || Array.isArray(wire)) {
+    return ['RELEASE_METADATA_SHAPE_INVALID'];
+  }
+  const metadata = wire as DatasetReleaseMetadataResponse;
+  const issues: string[] = [];
+  const approvedAt =
+    typeof metadata.approvedAtUtc === 'string' ? Date.parse(metadata.approvedAtUtc) : Number.NaN;
+  const createdAt =
+    typeof metadata.createdAtUtc === 'string' ? Date.parse(metadata.createdAtUtc) : Number.NaN;
+  const safeIdentifier = (value: unknown, maxLength = 128): value is string =>
+    typeof value === 'string' &&
+    value.length > 0 &&
+    value.length <= maxLength &&
+    value === value.trim() &&
+    /^[A-Za-z0-9._-]+$/.test(value);
+
+  if (
+    !isCanonicalSha256(candidate) ||
+    metadata.releaseIdentity !== candidate ||
+    !isCanonicalSha256(metadata.releaseIdentity)
+  ) {
+    issues.push('RELEASE_IDENTITY_MISMATCH');
+  }
+  if (!isCanonicalSha256(metadata.importBatchId) || !isCanonicalSha256(metadata.fileSha256)) {
+    issues.push('RELEASE_SOURCE_IDENTITY_INVALID');
+  }
+  if (
+    !safeIdentifier(metadata.schemaVersion, 64) ||
+    !safeIdentifier(metadata.classifierVersion, 64)
+  ) {
+    issues.push('RELEASE_VERSION_IDENTITY_INVALID');
+  }
+  if (
+    metadata.state !== 'approved' ||
+    metadata.isPublished !== false ||
+    metadata.analyticsReadEnabled !== true
+  ) {
+    issues.push('RELEASE_UAT_STATE_INVALID');
+  }
+  if (
+    typeof metadata.approvedBy !== 'string' ||
+    !metadata.approvedBy.trim() ||
+    !Number.isFinite(approvedAt) ||
+    !Number.isFinite(createdAt) ||
+    approvedAt < createdAt
+  ) {
+    issues.push('RELEASE_APPROVAL_EVIDENCE_INVALID');
+  }
+  if (
+    !Number.isSafeInteger(metadata.declaredSheetCount) ||
+    !Number.isSafeInteger(metadata.storedSheetCount) ||
+    !Number.isSafeInteger(metadata.declaredCellCount) ||
+    !Number.isSafeInteger(metadata.storedRawCellCount) ||
+    metadata.declaredSheetCount <= 0 ||
+    metadata.declaredCellCount <= 0 ||
+    metadata.declaredSheetCount !== metadata.storedSheetCount ||
+    metadata.declaredCellCount !== metadata.storedRawCellCount
+  ) {
+    issues.push('RELEASE_STORAGE_COUNTS_INVALID');
+  }
+  if (
+    !Array.isArray(metadata.allowedMetricIds) ||
+    !Array.isArray(metadata.allowedChartIds) ||
+    metadata.allowedMetricIds.length === 0 ||
+    metadata.allowedChartIds.length === 0 ||
+    metadata.allowedMetricIds.length > 64 ||
+    metadata.allowedChartIds.length > 64 ||
+    metadata.allowedMetricIds.some((id) => !safeIdentifier(id)) ||
+    metadata.allowedChartIds.some((id) => !safeIdentifier(id)) ||
+    new Set(metadata.allowedMetricIds).size !== metadata.allowedMetricIds.length ||
+    new Set(metadata.allowedChartIds).size !== metadata.allowedChartIds.length
+  ) {
+    issues.push('RELEASE_ANALYTICS_SCOPE_INVALID');
+  }
+
+  return issues;
 }
 
 export interface ImportLineageSample {
@@ -68,7 +175,7 @@ export interface ImportBatchWire {
   schemaVersion: string;
   classifierVersion: string;
   inspectedAtUtc: string;
-  state: 'blocked' | 'published';
+  state: 'blocked' | 'stored';
   blockedReasons: string[];
   workbook: ImportWorkbookInspection;
 }
@@ -79,23 +186,25 @@ export interface DatasetReleaseWire {
   sourceFileSha256: string;
   schemaVersion: string;
   classifierVersion: string;
-  state: 'blocked' | 'published';
+  state: 'blocked' | 'pending_approval' | 'approved' | 'published';
   approvedBy: string | null;
   approvedAtUtc: string | null;
+  isPublished?: boolean;
   blockedReasons: string[];
-  recordCount?: number | null;
 }
 
 /** Exact camelCase wire contract returned by /api/v1/import-batches. */
 export interface ImportBatchResponse {
   importBatchId: string;
-  status: 'blocked' | 'published';
+  status: 'blocked' | 'pending_approval' | 'approved' | 'approved_uat' | 'published';
   code: string;
   message: string;
   release: DatasetReleaseWire | null;
   warnings: string[];
   persistenceEnabled: boolean;
   publicationEnabled: boolean;
+  analyticsReadEnabled?: boolean;
+  published?: boolean;
   importBatch: ImportBatchWire;
   blockedRelease: DatasetReleaseWire | null;
 }
@@ -107,6 +216,7 @@ export type ImportUiStateKind =
   | 'blocked'
   | 'retired'
   | 'error'
+  | 'approved_uat'
   | 'published';
 
 export interface ImportUiState {
@@ -185,7 +295,9 @@ export function scientificValueForChart(value: ScientificValue<number>): number 
   return null;
 }
 
-export function formatScientificValue(value: ScientificValue<number | string> | null | undefined): string {
+export function formatScientificValue(
+  value: ScientificValue<number | string> | null | undefined,
+): string {
   if (!value || value.status === 'missing') return '—';
   if (value.status === 'reported_zero') return '0 (reportado)';
   if (value.status === 'not_detected') return 'No detectado';

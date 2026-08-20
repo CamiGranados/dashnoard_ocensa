@@ -1,0 +1,45 @@
+<section class="identity" aria-label="Identidad y población del resultado">
+  <dl class="identity__grid">
+    <div class="identity__item identity__item--metric">
+      <dt>Métrica</dt>
+      <dd>{{ identity().metricId }}</dd>
+      <span class="identity__secondary">v{{ identity().metricVersion }}</span>
+    </div>
+
+    <div class="identity__item">
+      <dt>Release</dt>
+      <dd>{{ identity().datasetReleaseId }}</dd>
+    </div>
+
+    <div class="identity__item">
+      <dt>Corte</dt>
+      <dd>
+        <time [attr.datetime]="identity().cutoffDate">{{ identity().cutoffDate }}</time>
+      </dd>
+      @if (identity().partialPeriod) {
+        <span class="identity__partial">Periodo parcial</span>
+      }
+    </div>
+
+    <div class="identity__item">
+      <dt>Población</dt>
+      <dd>n {{ identity().n }} · población elegible {{ identity().eligibleN }}</dd>
+      @if (identity().numerator !== null && identity().denominator !== null) {
+        <span class="identity__secondary">
+          Numerador {{ identity().numerator }} · denominador {{ identity().denominator }}
+        </span>
+      }
+    </div>
+
+    <div class="identity__item">
+      <dt>Cobertura</dt>
+      <dd>{{ identity().coverageDisplay || 'No aplica' }}</dd>
+    </div>
+
+    <div class="identity__item identity__item--result">
+      <dt>ResultSet</dt>
+      <dd>{{ identity().resultSetId }}</dd>
+      <span class="identity__secondary">Corrida {{ identity().calculationRunId }}</span>
+    </div>
+  </dl>
+</section>

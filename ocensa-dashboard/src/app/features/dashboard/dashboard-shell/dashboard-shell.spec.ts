@@ -25,5 +25,10 @@ describe('DashboardShell', () => {
     expect(fixture.nativeElement.textContent).toContain('Bloqueado');
     expect(fixture.nativeElement.textContent).not.toContain('Normal');
     expect(fixture.nativeElement.textContent).not.toContain('TK-001');
+    expect(fixture.nativeElement.textContent).toContain('Aprobado el');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Dashboard descriptivo para preparación del desescalamiento THPS OCENSA',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('optimizar el tratamiento');
   });
 });

@@ -9,15 +9,12 @@ import { FileRemoveEvent, FileSelectEvent, FileUpload, FileUploadModule } from '
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import {
-  MAX_IMPORT_FILES,
-  validateImportSelection,
-} from '../../core/models/dataset-release.model';
+import { MAX_IMPORT_FILES, validateImportSelection } from '../../core/models/dataset-release.model';
 import { DatasetReleaseStore } from '../../core/services/dataset-release-store.service';
 import { FilesStore } from '../../core/services/file-store.service';
-import { FiltersService } from '../../core/services/filters.service';
+import { FiltersService, validateAnalysisFilterOptions } from '../../core/services/filters.service';
 import { FiltersStateService } from '../../core/services/filters-state.service';
 import { Spinner } from '../../core/shared/components/spinner/spinner';
 
@@ -40,7 +37,7 @@ export interface FileSelectionError {
     MultiSelect,
   ],
   templateUrl: './topbar-filters.html',
-  styleUrl: './topbar-filters.css',
+  styleUrls: ['./topbar-filters.css', './topbar-filters-dialog.css', './topbar-filters-upload.css'],
   providers: [MessageService],
 })
 export class TopbarFilters implements OnInit, OnDestroy {
@@ -59,6 +56,7 @@ export class TopbarFilters implements OnInit, OnDestroy {
   readonly validating = signal(false);
   readonly filterLoadError = signal<string | null>(null);
   readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
+  readonly hasQueryableRelease = this.releaseStore.hasQueryableRelease;
 
   displayModalFiles = false;
   tankOptions: { label: string; value: string }[] = [];
@@ -84,23 +82,32 @@ export class TopbarFilters implements OnInit, OnDestroy {
   ];
 
   private readonly loadReleaseFilters = effect((onCleanup) => {
-    const releaseId = this.releaseStore.releaseId();
+    const releaseId = this.releaseStore.analysisReleaseId();
     this.resetFilterOptions();
     if (!releaseId) return;
 
-    const subscription = forkJoin({
-      years: this.filtersService.getYears(releaseId),
-      tanks: this.filtersService.getTanks(releaseId),
-    }).subscribe({
-      next: ({ years, tanks }) => {
+    const subscription = this.filtersService.getAnalysisFilterOptions(releaseId).subscribe({
+      next: (response) => {
+        const issues = validateAnalysisFilterOptions(response, releaseId);
+        if (issues.length) {
+          this.resetFilterOptions();
+          this.filterLoadError.set(
+            `Las opciones de filtro no son verificables (${issues[0].code}).`,
+          );
+          this.releaseStore.invalidateForQueryFailure();
+          return;
+        }
+        const { years, tanks } = response;
         this.filterLoadError.set(null);
         this.yearOptions = years.map((year) => ({ label: String(year), value: year }));
         this.tankOptions = tanks.map((tank) => ({ label: tank.name, value: tank.id }));
       },
       error: () => {
         this.resetFilterOptions();
-        this.filterLoadError.set('No fue posible cargar filtros para el release publicado.');
-        this.releaseStore.invalidateForQueryFailure();
+        this.filterLoadError.set('No fue posible cargar filtros para el release analítico.');
+        if (this.releaseStore.hasQueryableRelease()) {
+          this.releaseStore.invalidateForQueryFailure();
+        }
       },
     });
 
@@ -108,16 +115,14 @@ export class TopbarFilters implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.filtersChanged$
-      .pipe(debounceTime(400), takeUntil(this.destroy$))
-      .subscribe(() => {
-        if (!this.hasPublishedRelease()) return;
-        this.filtersState.setFilters({
-          tank: this.tank,
-          years: this.selectedYears,
-          months: this.selectedMonth ? [this.selectedMonth] : [],
-        });
+    this.filtersChanged$.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(() => {
+      if (!this.hasQueryableRelease()) return;
+      this.filtersState.setFilters({
+        tank: this.tank,
+        years: this.selectedYears,
+        months: this.selectedMonth ? [this.selectedMonth] : [],
       });
+    });
   }
 
   ngOnDestroy(): void {
@@ -138,9 +143,7 @@ export class TopbarFilters implements OnInit, OnDestroy {
 
     this.releaseStore.selectionChanged(upload.files);
     const validation = validateImportSelection(upload.files);
-    this.firstFilterErrors.set(
-      validation.errors.map((error) => ({ file: 'Lote', error })),
-    );
+    this.firstFilterErrors.set(validation.errors.map((error) => ({ file: 'Lote', error })));
 
     if (!validation.valid) {
       this.messageService.add({

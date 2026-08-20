@@ -7,3 +7,26 @@
   min-height: 100vh;
   padding: 1.5rem;
 }
+
+.shell__skip-link {
+  position: fixed;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  z-index: 2000;
+  padding: 0.65rem 0.85rem;
+  color: var(--color-white);
+  background: var(--color-brand-navy);
+  border-radius: 8px;
+  transform: translateY(-160%);
+}
+
+.shell__skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .shell__content {
+    margin-inline-start: 0;
+    padding: 4.7rem 0.75rem 1rem;
+  }
+}

@@ -1,102 +1,201 @@
-<div class="dashboard-container">
-  <!-- Header -->
-  <div class="dashboard-header">
-    <div class="header-left">
-      <h1 class="dashboard-title">Vista ejecutiva</h1>
+<main class="overview" aria-labelledby="overview-title">
+  <header class="overview__header">
+    <div>
+      <p class="overview__eyebrow">Dashboard de desescalamiento de biocida</p>
+      <h1 id="overview-title">Panel coordinador</h1>
+      <p class="overview__lead">
+        Reúne microbiología, corrosión, agua y volumen, y tratamiento bajo el mismo release y los
+        mismos filtros, sin convertir asociaciones descriptivas en decisiones operativas.
+      </p>
     </div>
-    <div class="header-right">
-      @if (recordCount() !== null) {
-        <span class="registros-info">{{ recordCount() | number }} registros publicados</span>
-      }
-    </div>
-  </div>
+    <span class="overview__brand-mark" aria-hidden="true">
+      <i class="pi pi-shield"></i>
+    </span>
+  </header>
 
-  <!-- Cards Grid -->
-  @if (!hasPublishedRelease()) {
+  @if (!hasQueryableRelease()) {
     <app-release-gate />
-  } @else if (summary.isLoading()) {
-    <p>Cargando resumen…</p>
-  } @else if (summary.error()) {
-    <p>No se pudo cargar el resumen.</p>
-    <!-- <button (click)="reload()">Reintentar</button> -->
-  } @else if (metrics().length) {
-    <div class="metrics-grid">
-      @for (metric of metrics(); track metric.title) {
-        <div class="metric-card-wrapper">
-          <div [class]="['metric-card', 'metric-' + metric.color]">
-            <div class="metric-header">
-              <h3 class="metric-title">{{ metric.title }}</h3>
-              <i [class]="metric.icon + ' metric-icon'"></i>
-            </div>
-            <div class="metric-value">
-              @if (metric.value === null || metric.value === undefined || metric.value === '') {
-                —
-              } @else {
-                {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
-              }
-            </div>
-            <p class="metric-subtitle">{{ metric.subtitle }}</p>
-          </div>
-        </div>
-      }
-    </div>
   } @else {
-    <p>Selecciona un tanque para ver el resumen.</p>
-  }
-
-
-  @if (hasPublishedRelease()) {
-  <div class="layout">
-    <aside class="col-left panel last-values">
-      <h4 class="last-values__title">Porqué un tanque requiere atención</h4>
-      <p class="last-values__subtitle">Valores reales y criterios transparentes; esta vista no crea un ranking.</p>
-      <div class="last-values_panel">
-        <div class="last-values__header">
-          <div class="last-values__icon">
-            <img src="images/drop.png" alt="" />
-          </div>
-          <div class="last-values__heading">
-            <h3 class="last-values__title">Últimos valores registrados</h3>
-            <p class="last-values__subtitle">
-              @if (lastMeasurementDate()) {
-                corte {{ lastMeasurementDate() | date: "d 'de' MMM 'de' y" }}
-              } @else {
-                Sin fecha de corte disponible
-              }
+    <section class="release-summary" aria-labelledby="release-summary-title">
+      <div class="release-summary__heading">
+        <span class="release-summary__icon" aria-hidden="true">
+          <i class="pi pi-verified"></i>
+        </span>
+        <div>
+          <p class="release-summary__overline">Release consultable</p>
+          <h2 id="release-summary-title">
+            @if (release()?.status === 'approved_uat') {
+              Desarrollo · aprobado para análisis descriptivo
+            } @else {
+              Release publicado
+            }
+          </h2>
+          @if (release()?.status === 'approved_uat') {
+            <p class="release-summary__qualification">
+              Entorno UAT; esta aprobación no equivale a publicación ni autorización operativa.
             </p>
-          </div>
-        </div>
-
-        <div class="last-values-list">
-          @for (row of lastValueRows(); track row.key) {
-            <div class="last-value-row">
-              <div class="last-value-row__main">
-                <span class="last-value-row__label">{{ row.label }}</span>
-                <span class="last-value-row__value">
-                  {{ row.value }}
-                </span>
-              </div>
-              <span class="last-value-row__date">
-                {{ row.date ? (row.date | date: "d 'de' MMM 'de' y") : '—' }}
-              </span>
-            </div>
           }
         </div>
       </div>
 
-      <div class="last-values-note">
-        <i class="pi pi-info-circle last-values-note__icon"></i>
-        <span class="last-values-note__text">
-          Variación de agua = rango intercuartílico de FWV reportada.
-          Galones = mediana por aplicación; no suma mensual.
-        </span>
+      <dl class="release-summary__facts">
+        <div class="release-summary__fact release-summary__fact--identity">
+          <dt>Identidad</dt>
+          <dd>
+            <code>{{ release()?.releaseId }}</code>
+          </dd>
+        </div>
+        <div class="release-summary__fact">
+          <dt>Celdas raw verificadas</dt>
+          <dd>
+            @if (
+              release()?.storedRawCellCount !== null &&
+              release()?.storedRawCellCount !== undefined
+            ) {
+              {{ release()?.storedRawCellCount | number: '1.0-0' }}
+            } @else {
+              No informado
+            }
+          </dd>
+        </div>
+        <div class="release-summary__fact">
+          <dt>Estado analítico</dt>
+          <dd>Lectura descriptiva habilitada</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="overview-section" aria-labelledby="available-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-heading__eyebrow">Evidencia disponible</p>
+          <h2 id="available-title">Módulos trazables del release</h2>
+        </div>
+        <p>
+          Cada módulo usa el mismo contexto de release y filtros. La interfaz no deriva indicadores
+          científicos.
+        </p>
       </div>
-    </aside>
-    <main class="col-right panel">
 
-    </main>
-  </div>
+      <div class="module-grid">
+        <article class="module-card module-card--available">
+          <div class="module-card__topline">
+            <span class="module-card__icon" aria-hidden="true">
+              <i class="pi pi-table"></i>
+            </span>
+            <span class="status-chip status-chip--available">Disponible · descriptivo</span>
+          </div>
+          <h3>Cobertura de datos</h3>
+          <p>
+            Compleción por grupo microbiano y estado de reporte. Presenta conteos y proporciones
+            entregados por la API; no estima valores ausentes.
+          </p>
+          <a routerLink="/coverage" class="module-card__link">
+            Abrir cobertura <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </article>
+
+        <article class="module-card module-card--provisional">
+          <div class="module-card__topline">
+            <span class="module-card__icon" aria-hidden="true">
+              <i class="pi pi-chart-scatter"></i>
+            </span>
+            <span class="status-chip status-chip--provisional">Provisional · descriptivo</span>
+          </div>
+          <h3>Microbiología · H08</h3>
+          <p>
+            Distribución en puntos y resumen de caja para observaciones positivas exactas. Ceros, no
+            detectados, censurados, inválidos y ausentes permanecen separados. No demuestra eficacia
+            del biocida.
+          </p>
+          <a routerLink="/microbiology/distribution" class="module-card__link">
+            Abrir microbiología <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </article>
+
+        <article class="module-card module-card--provisional">
+          <div class="module-card__topline">
+            <span class="module-card__icon" aria-hidden="true">
+              <i class="pi pi-chart-line"></i>
+            </span>
+            <span class="status-chip status-chip--provisional">Provisional · descriptivo</span>
+          </div>
+          <h3>Corrosión · cupón</h3>
+          <p>
+            Observaciones trazables desde AD/AE. Conserva el valor y la categoría reportados; no
+            infiere exposición, MIC ni equivalencia con otros métodos.
+          </p>
+          <a routerLink="/corrosion/coupon" class="module-card__link">
+            Abrir corrosión por cupón <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <section class="overview-section overview-section--blocked" aria-labelledby="blocked-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-heading__eyebrow">Controles científicos pendientes</p>
+          <h2 id="blocked-title">Capas que aún no pueden integrarse</h2>
+        </div>
+        <p>
+          Se muestran como bloqueadas para impedir relaciones entre variables que todavía no
+          comparten una definición demostrada.
+        </p>
+      </div>
+
+      <div class="blocked-grid" role="list" aria-label="Capas analíticas bloqueadas">
+        <article class="blocked-card" role="listitem">
+          <div class="blocked-card__heading">
+            <span class="blocked-card__icon" aria-hidden="true"><i class="pi pi-lock"></i></span>
+            <div>
+              <span class="status-chip status-chip--blocked">Bloqueado</span>
+              <h3>Agua, volumen y FWV</h3>
+            </div>
+          </div>
+          <p>
+            Deben aprobarse la unidad canónica, la convención de la plantilla y la identidad del
+            evento antes de relacionar estos registros con una aplicación.
+          </p>
+        </article>
+
+        <article class="blocked-card" role="listitem">
+          <div class="blocked-card__heading">
+            <span class="blocked-card__icon" aria-hidden="true"><i class="pi pi-lock"></i></span>
+            <div>
+              <span class="status-chip status-chip--blocked">Bloqueado</span>
+              <h3>Dosis y residual de biocida</h3>
+            </div>
+          </div>
+          <p>
+            Faltan una base química y una unidad canónicas, además de una identidad de evento que
+            permita conciliar lo aplicado con lo medido.
+          </p>
+        </article>
+
+        <article class="blocked-card" role="listitem">
+          <div class="blocked-card__heading">
+            <span class="blocked-card__icon" aria-hidden="true"><i class="pi pi-lock"></i></span>
+            <div>
+              <span class="status-chip status-chip--blocked">Bloqueado</span>
+              <h3>Decisión de desescalamiento</h3>
+            </div>
+          </div>
+          <p>
+            La regla AND–OR, sus ventanas temporales y el tratamiento de datos incompletos deben
+            quedar aprobados antes de emitir una acción.
+          </p>
+        </article>
+      </div>
+
+      <div class="integration-gate" role="note">
+        <i class="pi pi-sitemap" aria-hidden="true"></i>
+        <p>
+          <strong>Puerta de decisión integrada.</strong> Solo podrá abrirse cuando agua y volumen,
+          dosis y residual, microbiología y corrosión compartan tanque, evento, tiempo, unidad y
+          versión de regla conciliados.
+        </p>
+      </div>
+    </section>
   }
-
-</div>
-
+</main>

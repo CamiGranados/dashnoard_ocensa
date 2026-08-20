@@ -1,0 +1,209 @@
+<section class="coverage-page" aria-labelledby="coverage-title">
+  <header class="coverage-header">
+    <div>
+      <p class="coverage-header__eyebrow">Archivo vigente · perfil descriptivo</p>
+      <h1 id="coverage-title">Cobertura y estados del archivo vigente</h1>
+      <p class="coverage-header__subtitle">
+        Describe presencia, interpretabilidad y elegibilidad del archivo. No evalúa cumplimiento,
+        desempeño ni calidad operacional.
+      </p>
+    </div>
+    <span class="coverage-header__metric">THPS.DATA.COVERAGE.V1</span>
+  </header>
+
+  @if (failure(); as failed) {
+    <app-blocked-chart-placeholder
+      [status]="failed.status"
+      title="Cobertura no publicable"
+      [message]="failed.message"
+      [reasons]="failed.reasons"
+      requiredAction="Restablecer un release trazable y repetir la consulta versionada."
+      owner="Datos / API"
+      reference="ChartSpec H11 · plan de pruebas 10"
+    />
+  } @else if (!hasQueryableRelease()) {
+    <app-release-gate />
+  } @else if (loading()) {
+    <div class="coverage-loading" role="status" aria-live="polite" aria-busy="true">
+      <app-spinner size="64px" />
+      <p>Consultando la cobertura publicada…</p>
+    </div>
+  } @else if (result(); as coverage) {
+    <app-result-identity-strip [identity]="coverage" />
+
+    @if (
+      coverage.approvalStatus !== 'approved_current' &&
+      coverage.approvalStatus !== 'provisional_descriptive'
+    ) {
+      <app-blocked-chart-placeholder
+        [status]="coverage.approvalStatus"
+        title="Métrica de cobertura bloqueada"
+        [message]="coverage.approvalLabel"
+        [reasons]="coverage.warnings"
+        requiredAction="Aprobar la población, los estados y el denominador en el contrato métrico."
+        owner="Dueño del dato / auditoría"
+        reference="THPS.DATA.COVERAGE.V1"
+      />
+    } @else {
+      <app-scientific-state-banner
+        [status]="coverage.approvalStatus"
+        [label]="coverage.approvalLabel"
+        [message]="
+          coverage.approvalStatus === 'provisional_descriptive'
+            ? 'Perfil descriptivo provisional. No usar para cumplimiento, desempeño ni decisiones operacionales.'
+            : 'Las proporciones, conteos y dominios fueron entregados por la API; Angular no los recalcula.'
+        "
+        [warnings]="coverage.warnings"
+      />
+
+      <p class="coverage-chart-description">
+        <strong>Numerador:</strong> {{ coverage.numeratorDefinition }} ·
+        <strong>Denominador:</strong> {{ coverage.denominatorDefinition }}
+      </p>
+
+      @if (coverage.partialPeriod) {
+        <app-scientific-state-banner
+          status="partial_period"
+          message="El periodo mostrado es parcial y conserva el corte publicado."
+        />
+      }
+
+      <article
+        class="coverage-panel"
+        [class.coverage-panel--provisional]="coverage.approvalStatus === 'provisional_descriptive'"
+        aria-labelledby="coverage-chart-title"
+      >
+        @if (coverage.approvalStatus === 'provisional_descriptive') {
+          <span class="coverage-provisional-watermark" aria-hidden="true">
+            PERFIL DESCRIPTIVO · NO OPERACIONAL
+          </span>
+        }
+        <div class="coverage-panel__heading">
+          <div>
+            <p class="coverage-panel__kicker">Distribución por estado</p>
+            <h2 id="coverage-chart-title">
+              {{ coverage.stateDimensionLabel }} por {{ coverage.dimensionLabel }}
+            </h2>
+          </div>
+          <span class="coverage-panel__unit">{{ coverage.valueAxis.unit }}</span>
+        </div>
+
+        <ul class="coverage-legend" aria-label="Leyenda de estados de cobertura">
+          @for (state of coverage.states; track state.id) {
+            <li>
+              <span
+                class="coverage-legend__symbol"
+                [style.background-color]="coverageColor(state.colorToken)"
+                aria-hidden="true"
+                >{{ state.symbol }}</span
+              >
+              <span
+                ><strong>{{ state.label }}</strong> · {{ state.description }}</span
+              >
+            </li>
+          }
+        </ul>
+
+        <p id="coverage-chart-description" class="coverage-chart-description">
+          Barras horizontales apiladas con valores ya publicados por la API. La tabla que sigue
+          contiene la misma población y el mismo ResultSet.
+        </p>
+        <div
+          class="coverage-chart"
+          role="img"
+          aria-labelledby="coverage-chart-title"
+          aria-describedby="coverage-chart-description"
+        >
+          <p-chart
+            aria-hidden="true"
+            type="bar"
+            [data]="chartData()!"
+            [options]="chartOptions()!"
+          />
+        </div>
+      </article>
+
+      <article
+        class="coverage-panel coverage-panel--table"
+        [class.coverage-panel--provisional]="coverage.approvalStatus === 'provisional_descriptive'"
+        aria-labelledby="coverage-table-title"
+      >
+        @if (coverage.approvalStatus === 'provisional_descriptive') {
+          <span class="coverage-provisional-watermark" aria-hidden="true">
+            PERFIL DESCRIPTIVO · NO OPERACIONAL
+          </span>
+        }
+        <div class="coverage-panel__heading">
+          <div>
+            <p class="coverage-panel__kicker">Tabla equivalente</p>
+            <h2 id="coverage-table-title">Matriz de estados</h2>
+          </div>
+          <span class="coverage-panel__result">ResultSet {{ coverage.resultSetId }}</span>
+        </div>
+
+        <div class="coverage-table-wrap" tabindex="0" aria-label="Tabla desplazable de cobertura">
+          <table>
+            <caption>
+              {{
+                coverage.dimensionLabel
+              }}
+              por
+              {{
+                coverage.stateDimensionLabel
+              }}. Cada celda conserva conteo, denominador, punto y referencia de trazabilidad.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ coverage.dimensionLabel }}</th>
+                @for (state of coverage.states; track state.id) {
+                  <th scope="col">
+                    <span
+                      class="coverage-table__state"
+                      [style.--state-color]="coverageColor(state.colorToken)"
+                    >
+                      {{ state.symbol }} {{ state.label }}
+                    </span>
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of coverage.rows; track row.rowId) {
+                <tr>
+                  <th scope="row">{{ row.label }}</th>
+                  @for (state of coverage.states; track state.id) {
+                    @if (cellFor(row, state.id); as cell) {
+                      <td [attr.data-point-id]="cell.pointId">
+                        <strong>{{ cell.displayValue }}</strong>
+                        <span>Conteo {{ cell.count }} · denominador {{ cell.denominator }}</span>
+                        <details>
+                          <summary>Trazabilidad</summary>
+                          <span>Punto {{ cell.pointId }}</span>
+                          <span>{{ cell.sourceCellCount }} celdas fuente</span>
+                          @if (cell.lineagePreview.length) {
+                            <span>Vista previa: {{ cell.lineagePreview.join(', ') }}</span>
+                          }
+                          <app-analytical-trace-link
+                            [endpoint]="cell.traceEndpoint"
+                            label="Abrir traza completa"
+                            [contextLabel]="'punto ' + cell.pointId"
+                          />
+                        </details>
+                      </td>
+                    }
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    }
+  } @else {
+    <app-blocked-chart-placeholder
+      status="no_eligible_data"
+      title="Sin resultado de cobertura"
+      message="La API no entregó una población publicable para los filtros activos."
+    />
+  }
+</section>

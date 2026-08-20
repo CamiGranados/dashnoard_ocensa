@@ -1,0 +1,32 @@
+<section class="blocked-chart" aria-labelledby="blocked-chart-title">
+  <app-scientific-state-banner
+    [status]="safeStatus()"
+    [message]="message()"
+  />
+
+  <div class="blocked-chart__body">
+    <div class="blocked-chart__icon" aria-hidden="true">
+      <i class="pi pi-chart-bar"></i>
+      <i class="pi pi-lock blocked-chart__lock"></i>
+    </div>
+    <div>
+      <h2 id="blocked-chart-title">{{ title() }}</h2>
+      @if (reasons().length) {
+        <ul>
+          @for (reason of reasons(); track reason) {
+            <li>{{ reason }}</li>
+          }
+        </ul>
+      }
+      @if (requiredAction()) {
+        <p><strong>Para habilitar:</strong> {{ requiredAction() }}</p>
+      }
+      @if (owner()) {
+        <p><strong>Responsable:</strong> {{ owner() }}</p>
+      }
+      @if (reference()) {
+        <p class="blocked-chart__reference">Referencia: {{ reference() }}</p>
+      }
+    </div>
+  </div>
+</section>

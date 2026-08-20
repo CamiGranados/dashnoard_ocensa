@@ -1,32 +1,71 @@
-import { Component,computed, effect, inject, signal} from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { finalize } from 'rxjs';
-import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
 import { Spinner } from '../../../../core/shared/components/spinner/spinner';
-import { Measurement } from '../../../../core/services/filters.service';
+import {
+  LegacyMeasurement,
+  LegacyMeasurementsService,
+} from '../../../../core/services/legacy-measurements.service';
 import { DatasetReleaseStore } from '../../../../core/services/dataset-release-store.service';
 import { ReleaseGate } from '../../../../core/shared/components/release-gate/release-gate';
 import { scientificValueForChart } from '../../../../core/models/dataset-release.model';
 
-const SERIES_CONFIG: Record<string, {
-  label: string;
-  axis: 'y' | 'y1';
-  defaultType: 'line' | 'bar';
-  color: string;
-  border: string;
-  dashed?: boolean;
-}> = {
-  'FWV reportada':        { label: 'FWV Reportada',     axis: 'y',  defaultType: 'line', color: '#2f80d7', border:'#2f80d7', dashed: false },
-  'FWV estimada':         { label: 'FWV Estimada',      axis: 'y',  defaultType: 'line', color: '#4da7e9', border:'#4da7e9', dashed: true },  // ← punteada
-  'FWV calculada':        { label: 'FWV Calculada',      axis: 'y',  defaultType: 'line', color: '#22ba76', border:'#22ba76', dashed: false },
-  'FWV incrementada':     { label: 'FWV Incrementada', axis: 'y', defaultType: 'line',  color: '#f3a12b', border:'#f3a12b', dashed: false },
-  'gsv(bls)':             { label: 'GSV',  axis: 'y1', defaultType: 'bar',  color: '#d8dbde', border:'#d8dbde', dashed: false },
+const SERIES_CONFIG: Record<
+  string,
+  {
+    label: string;
+    axis: 'y' | 'y1';
+    defaultType: 'line' | 'bar';
+    color: string;
+    border: string;
+    dashed?: boolean;
+  }
+> = {
+  'FWV reportada': {
+    label: 'FWV Reportada',
+    axis: 'y',
+    defaultType: 'line',
+    color: '#2f80d7',
+    border: '#2f80d7',
+    dashed: false,
+  },
+  'FWV estimada': {
+    label: 'FWV Estimada',
+    axis: 'y',
+    defaultType: 'line',
+    color: '#4da7e9',
+    border: '#4da7e9',
+    dashed: true,
+  }, // ← punteada
+  'FWV calculada': {
+    label: 'FWV Calculada',
+    axis: 'y',
+    defaultType: 'line',
+    color: '#22ba76',
+    border: '#22ba76',
+    dashed: false,
+  },
+  'FWV incrementada': {
+    label: 'FWV Incrementada',
+    axis: 'y',
+    defaultType: 'line',
+    color: '#f3a12b',
+    border: '#f3a12b',
+    dashed: false,
+  },
+  'gsv(bls)': {
+    label: 'GSV',
+    axis: 'y1',
+    defaultType: 'bar',
+    color: '#d8dbde',
+    border: '#d8dbde',
+    dashed: false,
+  },
 };
-
 
 @Component({
   selector: 'app-corrosion',
@@ -34,14 +73,13 @@ const SERIES_CONFIG: Record<string, {
   templateUrl: './corrosion.html',
   styleUrl: './corrosion.css',
 })
-
 export class Corrosion {
   private filtersState = inject(FiltersStateService);
-  private dataService = inject(FiltersService);
+  private dataService = inject(LegacyMeasurementsService);
   private releaseStore = inject(DatasetReleaseStore);
   readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
 
-  measurements = signal<Measurement[]>([]);
+  measurements = signal<LegacyMeasurement[]>([]);
   visibleRange = signal<[number, number]>([0, 0]);
   noData = signal(false);
   loadingMeasurements = signal(false);
@@ -49,29 +87,32 @@ export class Corrosion {
   sliderPosition = signal(0);
   Math = Math;
 
-  allDates = computed(() =>
-    [...new Set(this.measurements().map(m => m.date))].sort()
-  );
+  allDates = computed(() => [...new Set(this.measurements().map((m) => m.date))].sort());
   chartTypeOptions = [
     { label: 'Barras', value: 'bar' },
-    { label: 'Línea', value: 'line' }
+    { label: 'Línea', value: 'line' },
   ];
   // Control de visualización por serie (line/bar)
   seriesTypes = signal<Record<string, 'line' | 'bar'>>(
-    Object.entries(SERIES_CONFIG).reduce((acc, [key, cfg]) => {
-      acc[key] = cfg.defaultType;
-      return acc;
-    }, {} as Record<string, 'line' | 'bar'>)
+    Object.entries(SERIES_CONFIG).reduce(
+      (acc, [key, cfg]) => {
+        acc[key] = cfg.defaultType;
+        return acc;
+      },
+      {} as Record<string, 'line' | 'bar'>,
+    ),
   );
 
   // Control de visibilidad de cada serie
   visibleSeries = signal<Record<string, boolean>>(
-    Object.keys(SERIES_CONFIG).reduce((acc, key) => {
-      acc[key] = true;
-      return acc;
-    }, {} as Record<string, boolean>)
+    Object.keys(SERIES_CONFIG).reduce(
+      (acc, key) => {
+        acc[key] = true;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    ),
   );
-
 
   constructor() {
     // se re-ejecuta automáticamente cada vez que cambian los filtros (tanque, años, meses)
@@ -87,7 +128,8 @@ export class Corrosion {
 
       this.loadingMeasurements.set(true);
 
-      const subscription = this.dataService.getMeasurements(datasetReleaseId, f.tank, f.years, f.months)
+      const subscription = this.dataService
+        .getMeasurements(datasetReleaseId, f.tank, f.years, f.months)
         .pipe(finalize(() => this.loadingMeasurements.set(false)))
         .subscribe({
           next: (data) => {
@@ -99,7 +141,7 @@ export class Corrosion {
             }
             this.noData.set(false);
             this.measurements.set(data);
-            const total = new Set(data.map(m => m.date)).size;
+            const total = new Set(data.map((m) => m.date)).size;
 
             const startIdx = Math.max(0, total - this.windowSize);
             this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
@@ -117,7 +159,6 @@ export class Corrosion {
       onCleanup(() => subscription.unsubscribe());
     });
   }
-
 
   chartData = computed(() => {
     const data = this.measurements();
@@ -151,14 +192,14 @@ export class Corrosion {
           pointRadius: isBar ? undefined : 1,
           tension: 0.3,
           spanGaps: false,
-          data: visibles.map(d => {
-            const punto = data.find(m => m.variable === variable && m.date === d);
+          data: visibles.map((d) => {
+            const punto = data.find((m) => m.variable === variable && m.date === d);
             return punto ? scientificValueForChart(punto.numericValue) : null;
           }),
         };
       });
 
-    return { labels: visibles.map(d => this.formatDate(d)), datasets };
+    return { labels: visibles.map((d) => this.formatDate(d)), datasets };
   });
 
   // ----------------------------- Graph --------------------
@@ -188,19 +229,23 @@ export class Corrosion {
             const label = context.dataset.label || '';
             const value = context.parsed.y?.toLocaleString() || context.parsed;
             return `${label}  ${value}`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
-      y:  { type: 'linear', position: 'left',  title: { display: true, text: 'Agua (BBL)' } },
-      y1: { type: 'linear', position: 'right', title: { display: true, text: 'GSV (BBL)' },
-            grid: { drawOnChartArea: false } },
+      y: { type: 'linear', position: 'left', title: { display: true, text: 'Agua (BBL)' } },
+      y1: {
+        type: 'linear',
+        position: 'right',
+        title: { display: true, text: 'GSV (BBL)' },
+        grid: { drawOnChartArea: false },
+      },
     },
     bar: {
       barPercentage: 0.5,
       categoryPercentage: 0.8,
-    }
+    },
   };
 
   toggleSeriesType(variable: string, newType: 'line' | 'bar'): void {
@@ -213,10 +258,22 @@ export class Corrosion {
     this.visibleSeries.set({ ...current, [variable]: !current[variable] });
   }
 
-
   // --- HELPERS ---
   formatDate(d: string): string {
-    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const meses = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
+    ];
     const dt = new Date(d);
     return `${meses[dt.getMonth()]} ${dt.getFullYear()}`;
   }

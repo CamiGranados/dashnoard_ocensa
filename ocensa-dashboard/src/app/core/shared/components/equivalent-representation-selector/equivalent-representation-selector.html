@@ -1,0 +1,19 @@
+<fieldset class="mode-selector" [disabled]="disabled()">
+  <legend>Representación de {{ series().label }}</legend>
+  <div class="mode-selector__options">
+    @for (mode of modes(); track mode) {
+      <button
+        type="button"
+        class="mode-selector__button"
+        [class.mode-selector__button--active]="activeMode() === mode"
+        [attr.aria-pressed]="activeMode() === mode"
+        (click)="select(mode)"
+      >
+        {{ label(mode) }}
+      </button>
+    }
+  </div>
+  <p class="mode-selector__note">
+    Solo se ofrecen representaciones equivalentes declaradas por el ChartSpec del servidor.
+  </p>
+</fieldset>

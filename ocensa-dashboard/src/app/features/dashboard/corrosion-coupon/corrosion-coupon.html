@@ -1,0 +1,264 @@
+<section class="coupon-page" aria-labelledby="coupon-title">
+  <header class="coupon-header">
+    <div>
+      <p class="coupon-eyebrow">H10 · corrosión general por cupón</p>
+      <h1 id="coupon-title">Evolución descriptiva de corrosión por cupón</h1>
+      <p>
+        Observaciones de AD con la categoría reportada en AE. Los puntos no se conectan: no existe
+        evidencia consolidada del periodo de exposición entre campañas.
+      </p>
+    </div>
+    <span>THPS.CORROSION.COUPON.MPY.V1</span>
+  </header>
+
+  @if (failure(); as failed) {
+    <app-blocked-chart-placeholder
+      [status]="failed.status"
+      title="Corrosión por cupón no publicable"
+      [message]="failed.message"
+      [reasons]="failed.reasons"
+      requiredAction="Servir el ChartSpec H10-COR-COUPON.V1 con población, ejes y trazabilidad AD/AE consistentes."
+      owner="Integridad / datos / API"
+      reference="THPS.CORROSION.COUPON.MPY.V1"
+    />
+  } @else if (!hasQueryableRelease()) {
+    <app-release-gate />
+  } @else if (loading()) {
+    <div class="coupon-loading" role="status" aria-live="polite" aria-busy="true">
+      <app-spinner size="64px" />
+      <p>Consultando observaciones de cupón…</p>
+    </div>
+  } @else if (result(); as corrosion) {
+    <app-result-identity-strip [identity]="corrosion" />
+
+    @if (!visibleResult()) {
+      <app-blocked-chart-placeholder
+        [status]="corrosion.approvalStatus"
+        title="Métrica de cupón bloqueada"
+        [message]="corrosion.approvalLabel"
+        [reasons]="corrosion.warnings"
+        requiredAction="Autorizar expresamente la población descriptiva AD/AE y su contrato de unidad."
+        owner="Integridad / auditoría científica"
+        reference="H10-COR-COUPON.V1"
+      />
+    } @else {
+      <app-scientific-state-banner
+        [status]="corrosion.approvalStatus"
+        [label]="corrosion.approvalLabel"
+        message="Descripción provisional: no demuestra eficacia del biocida, MIC, causalidad ni ranking entre tanques o métodos."
+        [warnings]="corrosion.warnings"
+      />
+
+      @if (corrosion.partialPeriod) {
+        <app-scientific-state-banner
+          status="partial_period"
+          message="La población filtrada incluye 2026 hasta el corte 23 de mayo; ese periodo es parcial."
+        />
+      }
+
+      <section class="coupon-evidence" aria-labelledby="coupon-evidence-title">
+        <div>
+          <p>Estado de evidencia</p>
+          <h2 id="coupon-evidence-title">Observación descriptiva, no evento de exposición</h2>
+          <span>
+            Grano observado: {{ corrosion.grain }} · esperado: {{ corrosion.expectedGrain }}
+          </span>
+        </div>
+        <dl>
+          <div>
+            <dt>Unidad visible</dt>
+            <dd>{{ corrosion.unit }}</dd>
+            <small>Contrato métrico; no consta en el encabezado AD</small>
+          </div>
+          <div>
+            <dt>Elegibles</dt>
+            <dd>{{ corrosion.population.eligibleN }}</dd>
+            <small>{{ corrosion.population.display }}</small>
+          </div>
+          <div>
+            <dt>Inválidos</dt>
+            <dd>{{ corrosion.population.invalidN }}</dd>
+            <small>Los guiones no se convierten en cero</small>
+          </div>
+          <div>
+            <dt>Faltantes</dt>
+            <dd>{{ corrosion.population.missingN }}</dd>
+            <small>Población CIC candidata</small>
+          </div>
+        </dl>
+      </section>
+
+      <section class="coupon-category-key" aria-labelledby="coupon-category-title">
+        <div>
+          <p>Categoría reportada</p>
+          <h2 id="coupon-category-title">Color, forma y texto redundantes</h2>
+          <span>AE se muestra tal como fue reportada; el dashboard no recalcula NACE.</span>
+        </div>
+        <ul>
+          @for (category of corrosion.categories; track category.id) {
+            <li [style.--category-color]="category.color">
+              <span class="coupon-category-symbol" aria-hidden="true">{{ category.symbol }}</span>
+              <strong>{{ category.displayLabel }}</strong>
+              <small>{{ category.displayCount }}</small>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <div class="coupon-watermarked">
+        <span class="coupon-watermark" aria-hidden="true">
+          PROVISIONAL DESCRIPTIVO · NO OPERACIONAL
+        </span>
+
+        @for (view of facetViews(); track view.facet.facetId) {
+          <article class="coupon-facet" [attr.aria-labelledby]="view.facet.facetId + '-title'">
+            <div class="coupon-facet__heading">
+              <div>
+                <p>Cupón AD/AE · {{ view.facet.tank }}</p>
+                <h2 [id]="view.facet.facetId + '-title'">{{ view.facet.label }}</h2>
+                <span>{{ view.facet.availabilityLabel }}</span>
+              </div>
+              <div class="coupon-facet__population" aria-label="Población declarada por la API">
+                <strong>{{ view.facet.population.eligibleN }}</strong>
+                <span>observaciones</span>
+                <small>
+                  {{ view.facet.population.invalidN }} inválidas ·
+                  {{ view.facet.population.missingN }} faltantes
+                </small>
+              </div>
+            </div>
+
+            <div class="coupon-method-note" role="note">
+              <strong>Representación autorizada: puntos por fecha</strong>
+              <span>
+                Sin línea, barras, suavizado, interpolación, promedios, medianas ni umbrales
+                recalculados.
+              </span>
+            </div>
+
+            @if (view.facet.points.length) {
+              <div
+                class="coupon-chart"
+                role="img"
+                [attr.aria-label]="
+                  'Puntos de corrosión general por cupón para ' +
+                  view.facet.tank +
+                  '. Eje lineal en mpy con cero visible.'
+                "
+              >
+                <p-chart
+                  aria-hidden="true"
+                  type="scatter"
+                  [data]="view.data"
+                  [options]="view.options"
+                />
+              </div>
+            } @else {
+              <div class="coupon-empty" role="status">
+                <i class="pi pi-info-circle" aria-hidden="true"></i>
+                <div>
+                  <strong>Sin observación de cupón AD/AE</strong>
+                  <span>
+                    El tanque permanece visible como ausencia de observación; no se dibuja un valor
+                    cero.
+                  </span>
+                </div>
+              </div>
+            }
+
+            <div
+              class="coupon-table-wrap"
+              tabindex="0"
+              [attr.aria-label]="'Tabla equivalente de corrosión por cupón para ' + view.facet.tank"
+            >
+              <p-table
+                [value]="view.facet.points"
+                [paginator]="view.facet.points.length > 25"
+                [rows]="25"
+                [rowsPerPageOptions]="[25, 50]"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Filas {first}–{last} de {totalRecords}"
+                styleClass="coupon-data-table"
+              >
+                <ng-template pTemplate="caption">
+                  <span>
+                    Misma población y ResultSet {{ corrosion.resultSetId }}. Valor, categoría y
+                    celdas se conservan sin recálculo.
+                  </span>
+                </ng-template>
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Tanque</th>
+                    <th scope="col">Campaña raw</th>
+                    <th scope="col">Valor raw</th>
+                    <th scope="col">Categoría AE</th>
+                    <th scope="col">Celdas</th>
+                    <th scope="col">Observación</th>
+                    <th scope="col">Traza</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-point>
+                  <tr [attr.data-observation-id]="point.observationId">
+                    <td>
+                      {{ point.date }}
+                      @if (point.partialPeriod) {
+                        <span class="coupon-partial-badge">2026 parcial</span>
+                      }
+                    </td>
+                    <td>{{ point.tank }}</td>
+                    <td>
+                      <code>{{ point.campaignRaw }}</code>
+                    </td>
+                    <td>
+                      <strong>{{ point.rawValue }}</strong>
+                      <small>{{ point.valueDisplay }} · {{ point.valueStatus }}</small>
+                    </td>
+                    <td>
+                      @if (categoryFor(point.categoryId); as category) {
+                        <span
+                          class="coupon-table-category"
+                          [style.--category-color]="category.color"
+                        >
+                          <span aria-hidden="true">{{ category.symbol }}</span>
+                          {{ point.reportedCategory }} · reportada
+                        </span>
+                      }
+                    </td>
+                    <td>
+                      <code>{{ point.source.valueCell }}</code>
+                      <code>{{ point.source.categoryCell }}</code>
+                    </td>
+                    <td>
+                      {{ point.observationId }}
+                      <small>Exposición: no disponible</small>
+                    </td>
+                    <td>
+                      <app-analytical-trace-link
+                        [endpoint]="point.traceEndpoint"
+                        [contextLabel]="'observación ' + point.observationId"
+                      />
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="8">
+                      Sin observaciones elegibles. Los inválidos declarados no son ceros.
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else {
+    <app-blocked-chart-placeholder
+      status="no_eligible_data"
+      title="Sin resultado de corrosión por cupón"
+      message="La API no entregó una población AD/AE trazable para los filtros activos."
+    />
+  }
+</section>
