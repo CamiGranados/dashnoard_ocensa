@@ -92,6 +92,10 @@
   gap: 5px;
 }
 
+.data-upload_meta-value--blocked {
+  color: #fbbf24;
+}
+
 .data-upload_meta-value--status i {
   font-size: 8px;
   color: #22c55e;

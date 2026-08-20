@@ -1,0 +1,11 @@
+<section class="release-gate" role="status" aria-live="polite">
+  <i class="pi pi-lock release-gate__icon"></i>
+  <div>
+    <h2>Resultados bloqueados</h2>
+    <p>{{ message() }}</p>
+    @if (state().code) {
+      <p class="release-gate__code">Código: {{ state().code }}</p>
+    }
+    <a routerLink="/carga-datos" class="release-gate__link">Revisar importación</a>
+  </div>
+</section>

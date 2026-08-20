@@ -1,0 +1,58 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ocensa-dashboard
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.0.0'
+          cache: npm
+          cache-dependency-path: ocensa-dashboard/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install --global npm@11.13.0
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test:ci
+
+      - name: Production build
+        run: npm run build:production
+
+      - name: Reject localhost in production bundle
+        run: |
+          if grep -R -n -F "localhost" dist; then
+            echo "Production bundle contains localhost"
+            exit 1
+          fi
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high

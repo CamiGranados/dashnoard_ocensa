@@ -1,236 +1,135 @@
 <section class="data-upload__panel">
   <div class="data-upload__panel-header">
     <div>
-      <h2 class="data-upload__panel-title">1. Archivos seleccionados</h2>
+      <h2 class="data-upload__panel-title">Importación trazable</h2>
       <p class="data-upload__panel-subtitle">
-        Revise los archivos detectados. Puede agregar o quitar archivos antes de continuar.
+        El navegador solo valida metadatos y envía el archivo al preflight versionado. No abre, transforma ni conserva filas del Excel.
       </p>
     </div>
 
     <div class="data-upload__panel-actions">
-      <input #fileInput type="file" accept=".xlsx" multiple hidden (change)="onFilesPicked($event)" />
+      <input #fileInput type="file" accept=".xlsx" hidden (change)="onFilesPicked($event)" />
       <p-button
-        label="Agregar más archivos"
+        label="Agregar archivo"
         icon="pi pi-plus"
         [outlined]="true"
+        [disabled]="processing() || files().length >= maxFiles"
         (onClick)="addFiles(fileInput)"
       />
-      <p-button label="Quitar todos" severity="secondary" [text]="true" [disabled]="datasets().length === 0" (onClick)="clearFiles()" />
+      <p-button
+        label="Quitar todos"
+        severity="secondary"
+        [text]="true"
+        [disabled]="processing() || files().length === 0"
+        (onClick)="clearFiles()"
+      />
     </div>
   </div>
 
-  @if (parsing()) {
-    <div class="data-upload__parsing-overlay">
-      <app-spinner size="140px" />
-      <p class="data-upload__parsing-text">Leyendo archivos…</p>
-    </div>
-  } @else if (datasets().length === 0) {
+  @if (files().length === 0) {
     <div class="data-upload__empty">
       <i class="pi pi-inbox"></i>
-      <p>No hay archivos cargados. Usa <strong>"Importar Datos"</strong> en la barra superior o "Agregar más archivos".</p>
+      <p>No hay un archivo seleccionado. Se admite un archivo .xlsx por importación.</p>
     </div>
   } @else {
     <div class="data-upload__files-grid">
-      @for (dataset of datasets(); track dataset.id) {
-        <div class="file-card">
+      @for (file of files(); track fileId(file)) {
+        <article class="file-card">
           <span class="file-card__icon"><i class="pi pi-file-excel"></i></span>
           <div class="file-card__info">
-            <span class="file-card__name">{{ dataset.fileName }}</span>
-            <span class="file-card__meta">{{ dataset.category }} · {{ dataset.sizeKb }} KB</span>
+            <span class="file-card__name">{{ file.name }}</span>
+            <span class="file-card__meta">{{ fileSizeMiB(file) }} MiB · validación del contenido exclusivamente en el servidor</span>
           </div>
-          <i
-            class="pi file-card__status"
-            [class.pi-check-circle]="dataset.status === 'ok'"
-            [class.pi-info-circle]="dataset.status === 'empty'"
-            [class.pi-times-circle]="dataset.status === 'error'"
-            [class.file-card__status--warn]="dataset.status === 'empty'"
-            [class.file-card__status--error]="dataset.status === 'error'"
-          ></i>
-          <button type="button" class="file-card__remove" (click)="removeFile(dataset.id)" aria-label="Quitar archivo">
+          <button
+            type="button"
+            class="file-card__remove"
+            [disabled]="processing()"
+            (click)="removeFile(fileId(file))"
+            [attr.aria-label]="'Quitar ' + file.name"
+          >
             <i class="pi pi-times"></i>
           </button>
-        </div>
+        </article>
       }
     </div>
-
-    <p class="data-upload__files-summary" [class.data-upload__files-summary--warn]="errorCount() > 0">
-      <i class="pi" [class.pi-check-circle]="errorCount() === 0" [class.pi-exclamation-triangle]="errorCount() > 0"></i>
-      {{ okCount() }} de {{ datasets().length }} archivos leídos correctamente
-      @if (errorCount() > 0) {
-        · {{ errorCount() }} con errores
-      }
+    <p class="data-upload__files-summary" [class.data-upload__files-summary--warn]="!validation().valid">
+      <i class="pi" [class.pi-check-circle]="validation().valid" [class.pi-exclamation-triangle]="!validation().valid"></i>
+      {{ files().length }} archivo · {{ totalMiB().toFixed(2) }} MiB de 25 MiB
     </p>
   }
 </section>
 
-@if (datasets().length > 0) {
-  <section class="data-upload__panel">
-    <div class="data-upload__panel-header">
-      <div>
-        <h2 class="data-upload__panel-title">2. Vista preliminar de los archivos</h2>
-        <p class="data-upload__panel-subtitle">
-          Se muestra una vista preliminar de los primeros registros de cada archivo.
-        </p>
-      </div>
+<section class="data-upload__panel">
+  <h2 class="data-upload__panel-title">Estado de publicación</h2>
 
-      <div class="data-upload__rows-field">
-        <label for="du-rows">Filas a mostrar</label>
-        <p-select
-          inputId="du-rows"
-          [options]="rowsOptions"
-          [(ngModel)]="rowsToShow"
-          optionLabel="label"
-          optionValue="value"
-        />
-      </div>
-    </div>
+  @switch (importState().kind) {
+    @case ('uploading') {
+      <p-message severity="info" [closable]="false">
+        <strong>Preflight en curso.</strong> No existe todavía un release publicado ni resultados consultables.
+      </p-message>
+    }
+    @case ('published') {
+      <p-message severity="success" [closable]="false">
+        <strong>Release publicado.</strong> {{ importState().message }}
+      </p-message>
+    }
+    @case ('blocked') {
+      <p-message severity="warn" [closable]="false">
+        <strong>Publicación bloqueada · {{ importState().code }}</strong> {{ importState().message }}
+      </p-message>
+    }
+    @case ('retired') {
+      <p-message severity="error" [closable]="false">
+        <strong>Endpoint retirado · {{ importState().code }}</strong> {{ importState().message }}
+      </p-message>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <strong>Importación fallida · {{ importState().code }}</strong> {{ importState().message }}
+      </p-message>
+    }
+    @default {
+      <p-message severity="warn" [closable]="false">
+        <strong>Resultados bloqueados.</strong> {{ importState().message }}
+      </p-message>
+    }
+  }
 
-    <div class="data-upload__preview-grid">
-      @for (dataset of datasets(); track dataset.id) {
-        <article class="preview-card">
-          <header class="preview-card__header">
-            <span class="preview-card__icon"><i class="pi pi-file-excel"></i></span>
-            <div class="preview-card__info">
-              <span class="preview-card__name">{{ dataset.fileName }}</span>
-              <span class="preview-card__meta">
-                @if (dataset.status === 'ok') {
-                  Hoja: {{ dataset.sheetName }}
-                } @else {
-                  {{ dataset.category }}
-                }
-              </span>
-            </div>
-          </header>
-
-          @switch (dataset.status) {
-            @case ('ok') {
-              <p-table [value]="visibleRows(dataset)" [columns]="dataset.columns" class="preview-card__table">
-                <ng-template pTemplate="header" let-columns>
-                  <tr>
-                    @for (col of columns; track col.field) {
-                      <th>{{ col.header }}</th>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-row let-columns="columns">
-                  <tr>
-                    @for (col of columns; track col.field) {
-                      <td>{{ row[col.field] }}</td>
-                    }
-                  </tr>
-                </ng-template>
-              </p-table>
-              <footer class="preview-card__footer">
-                Mostrando {{ visibleRows(dataset).length }} de {{ dataset.totalRows }} filas
-              </footer>
-            }
-            @case ('empty') {
-              <div class="preview-card__notice">
-                <p-message severity="warn" [closable]="false">El archivo no contiene filas de datos para previsualizar.</p-message>
-              </div>
-            }
-            @case ('error') {
-              <div class="preview-card__notice">
-                <p-message severity="error" [closable]="false">{{ dataset.errorMessage }}</p-message>
-              </div>
-            }
+  @if (!validation().valid && files().length) {
+    <div class="data-upload__notes">
+      <p-message severity="error" [closable]="false" class="data-upload__note">
+        <strong>Corrija la selección antes de enviar</strong>
+        <ul>
+          @for (error of validation().errors; track error) {
+            <li>{{ error }}</li>
           }
-        </article>
-      }
+        </ul>
+      </p-message>
     </div>
-  </section>
-}
+  }
+</section>
 
 <section class="data-upload__footer">
   <div class="data-upload__notes">
-    @if (errorCount() > 0) {
-      <p-message severity="error" [closable]="false" class="data-upload__note">
-        <strong>Errores de lectura</strong>
-        <p>{{ errorCount() }} archivo(s) no se pudieron leer correctamente. Quítelos o reemplácelos antes de continuar.</p>
-      </p-message>
-    } @else if (datasets().length > 0) {
-      <p-message severity="success" [closable]="false" class="data-upload__note">
-        <strong>Validación</strong>
-        <p>Todos los archivos se leyeron correctamente y las columnas fueron detectadas.</p>
-      </p-message>
-    }
-
     <p-message severity="warn" [closable]="false" class="data-upload__note">
-      <strong>Recomendaciones</strong>
-      <ul>
-        <li>Verifique que las fechas y unidades sean consistentes.</li>
-        <li>Si algún dato no es correcto, puede eliminar el archivo y cargar una nueva versión.</li>
-      </ul>
+      <strong>Control de decisión</strong>
+      <p>Seleccionar un archivo nuevo invalida inmediatamente cualquier release y resultado anterior. Solo una respuesta explícita <em>published</em> vuelve a habilitar el dashboard.</p>
     </p-message>
   </div>
 
   <div class="data-upload__actions">
     <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="processing()" (onClick)="cancel()" />
     <p-button
-      class="data-upload__submit"
-      [disabled]="datasets().length === 0 || errorCount() > 0 || parsing() || processing()"
+      label="Enviar a preflight"
+      icon="pi pi-cloud-upload"
+      [disabled]="processing() || !validation().valid"
       (onClick)="proceed()"
-    >
-      <i class="pi pi-cog"></i>
-      <span class="data-upload__submit-text">
-        <span>Proceder con el procesamiento de datos</span>
-        <small>Ensamble y validación</small>
-      </span>
-    </p-button>
+    />
     @if (processing()) {
       <div class="data-upload__processing-box">
         <app-spinner size="28px" />
-        <span>Procesando archivos en el servidor…</span>
+        <span>Validando en el servidor…</span>
       </div>
     }
   </div>
 </section>
-
-<p-dialog
-  [visible]="processErrorModalVisible()"
-  (visibleChange)="processErrorModalVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '640px' }"
-  [draggable]="false"
-  [resizable]="false"
-  styleClass="w-[90vw] md:w-[70vw] lg:w-[40vw]"
->
-  <ng-template #header>
-    <div class="data-upload__error-modal-header">
-      <i class="pi pi-times-circle"></i>
-      <span>No se pudo procesar los archivos</span>
-    </div>
-  </ng-template>
-
-  @if (processError(); as error) {
-    <p-message severity="error" [closable]="false">{{ error.mensaje }}</p-message>
-
-    @if (error.errores.length > 0) {
-      <ul class="data-upload__error-list">
-        @for (item of error.errores; track $index) {
-          <li>
-            <strong>{{ item.archivo }}</strong>
-            @if (item.fila) {
-              · fila {{ item.fila }}
-            }
-            @if (item.columna) {
-              · columna "{{ item.columna }}"
-            }
-            : {{ item.motivo }}
-            @if (item.valorEncontrado) {
-              (valor: "{{ item.valorEncontrado }}")
-            }
-          </li>
-        }
-      </ul>
-    }
-
-    <p class="data-upload__error-hint">
-      Corrija o reemplace los archivos indicados y vuelva a intentarlo.
-    </p>
-  }
-
-  <ng-template #footer>
-    <p-button label="Entendido, volver a cargar archivos" (onClick)="closeProcessErrorModal()" />
-  </ng-template>
-</p-dialog>

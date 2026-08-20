@@ -1,59 +1,59 @@
-# OcensaDashboard
+# Dashboard THPS OCENSA · Angular
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.8.
+## Estado operativo
 
-## Development server
+El frontend usa un flujo **API-first y fail-closed**:
 
-To start a local development server, run:
+1. acepta exactamente un archivo `.xlsx` de máximo 25 MiB;
+2. valida en el navegador solo metadatos (extensión, tamaño y duplicidad), sin abrir el libro;
+3. envía una única parte multipart denominada `file` a `POST /api/v1/import-batches`;
+4. mantiene ocultos filtros, KPIs, tablas y gráficas hasta que el servidor devuelva un `DatasetRelease` con estado `published` y trazabilidad completa;
+5. invalida el release y todos los resultados al cambiar la selección, fallar una importación o fallar una consulta de filtros/analítica asociada al release.
 
-```bash
-ng serve
-```
+Los estados HTTP `410` y `503` se muestran explícitamente. Un preflight aceptado pero no publicado también mantiene bloqueado el dashboard.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Toolchain
 
-## Code scaffolding
+- Node compatible con Angular 21: `^20.19.0`, `^22.12.0` o `>=24.0.0`.
+- npm: `11.13.0`.
+- Angular: `21.2.21`.
+- Vitest: ejecución serial fijada en `vitest.config.ts` para evitar resultados intermitentes entre suites de componentes.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Ejecución local
 
 ```bash
-ng build
+npm ci
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+La configuración de desarrollo apunta a `http://localhost:5285/api`. La compilación productiva sustituye esa configuración por la ruta relativa `/api`; CI rechaza cualquier `localhost` dentro de `dist/`.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Verificación obligatoria
 
 ```bash
-ng test
+npm ci
+npm run test:ci
+npm run build:production
+npm audit --audit-level=high
 ```
 
-## Running end-to-end tests
+GitHub Actions ejecuta esos controles en `main`, en ramas `codex/**` y en pull requests hacia `main`.
 
-For end-to-end (e2e) testing, run:
+## Semántica de datos
 
-```bash
-ng e2e
-```
+Los valores científicos publicados llevan un estado obligatorio:
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- `observed`: valor observado;
+- `reported_zero`: cero informado explícitamente;
+- `censored`: valor sujeto a calificador o límite;
+- `not_detected`: no detectado, sin convertirlo en cero;
+- `missing`: valor faltante.
+- `invalid`: valor rechazado por el contrato, sin representación numérica.
 
-## Additional Resources
+La interfaz no reemplaza faltantes, no detectados, inválidos o censurados por cero. Los ceros microbiológicos no se sustituyen por un piso inventado; la banda microbiológica usa escala lineal y conserva el cero reportado.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Límites del corte
+
+- El backend debe implementar y probar persistencia transaccional, autenticación/autorización y publicación de releases.
+- Los módulos sin métricas científicas aprobadas muestran un bloqueo o una indicación de módulo pendiente; no muestran cifras de ejemplo.
+- No se debe habilitar producción únicamente porque el frontend compile.

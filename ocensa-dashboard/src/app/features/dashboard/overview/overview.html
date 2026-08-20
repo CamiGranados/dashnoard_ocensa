@@ -5,24 +5,16 @@
       <h1 class="dashboard-title">Vista ejecutiva</h1>
     </div>
     <div class="header-right">
-      <span class="registros-info">{{ registrosVisibles | number }} registros visibles</span>
-      <button pButton
-              type="button"
-              label="Exportar CSV"
-              icon="pi pi-download"
-              (click)="exportarCSV()"
-              class="p-button-outlined p-button-secondary"></button>
-      <button pButton
-              type="button"
-              label="Exportar PDF"
-              icon="pi pi-file-pdf"
-              (click)="exportarPDF()"
-              class="p-button-outlined p-button-secondary"></button>
+      @if (recordCount() !== null) {
+        <span class="registros-info">{{ recordCount() | number }} registros publicados</span>
+      }
     </div>
   </div>
 
   <!-- Cards Grid -->
-  @if (summary.isLoading()) {
+  @if (!hasPublishedRelease()) {
+    <app-release-gate />
+  } @else if (summary.isLoading()) {
     <p>Cargando resumen…</p>
   } @else if (summary.error()) {
     <p>No se pudo cargar el resumen.</p>
@@ -37,7 +29,11 @@
               <i [class]="metric.icon + ' metric-icon'"></i>
             </div>
             <div class="metric-value">
-              {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
+              @if (metric.value === null || metric.value === undefined || metric.value === '') {
+                —
+              } @else {
+                {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
+              }
             </div>
             <p class="metric-subtitle">{{ metric.subtitle }}</p>
           </div>
@@ -49,6 +45,7 @@
   }
 
 
+  @if (hasPublishedRelease()) {
   <div class="layout">
     <aside class="col-left panel last-values">
       <h4 class="last-values__title">Porqué un tanque requiere atención</h4>
@@ -76,13 +73,7 @@
               <div class="last-value-row__main">
                 <span class="last-value-row__label">{{ row.label }}</span>
                 <span class="last-value-row__value">
-                  @if (row.value === null || row.value === undefined) {
-                    —
-                  } @else if (row.key === 'company') {
-                    {{ row.value }}
-                  } @else {
-                    {{ row.value | number: '1.0-2' }}
-                  }
+                  {{ row.value }}
                 </span>
               </div>
               <span class="last-value-row__date">
@@ -105,7 +96,7 @@
 
     </main>
   </div>
+  }
 
 </div>
-
 

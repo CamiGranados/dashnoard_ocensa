@@ -6,7 +6,9 @@
     }
   </div>
 
-  @if (review.isLoading()) {
+  @if (!hasPublishedRelease()) {
+    <app-release-gate />
+  } @else if (review.isLoading()) {
     <p>Cargando datos de microbiología…</p>
   } @else if (review.error()) {
     <p>No se pudo cargar la información de microbiología.</p>
@@ -28,11 +30,11 @@
           <tr>
             <td>{{ record.date | date: "d 'de' MMM 'de' y" }}</td>
             <td>{{ record.standardSamplingType || '—' }}</td>
-            <td>{{ record.bsrPlanct ?? '—' }}</td>
-            <td>{{ record.bpaPlanct ?? '—' }}</td>
-            <td>{{ record.bhtPlanct ?? '—' }}</td>
-            <td>{{ record.bAntPlanct ?? '—' }}</td>
-            <td>{{ record.thpsPercent ?? '—' }}</td>
+            <td>{{ display(record.bsrPlanct) }}</td>
+            <td>{{ display(record.bpaPlanct) }}</td>
+            <td>{{ display(record.bhtPlanct) }}</td>
+            <td>{{ display(record.bAntPlanct) }}</td>
+            <td>{{ display(record.thpsPercent) }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
@@ -43,6 +45,6 @@
       </p-table>
     </div>
   } @else {
-    <p>Selecciona un tanque para ver los datos de microbiología.</p>
+    <p>El release publicado no contiene registros para los filtros seleccionados.</p>
   }
 </div>

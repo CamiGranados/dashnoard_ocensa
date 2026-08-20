@@ -6,7 +6,9 @@
     }
   </div>
 
-  @if (review.isLoading()) {
+  @if (!hasPublishedRelease()) {
+    <app-release-gate />
+  } @else if (review.isLoading()) {
     <p>Cargando revisión de THPS…</p>
   } @else if (review.error()) {
     <p>No se pudo cargar la revisión de THPS.</p>
@@ -149,6 +151,7 @@
 
       <div class="thps-band thps-band--last">
         <h3 class="thps-band__heading">Respuesta microbiológica</h3>
+        <p class="thps-band__note">Escala lineal: los ceros reportados permanecen en 0; faltantes y censurados no se convierten en valores numéricos.</p>
         @if (band4Empty()) {
           <div class="thps-band__empty">
             <i class="pi pi-chart-line"></i>
@@ -194,34 +197,34 @@
           <div class="thps-crosshair-tooltip__date">{{ hr.timestamp | date: "d 'de' MMM 'de' y" }}</div>
 
           @for (cfg of band1Series; track cfg.key) {
-            @if (hr[cfg.key] !== null) {
+            @if (hr[cfg.key].display !== '—') {
               <div class="thps-crosshair-tooltip__row">
                 <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
-                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+                {{ cfg.label }}: {{ hr[cfg.key].display }}
               </div>
             }
           }
           @for (cfg of band2Series; track cfg.key) {
-            @if (hr[cfg.key] !== null) {
+            @if (hr[cfg.key].display !== '—') {
               <div class="thps-crosshair-tooltip__row">
                 <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
-                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+                {{ cfg.label }}: {{ hr[cfg.key].display }}
               </div>
             }
           }
           @for (cfg of band3Series; track cfg.key) {
-            @if (hr[cfg.key] !== null) {
+            @if (hr[cfg.key].display !== '—') {
               <div class="thps-crosshair-tooltip__row">
                 <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
-                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+                {{ cfg.label }}: {{ hr[cfg.key].display }}
               </div>
             }
           }
           @for (cfg of band4Series; track cfg.key) {
-            @if (hr[cfg.key] !== null) {
+            @if (hr[cfg.key].display !== '—') {
               <div class="thps-crosshair-tooltip__row">
                 <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
-                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
+                {{ cfg.label }}: {{ hr[cfg.key].display }}
               </div>
             }
           }
@@ -246,12 +249,12 @@
         <ng-template pTemplate="body" let-record>
           <tr>
             <td>{{ record.date | date: "d 'de' MMM 'de' y" }}</td>
-            <td>{{ record.realInjectedDose ?? '—' }}</td>
-            <td>{{ record.residual_per ?? '—' }}</td>
-            <td>{{ record.bsrPlanct ?? '—' }}</td>
-            <td>{{ record.bpaPlanct ?? '—' }}</td>
-            <td>{{ record.bhtPlanct ?? '—' }}</td>
-            <td>{{ record.bAntPlanct ?? '—' }}</td>
+            <td>{{ display(record.realInjectedDose) }}</td>
+            <td>{{ display(record.residual_per) }}</td>
+            <td>{{ display(record.bsrPlanct) }}</td>
+            <td>{{ display(record.bpaPlanct) }}</td>
+            <td>{{ display(record.bhtPlanct) }}</td>
+            <td>{{ display(record.bAntPlanct) }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
@@ -262,6 +265,6 @@
       </p-table>
     </div>
   } @else {
-    <p>Selecciona un tanque para ver la revisión de THPS.</p>
+    <p>El release publicado no contiene una revisión THPS para los filtros seleccionados.</p>
   }
 </div>

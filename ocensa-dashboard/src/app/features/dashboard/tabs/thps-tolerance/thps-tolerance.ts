@@ -9,21 +9,36 @@ import { ThpsReviewService } from '../../../../core/services/thps-review.service
 import { ThpsReviewRecord } from '../../../../core/models/thps-review.model';
 import { ThpsChartRow, ThpsReviewMetricCard } from '../../../../core/models/thps-review.model';
 import { crosshairSyncPlugin, referenceLinePlugin } from './thps-band-chart.plugins';
+import { DatasetReleaseStore } from '../../../../core/services/dataset-release-store.service';
+import { ReleaseGate } from '../../../../core/shared/components/release-gate/release-gate';
+import {
+  ScientificValue,
+  formatScientificValue,
+  scientificValueForChart,
+} from '../../../../core/models/dataset-release.model';
+
+function toChartValue(value: ScientificValue<number>) {
+  return {
+    numeric: scientificValueForChart(value),
+    display: formatScientificValue(value),
+    status: value.status,
+  };
+}
 
 
 function toChartRow(r: ThpsReviewRecord): ThpsChartRow {
   return {
     timestamp: new Date(r.date).getTime(),
-    dosisReal: r.realInjectedDose,
-    dosisProgramada: r.scheduled_Dose,
-    residualPct: r.residual_per,
-    fwvReportada: r.reported_FWV,
-    fwvEstimada: r.estimated_FWV,
-    fwvCalculada: r.calculated_FWV,
-    bant: r.bAntPlanct,
-    bht: r.bhtPlanct,
-    bpa: r.bpaPlanct,
-    bsr: r.bsrPlanct,
+    dosisReal: toChartValue(r.realInjectedDose),
+    dosisProgramada: toChartValue(r.scheduled_Dose),
+    residualPct: toChartValue(r.residual_per),
+    fwvReportada: toChartValue(r.reported_FWV),
+    fwvEstimada: toChartValue(r.estimated_FWV),
+    fwvCalculada: toChartValue(r.calculated_FWV),
+    bant: toChartValue(r.bAntPlanct),
+    bht: toChartValue(r.bhtPlanct),
+    bpa: toChartValue(r.bpaPlanct),
+    bsr: toChartValue(r.bsrPlanct),
   };
 }
 
@@ -47,14 +62,14 @@ const BAND2_SERIES: BandSeriesConfig[] = [
   { key: 'residualPct', label: 'Residual', color: '#447da2' },
 ];
 
-const BAND3_Y_TITLE = 'FWV (ppm)'; // TODO
+const BAND3_Y_TITLE = 'FWV (bbl)';
 const BAND3_SERIES: BandSeriesConfig[] = [
   { key: 'fwvReportada', label: 'FWV Reportada', color: '#1c4463' },
   { key: 'fwvEstimada', label: 'FWV Estimada', color: '#458ccc' },
   { key: 'fwvCalculada', label: 'FWV Calculada', color: '#239a59' },
 ];
 
-const BAND4_Y_TITLE = 'log₁₀(Bac/mL)';
+const BAND4_Y_TITLE = 'Recuento reportado (UFC/mL)';
 const BAND4_SERIES: BandSeriesConfig[] = [
   { key: 'bant', label: 'BAnT', color: '#43474f' },
   { key: 'bht', label: 'BHT', color: '#239a59' },
@@ -95,7 +110,7 @@ const CHART_TYPE_OPTIONS = [
 ];
 
 function seriesHasData(rows: ThpsChartRow[], cfg: BandSeriesConfig): boolean {
-  return rows.some((r) => r[cfg.key] != null);
+  return rows.some((r) => r[cfg.key].numeric != null);
 }
 
 function buildLinearDataset(rows: ThpsChartRow[], cfg: BandSeriesConfig, type: 'line' | 'bar') {
@@ -109,21 +124,8 @@ function buildLinearDataset(rows: ThpsChartRow[], cfg: BandSeriesConfig, type: '
     pointHoverRadius: type === 'line' ? 4 : undefined,
     barThickness: type === 'bar' ? 8 : undefined,
     tension: 0.25,
-    spanGaps: true,
-    data: rows.map((r) => ({ x: r.timestamp, y: r[cfg.key] })),
-  };
-}
-
-// Escala log10: 0 real (bacteria no detectada) no es graficable (log(0) indefinido). Se sustituye SOLO
-// el punto y por el piso acordado (1 CFU/mL, límite de detección estándar); el valor real se conserva
-// intacto en ThpsChartRow/sortedRows para el tooltip.
-function buildLogDataset(rows: ThpsChartRow[], cfg: BandSeriesConfig, floor: number, type: 'line' | 'bar') {
-  return {
-    ...buildLinearDataset(rows, cfg, type),
-    data: rows.map((r) => {
-      const raw = r[cfg.key];
-      return { x: r.timestamp, y: raw == null ? null : raw === 0 ? floor : raw };
-    }),
+    spanGaps: false,
+    data: rows.map((r) => ({ x: r.timestamp, y: r[cfg.key].numeric })),
   };
 }
 
@@ -197,14 +199,16 @@ function buildBandOptions(
 
 @Component({
   selector: 'app-thps-tolerance',
-  imports: [CommonModule, FormsModule, CardModule, TableModule, ChartModule, SelectButtonModule],
+  imports: [CommonModule, FormsModule, CardModule, TableModule, ChartModule, SelectButtonModule, ReleaseGate],
   templateUrl: './thps-tolerance.html',
   styleUrl: './thps-tolerance.css',
 })
 export class ThpsTolerance {
   private readonly thpsReviewService = inject(ThpsReviewService);
+  private readonly releaseStore = inject(DatasetReleaseStore);
 
   readonly review = this.thpsReviewService.review;
+  readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
 
   protected readonly band1Series = BAND1_SERIES;
   protected readonly band2Series = BAND2_SERIES;
@@ -216,8 +220,6 @@ export class ThpsTolerance {
   protected readonly band4Plugins = [crosshairSyncPlugin];
   protected readonly formatBandDate = formatBandDate;
   protected readonly chartTypeOptions = CHART_TYPE_OPTIONS;
-
-  private readonly logZeroFloor = 1; // piso acordado: 0 real de bacterias se grafica en y=1 (log10=0)
 
   // Control de tipo de gráfica (línea/barra) y visibilidad por serie, igual que en corrosion
   readonly seriesTypes = signal<Record<ChartSeriesKey, 'line' | 'bar'>>({ ...DEFAULT_SERIES_TYPE });
@@ -239,6 +241,7 @@ export class ThpsTolerance {
   }
 
   readonly metrics = computed<ThpsReviewMetricCard[]>(() => {
+    if (!this.hasPublishedRelease()) return [];
     const summary = this.review.value()?.summary;
     if (!summary) return [];
     return [
@@ -273,11 +276,13 @@ export class ThpsTolerance {
     ];
   });
 
-  readonly records = computed(() => this.review.value()?.data ?? []);
-  readonly totalRecords = computed(() => this.review.value()?.data.length ?? 0);
+  readonly records = computed(() =>
+    this.hasPublishedRelease() ? (this.review.value()?.data ?? []) : [],
+  );
+  readonly totalRecords = computed(() => this.records().length);
 
   readonly sortedRows = computed<ThpsChartRow[]>(() =>
-    (this.review.value()?.data ?? [])
+    this.records()
       .slice()
       .sort((a, b) => a.date.localeCompare(b.date))
       .map(toChartRow),
@@ -334,14 +339,14 @@ export class ThpsTolerance {
     const types = this.seriesTypes();
     return {
       datasets: BAND4_SERIES.filter((cfg) => visible[cfg.key] && seriesHasData(rows, cfg)).map((cfg) =>
-        buildLogDataset(rows, cfg, this.logZeroFloor, types[cfg.key]),
+        buildLinearDataset(rows, cfg, types[cfg.key]),
       ),
     };
   });
 
   readonly band2YMax = computed(() => {
     const values = this.sortedRows()
-      .map((r) => r.residualPct)
+      .map((r) => r.residualPct.numeric)
       .filter((v): v is number => v != null);
     const dataMax = values.length ? Math.max(...values) : 0;
     return Math.max(20, dataMax) * 1.1;
@@ -358,7 +363,7 @@ export class ThpsTolerance {
       buildXScale(this.xDomain(), false),
       buildYScale({ title: BAND2_Y_TITLE, min: 0, max: this.band2YMax() }),
       (ts, x, y) => this.onBandHover(ts, x, y),
-      { referenceLine: { value: 20, label: '20% (límite contractual)' } },
+      { referenceLine: { value: 20, label: '20% (umbral configurado)' } },
     ),
   );
 
@@ -371,7 +376,7 @@ export class ThpsTolerance {
   readonly band4Options = computed(() =>
     buildBandOptions(
       buildXScale(this.xDomain(), true),
-      buildYScale({ title: BAND4_Y_TITLE, type: 'logarithmic', min: this.logZeroFloor }),
+      buildYScale({ title: BAND4_Y_TITLE, type: 'linear', min: 0 }),
       (ts, x, y) => this.onBandHover(ts, x, y),
     ),
   );
@@ -391,5 +396,9 @@ export class ThpsTolerance {
   onBandHover(timestamp: number | null, x: number, y: number): void {
     this.hoveredTimestamp.set(timestamp);
     this.hoveredPixel.set({ x, y });
+  }
+
+  display(value: ScientificValue<number>): string {
+    return formatScientificValue(value);
   }
 }

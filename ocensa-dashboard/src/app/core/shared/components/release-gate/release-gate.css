@@ -1,0 +1,33 @@
+.release-gate {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem;
+  margin: 1rem 0;
+  border: 1px solid #f0c36a;
+  border-radius: 10px;
+  background: #fff9e8;
+  color: #5f4300;
+}
+
+.release-gate__icon {
+  font-size: 1.5rem;
+  margin-top: 0.15rem;
+}
+
+.release-gate h2,
+.release-gate p {
+  margin: 0 0 0.4rem;
+}
+
+.release-gate__code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+}
+
+.release-gate__link {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: #174a74;
+  font-weight: 700;
+}

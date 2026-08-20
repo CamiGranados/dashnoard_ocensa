@@ -12,6 +12,7 @@
           optionLabel="label"
           optionValue="value"
           class="topbar-filters__select"
+          [disabled]="!hasPublishedRelease()"
           (onChange)="onFiltersChange()"
         />
       </div>
@@ -26,6 +27,7 @@
           optionValue="value"
           placeholder="Todos los años"
           class="topbar-filters__select"
+          [disabled]="!hasPublishedRelease()"
           (onChange)="onFiltersChange()"
         />
       </div>
@@ -39,19 +41,8 @@
           optionLabel="label"
           optionValue="value"
           class="topbar-filters__select"
+          [disabled]="!hasPublishedRelease()"
           (onChange)="onFiltersChange()"
-        />
-      </div>
-
-      <div class="topbar-filters__field">
-        <label class="topbar-filters__label" for="tf-escala">Origen</label>
-        <p-select
-          inputId="tf-escala"
-          [options]="escalaOptions"
-          [(ngModel)]="escala"
-          optionLabel="label"
-          optionValue="value"
-          class="topbar-filters__select"
         />
       </div>
     </div>
@@ -60,6 +51,10 @@
       <p-button label="Importar Datos" (onClick)="showAlertLoadedFiles()" icon="pi pi-upload" iconPos="left"></p-button>
     </div>
   </div>
+
+  @if (filterLoadError()) {
+    <p class="topbar-filters__error"><i class="pi pi-exclamation-triangle"></i> {{ filterLoadError() }}</p>
+  }
 </div>
 
 <p-dialog
@@ -71,13 +66,13 @@
   styleClass="w-[90vw] md:w-[75vw] lg:w-[50vw]">
 
   <ng-template #header>
-    <div  class="dialog-card-header">
-      <div class="icon-card">
-        <i class="fa-solid fa-file-excel icon-dialog"></i>
+      <div  class="dialog-card-header">
+        <div class="icon-card">
+        <i class="pi pi-file-excel icon-dialog"></i>
       </div>
       <div class="dialog-header-text">
-        <span>Importar archivos</span>
-        <p>Selecciona uno o varios archivos Excel para cargarlos al sistema</p>
+        <span>Importar archivo</span>
+        <p>Selecciona un archivo Excel para enviarlo al preflight trazable</p>
       </div>
     </div>
   </ng-template>
@@ -85,11 +80,11 @@
   <p-fileUpload
     #excelUpload
     mode="advanced"
-    name="demo[]"
+    name="file"
     [customUpload]="true"
     accept=".xlsx"
-    [multiple]="true"
-    [fileLimit]="max_files"
+    [multiple]="false"
+    [fileLimit]="maxFiles"
     [showUploadButton]="false"
     [showCancelButton]="false"
     styleClass="upload-box"
@@ -99,15 +94,15 @@
     <ng-template #header></ng-template>
 
     <ng-template #content let-files let-removeFileCallback="removeFileCallback" let-chooseCallback="chooseCallback">
-      <div class="upload-dropzone" (click)="files?.length < max_files && chooseCallback()" [class.upload-dropzone--disabled]="files?.length >= max_files">
+      <div class="upload-dropzone" (click)="files?.length < maxFiles && chooseCallback()" [class.upload-dropzone--disabled]="files?.length >= maxFiles">
         <i class="pi pi-cloud-upload upload-dropzone_icon"></i>
-        <p class="upload-dropzone_title">Arrastra archivos aquí o <span class="upload-dropzone_link">selecciona desde tu equipo</span></p>
-        <p class="upload-dropzone_subtitle">● Se permiten archivos .xlsx .xls    ● Máximo {{ max_files }} archivos ({{ files?.length || 0 }}/{{ max_files }})</p>
+        <p class="upload-dropzone_title">Arrastra el archivo aquí o <span class="upload-dropzone_link">selecciónalo desde tu equipo</span></p>
+        <p class="upload-dropzone_subtitle">● Un archivo .xlsx · máximo 25 MiB · {{ files?.length || 0 }}/{{ maxFiles }}</p>
       </div>
 
       <ul class="upload-filelist" *ngIf="files?.length">
         <li class="upload-filelist_item" *ngFor="let file of files; let i = index">
-          <i class="fa-solid fa-file-excel upload-filelist_icon"></i>
+          <i class="pi pi-file-excel upload-filelist_icon"></i>
           <div class="upload-filelist_info">
             <span class="upload-filelist_name">{{ file.name }}</span>
             <span class="upload-filelist_size">{{ excelUpload.formatSize(file.size) }}</span>
@@ -117,6 +112,14 @@
           </button>
         </li>
       </ul>
+
+      @if (firstFilterErrors().length) {
+        <ul class="upload-errors" aria-live="polite">
+          @for (item of firstFilterErrors(); track $index) {
+            <li><strong>{{ item.file }}:</strong> {{ item.error }}</li>
+          }
+        </ul>
+      }
     </ng-template>
   </p-fileUpload>
 
@@ -126,20 +129,19 @@
         <i class="pi pi-info-circle info-banner_icon"></i>
         <div class="info-banner_text">
           <strong>Importante</strong>
-          <p>Los archivos se validarán antes de ser procesados. Solo se cargarán los datos que pasen la validación.</p>
+          <p>El navegador valida únicamente extensión, cantidad y tamaño. El contenido se inspecciona en el servidor trazable.</p>
         </div>
       </div>
       <div class="modal-footer_actions">
-        <button type="button" pButton class="btn-outline">Cancelar</button>
-        <button type="button" pButton class="btn-solid" (click)="loadFiles()" [disabled]="validating()">Cargar y Validar</button>
+        <button type="button" pButton class="btn-outline" (click)="cancelFileSelection()">Cancelar</button>
+        <button type="button" pButton class="btn-solid" (click)="loadFiles()" [disabled]="validating() || firstFilterErrors().length > 0">Revisar lote</button>
         @if (validating()) {
           <div class="validating-box">
             <app-spinner size="60px" />
-            <span>Validando archivos…</span>
+            <span>Validando archivo…</span>
           </div>
         }
       </div>
     </div>
   </ng-template>
 </p-dialog>
-

@@ -22,7 +22,7 @@ export class Sidebar {
       icon: 'pi pi-wave-pulse',
       expanded: true,
       items: [
-        { label: 'Tanque', icon: 'pi pi-circle' },
+        { label: 'Tanque', icon: 'pi pi-circle', routerLink: '/tanks' },
         { label: 'Operación e Inyección', icon: 'pi pi-bolt', routerLink: '/corrosion'},
         { label: 'Escenarios', icon: 'pi pi-chart-bar' },
       ],
@@ -33,7 +33,7 @@ export class Sidebar {
       expanded: true,
       items: [
         { label: 'Microbiología', icon: 'pi pi-search', routerLink: '/microbiology' },
-        { label: 'Fisicoquímica', icon: 'pi pi-chart-line' },
+        { label: 'Fisicoquímica', icon: 'pi pi-chart-line', routerLink: '/physicochemistry' },
         { label: 'Corrosión', icon: 'pi pi-exclamation-triangle' },
         { label: 'Tratamiento y Residual', icon: 'pi pi-shield', routerLink: '/thps-tolerance' },
       ],

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ScientificValue } from '../models/dataset-release.model';
 
 export interface Tank {
   id: string;
@@ -10,7 +11,7 @@ export interface Tank {
 
 export interface Measurement {
   variable: string;
-  numericValue: number;
+  numericValue: ScientificValue<number>;
   date: string;
 }
 
@@ -20,17 +21,27 @@ export class FiltersService {
 
   constructor(private http: HttpClient) {}
 
-  getYears(): Observable<number[]> {
-    return this.http.get<number[]>(`${this.apiUrl}/Tanks/years`);
+  getYears(datasetReleaseId: string): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/Tanks/years`, {
+      params: new HttpParams().set('datasetReleaseId', datasetReleaseId),
+    });
   }
 
-  getTanks(): Observable<Tank[]> {
-    return this.http.get<Tank[]>(`${this.apiUrl}/Tanks/listTanks`);
+  getTanks(datasetReleaseId: string): Observable<Tank[]> {
+    return this.http.get<Tank[]>(`${this.apiUrl}/Tanks/listTanks`, {
+      params: new HttpParams().set('datasetReleaseId', datasetReleaseId),
+    });
   }
 
-  getMeasurements(tankId: string, year: number[] = [], months: number[] = []): Observable<Measurement[]> {
+  getMeasurements(
+    datasetReleaseId: string,
+    tankId: string,
+    year: number[] = [],
+    months: number[] = [],
+  ): Observable<Measurement[]> {
     let params = new HttpParams()
       .set('tankId', tankId)
+      .set('datasetReleaseId', datasetReleaseId)
 
     // cada año como parámetro repetido: years=2022&years=2025...
     year.forEach(y => { params = params.append('years', y); });

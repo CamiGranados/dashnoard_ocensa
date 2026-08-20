@@ -1,62 +1,23 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { Select } from 'primeng/select';
-import { TableModule } from 'primeng/table';
 import { Message } from 'primeng/message';
-import * as XLSX from 'xlsx';
-import { Api } from '../../../core/services/api';
+import {
+  MAX_IMPORT_FILES,
+  validateImportSelection,
+} from '../../../core/models/dataset-release.model';
+import { Api, classifyImportFailure } from '../../../core/services/api';
+import { DatasetReleaseStore } from '../../../core/services/dataset-release-store.service';
 import { FilesStore } from '../../../core/services/file-store.service';
-import { ProcessedDataStore } from '../../../core/services/processed-data-store.service';
-import { ProcesarArchivosError } from '../../../core/models/procesar-archivos.model';
 import { Spinner } from '../../../core/shared/components/spinner/spinner';
 
-interface PreviewColumn {
-  field: string;
-  header: string;
-}
-
-type FileStatus = 'ok' | 'empty' | 'error';
-
-interface FileDataset {
-  id: string;
-  fileName: string;
-  category: string;
-  sizeKb: number;
-  status: FileStatus;
-  errorMessage?: string;
-  sheetName: string;
-  columns: PreviewColumn[];
-  rows: Record<string, string>[];
-  totalRows: number;
-}
-
-interface RowsOption {
-  label: string;
-  value: number;
-}
-
-const CATEGORY_RULES: { pattern: RegExp; label: string }[] = [
-  { pattern: /microbiolog/i, label: 'Microbiología' },
-  { pattern: /fisicoqu[ií]m/i, label: 'Fisicoquímica' },
-  { pattern: /corros/i, label: 'Corrosión' },
-  { pattern: /agua.?libre/i, label: 'Agua libre' },
-];
-
-function categoryFromFileName(fileName: string): string {
-  return CATEGORY_RULES.find((rule) => rule.pattern.test(fileName))?.label ?? 'Archivo';
-}
-
-function datasetId(file: File): string {
+function fileId(file: File): string {
   return `${file.name}__${file.size}__${file.lastModified}`;
 }
 
 @Component({
   selector: 'app-data-upload',
-  imports: [FormsModule, Button, Select, TableModule, Message, Spinner, DialogModule],
+  imports: [Button, Message, Spinner],
   templateUrl: './data-upload.html',
   styleUrl: './data-upload.css',
 })
@@ -64,100 +25,26 @@ export class DataUpload {
   private readonly filesStore = inject(FilesStore);
   private readonly router = inject(Router);
   private readonly api = inject(Api);
-  private readonly processedDataStore = inject(ProcessedDataStore);
+  private readonly releaseStore = inject(DatasetReleaseStore);
 
+  readonly maxFiles = MAX_IMPORT_FILES;
   readonly files = this.filesStore.validFiles;
-  readonly datasets = signal<FileDataset[]>([]);
-  readonly parsing = signal(false);
   readonly processing = signal(false);
-  readonly processErrorModalVisible = signal(false);
-  readonly processError = signal<ProcesarArchivosError | null>(null);
+  readonly importState = this.releaseStore.importState;
+  readonly release = this.releaseStore.release;
+  readonly validation = computed(() => validateImportSelection(this.files()));
+  readonly totalMiB = computed(() => this.validation().totalBytes / (1024 * 1024));
 
-  readonly rowsOptions: RowsOption[] = [
-    { label: '10', value: 10 },
-    { label: '20', value: 20 },
-    { label: '50', value: 50 },
-  ];
-  rowsToShow = 10;
-
-  readonly okCount = computed(() => this.datasets().filter((d) => d.status === 'ok').length);
-  readonly errorCount = computed(() => this.datasets().filter((d) => d.status === 'error').length);
-
-  constructor() {
-    effect(() => {
-      const files = this.files();
-      untracked(() => this.parseFiles(files));
-    });
+  fileId(file: File): string {
+    return fileId(file);
   }
 
-  private async parseFiles(files: File[]): Promise<void> {
-    if (!files.length) {
-      this.datasets.set([]);
-      return;
-    }
-
-    this.parsing.set(true);
-    try {
-      const parsed = await Promise.all(files.map((file) => this.parseFile(file)));
-      this.datasets.set(parsed);
-    } finally {
-      this.parsing.set(false);
-    }
-  }
-
-  private async parseFile(file: File): Promise<FileDataset> {
-    const base = {
-      id: datasetId(file),
-      fileName: file.name,
-      category: categoryFromFileName(file.name),
-      sizeKb: Math.round(file.size / 1024),
-    };
-
-    try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-
-      const headerRow = (XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })[0] ?? []) as string[];
-      const dataRows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: '', raw: false });
-
-      const columns: PreviewColumn[] = headerRow.length
-        ? headerRow.map((header, index) => ({
-            field: header?.toString().trim() || `col_${index}`,
-            header: header?.toString().trim() || `Columna ${index + 1}`,
-          }))
-        : dataRows.length
-          ? Object.keys(dataRows[0]).map((field) => ({ field, header: field }))
-          : [];
-
-      return {
-        ...base,
-        status: dataRows.length ? 'ok' : 'empty',
-        sheetName,
-        columns,
-        rows: dataRows,
-        totalRows: dataRows.length,
-      };
-    } catch {
-      return {
-        ...base,
-        status: 'error',
-        errorMessage: 'No se pudo leer el archivo. Verifique que no esté dañado o protegido con contraseña.',
-        sheetName: '',
-        columns: [],
-        rows: [],
-        totalRows: 0,
-      };
-    }
-  }
-
-  visibleRows(dataset: FileDataset): Record<string, string>[] {
-    return dataset.rows.slice(0, this.rowsToShow);
+  fileSizeMiB(file: File): string {
+    return (file.size / (1024 * 1024)).toFixed(2);
   }
 
   removeFile(id: string): void {
-    this.filesStore.setFiles(this.files().filter((file) => datasetId(file) !== id));
+    this.filesStore.setFiles(this.files().filter((file) => fileId(file) !== id));
   }
 
   clearFiles(): void {
@@ -173,18 +60,7 @@ export class DataUpload {
     const picked = (event.target as HTMLInputElement).files;
     if (!picked?.length) return;
 
-    const current = this.files();
-    const seen = new Set(current.map((file) => datasetId(file)));
-    const merged = [...current];
-
-    for (const file of Array.from(picked)) {
-      const id = datasetId(file);
-      if (!seen.has(id)) {
-        seen.add(id);
-        merged.push(file);
-      }
-    }
-
+    const merged = [...this.files(), ...Array.from(picked)].slice(0, this.maxFiles);
     this.filesStore.setFiles(merged);
   }
 
@@ -193,39 +69,29 @@ export class DataUpload {
   }
 
   async proceed(): Promise<void> {
-    this.processing.set(true);
-    try {
-      this.processedDataStore.fileProcessor(this.files()).subscribe({
-        next: (data) => {
-          const resultado = data
-          console.log(resultado)
-          this.router.navigate(['/']);
-        },
-        error: (err) => {
-          console.log(err)
-          // Capturar el error del backend
-          const httpError = err as HttpErrorResponse;
-          const body = httpError.error as ProcesarArchivosError | undefined;
-
-          this.processError.set({
-            exito: false,
-            mensaje:
-              body?.mensaje ??
-              'Archivo no válido. Por favor, verifique el contenido de los datos y asegúrese de que cumpla con el formato esperado.',
-            errores: body?.errores ?? [],
-          });
-          this.processErrorModalVisible.set(true);
-        },
-        complete: () => {
-          this.processing.set(false);
-        },
+    const files = this.files();
+    const validation = validateImportSelection(files);
+    if (!validation.valid) {
+      this.releaseStore.failImport({
+        kind: 'error',
+        code: 'IMPORT_SELECTION_INVALID',
+        message: validation.errors.join(' '),
       });
-    } catch (err) {
+      return;
+    }
+
+    this.processing.set(true);
+    this.releaseStore.beginImport();
+    try {
+      const response = await this.api.preflightImport(files);
+      this.releaseStore.completeImport(response);
+      if (this.releaseStore.hasPublishedRelease()) {
+        await this.router.navigate(['/']);
+      }
+    } catch (error) {
+      this.releaseStore.failImport(classifyImportFailure(error));
+    } finally {
       this.processing.set(false);
     }
-  }
-
-  closeProcessErrorModal(): void {
-    this.processErrorModalVisible.set(false);
   }
 }

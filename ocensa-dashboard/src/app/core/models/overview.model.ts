@@ -1,9 +1,8 @@
-// overview.model.ts
+import { ScientificValue } from './dataset-release.model';
 
 /** Par valor/fecha que repite el backend */
-export interface Measurement<T = number> {
-  value: T;
-  date: string; // ISO: '2026-05-23T00:00:00'
+export interface Measurement<T = number> extends ScientificValue<T> {
+  date: string | null;
 }
 
 export interface LastValues {
@@ -18,10 +17,10 @@ export interface LastValues {
 }
 
 export interface Summary {
-  bsrInControlCount: number;
+  bsrInControlCount: number | null;
   categoryNace: string | null;
   levelAlarm: string | null;
-  thpsMedian: number;
+  thpsMedian: number | null;
 }
 
 export interface OverviewResponse {

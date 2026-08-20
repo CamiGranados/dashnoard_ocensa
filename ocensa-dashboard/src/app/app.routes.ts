@@ -17,6 +17,14 @@ export const routes: Routes = [{
         loadComponent: () => import('./features/dashboard/data-upload/data-upload')
           .then(m => m.DataUpload),
       }, {
+        path: 'tanks',
+        loadComponent: () => import('./features/dashboard/tabs/tanks/tanks')
+          .then(m => m.Tanks),
+      }, {
+        path: 'physicochemistry',
+        loadComponent: () => import('./features/dashboard/tabs/physicochemistry/physicochemistry')
+          .then(m => m.Physicochemistry),
+      }, {
         path: 'corrosion',
         loadComponent: () => import('./features/dashboard/tabs/corrosion/corrosion')
           .then(m => m.Corrosion),

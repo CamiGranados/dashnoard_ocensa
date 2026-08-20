@@ -1,4 +1,4 @@
-// thps-review.model.ts
+import { ScientificValue, ScientificValueStatus } from './dataset-release.model';
 
 export interface ThpsReviewSummary {
   residualMedian: number | null;
@@ -10,16 +10,16 @@ export interface ThpsReviewSummary {
 
 export interface ThpsReviewRecord {
   date: string; // ISO: '2026-05-23T00:00:00'
-  realInjectedDose: number | null;
-  scheduled_Dose: number | null;
-  residual_per: number | null;
-  reported_FWV: number | null;
-  estimated_FWV: number | null;
-  calculated_FWV: number | null;
-  bAntPlanct: number | null;
-  bhtPlanct: number | null;
-  bpaPlanct: number | null;
-  bsrPlanct: number | null;
+  realInjectedDose: ScientificValue<number>;
+  scheduled_Dose: ScientificValue<number>;
+  residual_per: ScientificValue<number>;
+  reported_FWV: ScientificValue<number>;
+  estimated_FWV: ScientificValue<number>;
+  calculated_FWV: ScientificValue<number>;
+  bAntPlanct: ScientificValue<number>;
+  bhtPlanct: ScientificValue<number>;
+  bpaPlanct: ScientificValue<number>;
+  bsrPlanct: ScientificValue<number>;
 }
 
 export interface ThpsReviewResponse {
@@ -29,16 +29,22 @@ export interface ThpsReviewResponse {
 
 export interface ThpsChartRow {
   timestamp: number; // date, como epoch ms, para el eje X numérico
-  dosisReal: number | null; // realInjectedDose
-  dosisProgramada: number | null; // scheduled_Dose
-  residualPct: number | null; // residual_per
-  fwvReportada: number | null; // reported_FWV
-  fwvEstimada: number | null; // estimated_FWV
-  fwvCalculada: number | null; // calculated_FWV
-  bant: number | null; // bAntPlanct
-  bht: number | null; // bhtPlanct
-  bpa: number | null; // bpaPlanct
-  bsr: number | null; // bsrPlanct
+  dosisReal: ThpsChartValue;
+  dosisProgramada: ThpsChartValue;
+  residualPct: ThpsChartValue;
+  fwvReportada: ThpsChartValue;
+  fwvEstimada: ThpsChartValue;
+  fwvCalculada: ThpsChartValue;
+  bant: ThpsChartValue;
+  bht: ThpsChartValue;
+  bpa: ThpsChartValue;
+  bsr: ThpsChartValue;
+}
+
+export interface ThpsChartValue {
+  numeric: number | null;
+  display: string;
+  status: ScientificValueStatus;
 }
 
 export interface ThpsReviewMetricCard {

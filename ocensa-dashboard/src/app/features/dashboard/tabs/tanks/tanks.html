@@ -1,1 +1,8 @@
-<p>tanks works!</p>
+@if (!hasPublishedRelease()) {
+  <app-release-gate />
+} @else {
+  <section class="module-placeholder">
+    <h1>Tanques</h1>
+    <p>El módulo aún no tiene métricas aprobadas para publicación.</p>
+  </section>
+}

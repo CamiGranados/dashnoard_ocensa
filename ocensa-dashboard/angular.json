@@ -25,13 +25,16 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
-            ]
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.production.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -47,6 +50,12 @@
               "outputHashing": "all"
             },
             "development": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ],
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
@@ -67,7 +76,10 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "runnerConfig": "vitest.config.ts"
+          }
         }
       }
     }

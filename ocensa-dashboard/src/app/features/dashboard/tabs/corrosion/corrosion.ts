@@ -7,12 +7,10 @@ import { finalize } from 'rxjs';
 import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
 import { Spinner } from '../../../../core/shared/components/spinner/spinner';
-
-export interface Measurement {
-  variable: string;
-  numericValue: number;
-  date: string;
-}
+import { Measurement } from '../../../../core/services/filters.service';
+import { DatasetReleaseStore } from '../../../../core/services/dataset-release-store.service';
+import { ReleaseGate } from '../../../../core/shared/components/release-gate/release-gate';
+import { scientificValueForChart } from '../../../../core/models/dataset-release.model';
 
 const SERIES_CONFIG: Record<string, {
   label: string;
@@ -32,7 +30,7 @@ const SERIES_CONFIG: Record<string, {
 
 @Component({
   selector: 'app-corrosion',
-  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule, Spinner],
+  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule, Spinner, ReleaseGate],
   templateUrl: './corrosion.html',
   styleUrl: './corrosion.css',
 })
@@ -40,6 +38,8 @@ const SERIES_CONFIG: Record<string, {
 export class Corrosion {
   private filtersState = inject(FiltersStateService);
   private dataService = inject(FiltersService);
+  private releaseStore = inject(DatasetReleaseStore);
+  readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
 
   measurements = signal<Measurement[]>([]);
   visibleRange = signal<[number, number]>([0, 0]);
@@ -77,11 +77,17 @@ export class Corrosion {
     // se re-ejecuta automáticamente cada vez que cambian los filtros (tanque, años, meses)
     effect((onCleanup) => {
       const f = this.filtersState.filters();
-      if (!f.tank || !f.years) return;
+      const datasetReleaseId = this.releaseStore.releaseId();
+      if (!datasetReleaseId || !f.tank || !f.years) {
+        this.measurements.set([]);
+        this.noData.set(false);
+        this.visibleRange.set([0, 0]);
+        return;
+      }
 
       this.loadingMeasurements.set(true);
 
-      const subscription = this.dataService.getMeasurements(f.tank, f.years, f.months)
+      const subscription = this.dataService.getMeasurements(datasetReleaseId, f.tank, f.years, f.months)
         .pipe(finalize(() => this.loadingMeasurements.set(false)))
         .subscribe({
           next: (data) => {
@@ -99,7 +105,12 @@ export class Corrosion {
             this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
             this.sliderPosition.set(startIdx);
           },
-          error: (err) => console.error('Error mediciones', err),
+          error: () => {
+            this.noData.set(true);
+            this.measurements.set([]);
+            this.visibleRange.set([0, 0]);
+            this.releaseStore.invalidateForQueryFailure();
+          },
         });
 
       // si los filtros vuelven a cambiar antes de que responda, se cancela la petición anterior
@@ -139,10 +150,10 @@ export class Corrosion {
           pointHoverRadius: isBar ? undefined : 3,
           pointRadius: isBar ? undefined : 1,
           tension: 0.3,
-          spanGaps: true,
+          spanGaps: false,
           data: visibles.map(d => {
             const punto = data.find(m => m.variable === variable && m.date === d);
-            return punto ? punto.numericValue : null;
+            return punto ? scientificValueForChart(punto.numericValue) : null;
           }),
         };
       });

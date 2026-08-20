@@ -13,17 +13,19 @@
       <i class="pi pi-clock"></i>
       <div>
         <span class="data-upload_meta-label">Última actualización</span>
-        <span class="data-upload_meta-value">{{ lastUpdate }}</span>
+        <span class="data-upload_meta-value">
+          {{ publishedAt() ? (publishedAt() | date: "d MMM y · HH:mm") : '—' }}
+        </span>
       </div>
     </div>
 
     <span class="dashboard-header-meta_divider"></span>
 
     <div class="data-upload_meta-item">
-      <i class="fa-solid fa-glass-water-droplet"></i>
+      <i class="pi pi-database"></i>
       <div>
         <span class="data-upload_meta-label">Tanque activo</span>
-        <span class="data-upload_meta-value">{{ activeTank }}</span>
+        <span class="data-upload_meta-value">{{ activeTank() }}</span>
       </div>
     </div>
 
@@ -31,10 +33,13 @@
 
     <div class="data-upload_meta-item">
       <div>
-        <span class="data-upload_meta-label">Estado general</span>
-        <span class="data-upload_meta-value data-upload_meta-value--status">
-          <i class="pi pi-circle-fill"></i>
-          {{ overallStatus }}
+        <span class="data-upload_meta-label">Estado del dataset</span>
+        <span
+          class="data-upload_meta-value data-upload_meta-value--status"
+          [class.data-upload_meta-value--blocked]="!hasPublishedRelease()"
+        >
+          <i class="pi" [class.pi-check-circle]="hasPublishedRelease()" [class.pi-lock]="!hasPublishedRelease()"></i>
+          {{ datasetStatus() }}
         </span>
       </div>
     </div>

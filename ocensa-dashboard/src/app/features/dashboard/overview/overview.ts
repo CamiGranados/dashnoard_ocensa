@@ -4,6 +4,9 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { OverviewService } from '../../../core/services/overview.service';
 import { LastValues } from '../../../core/models/overview.model';
+import { DatasetReleaseStore } from '../../../core/services/dataset-release-store.service';
+import { ReleaseGate } from '../../../core/shared/components/release-gate/release-gate';
+import { formatScientificValue } from '../../../core/models/dataset-release.model';
 // import { GridModule } from 'primeng/grid';
 
 type LastValueKey = keyof Omit<LastValues, 'lastMeasurementDate'>;
@@ -25,34 +28,38 @@ const LAST_VALUE_ROWS: LastValueRowConfig[] = [
 
 @Component({
   selector: 'app-overview',
-  imports: [CommonModule, ButtonModule, CardModule],
+  imports: [CommonModule, ButtonModule, CardModule, ReleaseGate],
   templateUrl: './overview.html',
   styleUrl: './overview.css',
 })
 export class Overview{
   private readonly overviewService = inject(OverviewService);
+  private readonly releaseStore = inject(DatasetReleaseStore);
 
   readonly summary = this.overviewService.summary;
+  readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
+  readonly recordCount = computed(() => this.releaseStore.release()?.recordCount ?? null);
 
     readonly metrics = computed(() => {
+    if (!this.hasPublishedRelease()) return [];
     const data = this.summary.value();
     const resume = data?.summary;
     if (!resume) return [];
 
     return [
       {
-        title: 'RETENCIÓN MEDIANA DE THPS',
-        value: resume.thpsMedian?.toFixed(2) ?? '—',
+        title: 'THPS RESIDUAL · MEDIANA',
+        value: resume.thpsMedian,
         unit: '%',
-        subtitle: 'Referencia contractual: ≥ 20%',
+        subtitle: 'Calculado exclusivamente por el release publicado',
         icon: 'pi pi-chart-pie',
         color: 'info',
       },
       {
         title: 'EVENTOS MICROBIOLÓGICOS EN CONTROL',
-        value: String(resume.bsrInControlCount),
-        unit: '%',
-        subtitle: '685 de 1.238 eventos con dato',
+        value: resume.bsrInControlCount,
+        unit: ' eventos',
+        subtitle: 'Conteo con dato válido; no es un porcentaje',
         icon: 'pi pi-check-circle',
         color: 'success',
       },
@@ -60,7 +67,7 @@ export class Overview{
         title: 'ÚLTIMA CATEGORÍA NACE',
         value: resume.categoryNace,
         unit: '',
-        subtitle: 'TQ55000 · 19 de may de 2026',
+        subtitle: 'Sin tanque o fecha inferidos por la interfaz',
         icon: 'pi pi-flag',
         color: 'warning',
       },
@@ -68,7 +75,7 @@ export class Overview{
         title: 'ÍNDICE CENTINELA MÁS RECIENTE',
         value: resume.levelAlarm,
         unit: '',
-        subtitle: 'TQ55000 · 20 de nov de 2024',
+        subtitle: 'Clasificación recibida del release',
         icon: 'pi pi-exclamation-triangle',
         color: 'danger',
       },
@@ -76,6 +83,7 @@ export class Overview{
   });
 
   readonly lastValueRows = computed(() => {
+    if (!this.hasPublishedRelease()) return [];
     const lastValues = this.summary.value()?.lastValues;
     if (!lastValues) return [];
 
@@ -86,7 +94,7 @@ export class Overview{
       return {
         key,
         label,
-        value: measurement?.value ?? null,
+        value: measurement ? formatScientificValue(measurement) : '—',
         date: measurement?.date ?? null,
       };
     });
@@ -96,14 +104,4 @@ export class Overview{
     () => this.summary.value()?.lastValues?.lastMeasurementDate ?? null,
   );
 
-  registrosVisibles = 2850;
-  constructor() { }
-  ngOnInit(): void {}
-  exportarCSV(): void {
-    console.log('Exportar CSV');
-  }
-
-  exportarPDF(): void {
-    console.log('Exportar PDF');
-  }
 }

@@ -1,61 +1,73 @@
-import { Component, signal, viewChild, OnInit, OnDestroy} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, effect, inject, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Select } from 'primeng/select';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FileRemoveEvent, FileSelectEvent, FileUpload, FileUploadModule } from 'primeng/fileupload';
-import { MessageService } from 'primeng/api';
+import { MultiSelect } from 'primeng/multiselect';
+import { Select } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
-import { Spinner } from '../../core/shared/components/spinner/spinner';
+import { forkJoin, Subject, takeUntil } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import {
+  MAX_IMPORT_FILES,
+  validateImportSelection,
+} from '../../core/models/dataset-release.model';
+import { DatasetReleaseStore } from '../../core/services/dataset-release-store.service';
 import { FilesStore } from '../../core/services/file-store.service';
-import { Router } from '@angular/router';
 import { FiltersService } from '../../core/services/filters.service';
 import { FiltersStateService } from '../../core/services/filters-state.service';
-import { ChangeDetectorRef } from '@angular/core';
-import { forkJoin, Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
-import { MultiSelect } from 'primeng/multiselect';
+import { Spinner } from '../../core/shared/components/spinner/spinner';
 
-interface FilterOption {
-  label: string;
-  value: string;
-}
-
-export interface fileError {
+export interface FileSelectionError {
   file: string;
   error: string;
 }
 
-export interface Tank {
-  id: string;
-  name: string;
-}
-
 @Component({
   selector: 'app-topbar-filters',
-  imports: [CommonModule, FormsModule, Select, Button, FileUploadModule, DialogModule, ToastModule, Spinner, MultiSelect],
+  imports: [
+    CommonModule,
+    FormsModule,
+    Select,
+    Button,
+    FileUploadModule,
+    DialogModule,
+    ToastModule,
+    Spinner,
+    MultiSelect,
+  ],
   templateUrl: './topbar-filters.html',
   styleUrl: './topbar-filters.css',
   providers: [MessageService],
 })
-
 export class TopbarFilters implements OnInit, OnDestroy {
-  excelUpload = viewChild.required<FileUpload>('excelUpload');
+  private readonly messageService = inject(MessageService);
+  private readonly filesStore = inject(FilesStore);
+  private readonly router = inject(Router);
+  private readonly filtersService = inject(FiltersService);
+  private readonly filtersState = inject(FiltersStateService);
+  private readonly releaseStore = inject(DatasetReleaseStore);
+  private readonly filtersChanged$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  readonly max_files = 5; // Maximum number of files allowed
-  displayModalFiles: boolean = false;
-  selectedFiles: File[] = [];
-  firstFilterErrors = signal<fileError[]>([]);
-  validating = signal(false);
+  readonly excelUpload = viewChild.required<FileUpload>('excelUpload');
+  readonly maxFiles = MAX_IMPORT_FILES;
+  readonly firstFilterErrors = signal<FileSelectionError[]>([]);
+  readonly validating = signal(false);
+  readonly filterLoadError = signal<string | null>(null);
+  readonly hasPublishedRelease = this.releaseStore.hasPublishedRelease;
 
-  tankOptions: { label: string; value: any }[] = [];
-  tank: any;
-
+  displayModalFiles = false;
+  tankOptions: { label: string; value: string }[] = [];
+  tank: string | null = null;
   yearOptions: { label: string; value: number }[] = [];
   selectedYears: number[] = [];
+  selectedMonth: number | null = null;
 
-  monthOptions = [
+  readonly monthOptions = [
     { label: 'Todos', value: null },
     { label: 'Enero', value: 1 },
     { label: 'Febrero', value: 2 },
@@ -71,207 +83,122 @@ export class TopbarFilters implements OnInit, OnDestroy {
     { label: 'Diciembre', value: 12 },
   ];
 
-  selectedMonth: number | null = null;
-  private filtrosChanged$ = new Subject<void>();
+  private readonly loadReleaseFilters = effect((onCleanup) => {
+    const releaseId = this.releaseStore.releaseId();
+    this.resetFilterOptions();
+    if (!releaseId) return;
 
-  constructor(private messageService: MessageService, private filesStore: FilesStore, private router: Router, private FiltersService:FiltersService, private cdr: ChangeDetectorRef, private filtersState: FiltersStateService) {}
-
-
-  // --------------------------------------------------- SELECTS --------------------------------------
-  ngOnInit(): void {
-      forkJoin({
-      years: this.FiltersService.getYears(),
-      tanks: this.FiltersService.getTanks(),
+    const subscription = forkJoin({
+      years: this.filtersService.getYears(releaseId),
+      tanks: this.filtersService.getTanks(releaseId),
     }).subscribe({
       next: ({ years, tanks }) => {
-        // años
-        this.yearOptions = years.map(y => ({ label: y.toString(), value: y }));
-        if (this.yearOptions.length) {
-          this.selectedYears = [this.yearOptions[this.yearOptions.length - 1].value];
-        }
+        this.filterLoadError.set(null);
+        this.yearOptions = years.map((year) => ({ label: String(year), value: year }));
+        this.tankOptions = tanks.map((tank) => ({ label: tank.name, value: tank.id }));
+      },
+      error: () => {
+        this.resetFilterOptions();
+        this.filterLoadError.set('No fue posible cargar filtros para el release publicado.');
+        this.releaseStore.invalidateForQueryFailure();
+      },
+    });
 
-        // tanques
-        this.tankOptions = tanks.map(t => ({ label: t.name, value: t.id }));
-        if (this.tankOptions.length) {
-          this.tank = this.tankOptions[this.tankOptions.length - 1].value;
-        }
+    onCleanup(() => subscription.unsubscribe());
+  });
 
-        // publica los defaults YA con ambos listos
+  ngOnInit(): void {
+    this.filtersChanged$
+      .pipe(debounceTime(400), takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (!this.hasPublishedRelease()) return;
         this.filtersState.setFilters({
           tank: this.tank,
           years: this.selectedYears,
           months: this.selectedMonth ? [this.selectedMonth] : [],
         });
-
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error cargando filtros', err),
-    });
-
-     this.filtrosChanged$.pipe(debounceTime(400)).subscribe(() => {
-      this.filtersState.setFilters({
-        tank: this.tank,
-        years: this.selectedYears,
-        months: this.selectedMonth ? [this.selectedMonth] : [],
       });
-    });
-  }
-
-  onFiltersChange(): void {
-    this.filtrosChanged$.next();
-  }
-
-  // -------------------------------------------------------------- Sets the file limit
-  onFilesSelected(event: FileSelectEvent): void {
-    const upload = this.excelUpload();
-    const files = upload.files;
-
-    if(files.length > this.max_files){
-      upload.files = files.slice(0, this.max_files)
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Límite de archivos',
-        detail: `Solo se permiten ${this.max_files} archivos. Los archivos adicionales fueron descartados.`
-      });
-    }
-  }
-
-  onYearsChange(): void {
-    this.filtrosChanged$.next();
   }
 
   ngOnDestroy(): void {
-    this.filtrosChanged$.complete();
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.filtersChanged$.complete();
   }
 
-  // ----------------------------------------------------------- Review of the files selected  -------------------------------
-  private async readFirstBytes(file: File, numBytes:8): Promise<Uint8Array> {
-    const blob = file.slice(0, numBytes);
-    const arrayBuffer = await blob.arrayBuffer();
-    return new Uint8Array(arrayBuffer);
+  onFiltersChange(): void {
+    this.filtersChanged$.next();
   }
 
-  private IdentifySecurityFile(bytes: Uint8Array): 'xlsx' | 'ole' | 'unknown' {
-    if (bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04) {
-      return 'xlsx';
-    }else if (bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0) {
-      return 'ole';
+  onFilesSelected(_event: FileSelectEvent): void {
+    const upload = this.excelUpload();
+    if (upload.files.length > this.maxFiles) {
+      upload.files = upload.files.slice(0, this.maxFiles);
     }
-    return 'unknown';
-  }
 
-  private async validateFile(file: File): Promise<string | null> {
-    if (!file.name.toLocaleLowerCase().endsWith('.xlsx')) {
-      return 'El archivo no tiene la extensión .xlsx';
-    }
-    if(file.size === 0){
-      return 'El archivo está vacío';
-    }
-    if (file.size < 1024){
-      return 'El archivo es demasiado pequeño para ser un archivo Excel válido';
-    }
-    const firstBytes = await this.readFirstBytes(file, 8);
-    const fileType = this.IdentifySecurityFile(firstBytes);
-    if (fileType === 'ole') {
-      return 'El archivo está protegido con contraseña o no es compatible. Guárdalo como .xlsx sin contraseña';
-    } else if (fileType === 'unknown') {
-      return 'El archivo no es un archivo Excel válido';
-    }
-    return null;
-  }
+    this.releaseStore.selectionChanged(upload.files);
+    const validation = validateImportSelection(upload.files);
+    this.firstFilterErrors.set(
+      validation.errors.map((error) => ({ file: 'Lote', error })),
+    );
 
-  private validateDuplicates(files: File[]): fileError[] {
-    const errors: fileError[] = [];
-    const fileNames = new Map<string, string>();
-
-    for (const file of files){
-      const code = `${file.name.trim().toLowerCase()}|${file.size}`;
-
-      if(fileNames.has(code)){
-        errors.push({
-          file: file.name,
-          error: `Archivo duplicado (ya seleccionaste "${fileNames.get(code)}")`
-        });
-      } else{
-        fileNames.set(code, file.name);
-      }
-    }
-    return errors;
-  }
-
-  async loadFiles(): Promise<void>{
-    const files = this.excelUpload().files;
-
-    if (!files?.length){
+    if (!validation.valid) {
       this.messageService.add({
-        severity: 'warn',
-        summary: 'Sin archivos',
-        detail: 'Selecciona al menos un archivo antes de cargar'
+        severity: 'error',
+        summary: 'Selección no válida',
+        detail: `${validation.errors.length} problema(s) encontrado(s).`,
       });
+    }
+  }
+
+  onFileRemoved(_event: FileRemoveEvent): void {
+    queueMicrotask(() => {
+      const files = this.excelUpload().files;
+      this.releaseStore.selectionChanged(files);
+      const validation = validateImportSelection(files);
+      this.firstFilterErrors.set(
+        validation.errors
+          .filter((error) => files.length > 0 || !error.includes('Seleccione'))
+          .map((error) => ({ file: 'Lote', error })),
+      );
+    });
+  }
+
+  loadFiles(): void {
+    const files = [...this.excelUpload().files];
+    const validation = validateImportSelection(files);
+    if (!validation.valid) {
+      this.firstFilterErrors.set(validation.errors.map((error) => ({ file: 'Lote', error })));
       return;
     }
 
     this.validating.set(true);
-    this.firstFilterErrors.set([]);
-    try{
-      const errors: fileError[] = [];
-      errors.push(...this.validateDuplicates(files));
-
-      const results = await Promise.all(
-        files.map(async (file) => ({
-          file: file.name,
-          error: await this.validateFile(file)
-        }))
-      );
-
-      errors.push(
-      ...results
-        .filter((r): r is { file: string; error: string } => r.error !== null));
-
-      if(errors.length > 0){
-        this.firstFilterErrors.set(errors);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Errores de validación',
-          detail: `${errors.length} problema(s) encontrado(s). Revisa el detalle.`
-        });
-        return;
-      }
-
-      this.filesStore.setFiles([...files]);
+    try {
+      this.filesStore.setFiles(files);
       this.displayModalFiles = false;
       this.excelUpload().clear();
-      this.router.navigate(['/carga-datos'])
-
-    } finally{
+      void this.router.navigate(['/carga-datos']);
+    } finally {
       this.validating.set(false);
     }
   }
 
-
-  onFileRemoved(event: FileRemoveEvent): void {
-    this.selectedFiles = this.selectedFiles.filter((file) => file !== event.file);
+  cancelFileSelection(): void {
+    this.displayModalFiles = false;
+    this.excelUpload().clear();
+    this.firstFilterErrors.set([]);
   }
 
   showAlertLoadedFiles(): void {
     this.displayModalFiles = true;
   }
 
-
-  // --------------------------------------------------    EJEMPLO DE OPCIONES DE FILTRO
-
-  readonly escalaOptions: FilterOption[] = [
-    { label: 'Logarítmica', value: 'log' },
-    { label: 'Lineal', value: 'linear' },
-  ];
-
-  readonly periodOptions: FilterOption[] = [
-    { label: 'Últimas 24 horas', value: '24h' },
-    { label: 'Últimos 7 días', value: '7d' },
-    { label: 'Últimos 30 días', value: '30d' },
-  ];
-
-  escala = 'log';
-  period = '24h';
-  mostrarAlertas = true;
+  private resetFilterOptions(): void {
+    this.tankOptions = [];
+    this.yearOptions = [];
+    this.tank = null;
+    this.selectedYears = [];
+    this.selectedMonth = null;
+    this.filtersState.setFilters({ tank: null, years: [], months: [] });
+  }
 }

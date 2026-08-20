@@ -1,12 +1,12 @@
-// microbiology.model.ts
+import { ScientificValue } from './dataset-release.model';
 
 export interface MicroRecordDto {
   date: string; // ISO: '2026-05-23T00:00:00'
-  bsrPlanct: number | null;
-  bpaPlanct: number | null;
-  bhtPlanct: number | null;
-  bAntPlanct: number | null;
-  thpsPercent: number | null;
+  bsrPlanct: ScientificValue<number>;
+  bpaPlanct: ScientificValue<number>;
+  bhtPlanct: ScientificValue<number>;
+  bAntPlanct: ScientificValue<number>;
+  thpsPercent: ScientificValue<number>;
   standardSamplingType: string;
 }
 
