@@ -11,9 +11,88 @@
   } @else if (review.error()) {
     <p>No se pudo cargar la información de microbiología.</p>
   } @else if (records().length) {
-    <div class="micro-chart-panel">
-      @if (timelinePoints().length) {
-        <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
+    <div class="micro-chart-panel micro-bache-panel">
+      @if (bacheCharts().length) {
+        <div class="micro-bache-legend">
+          @for (item of legendItems; track item.label) {
+            <span class="micro-legend-item">
+              <i
+                class="micro-legend-swatch shape-{{ item.shape }}"
+                [style.background]="item.shape !== 'triangle' ? item.color : null"
+                [style.borderBottomColor]="item.shape === 'triangle' ? item.color : null"
+              ></i>
+              {{ item.label }}
+            </span>
+          }
+        </div>
+
+        <div class="micro-bache-scroll">
+          @for (chart of bacheCharts(); track $index; let first = $first) {
+            <div class="micro-bache-col">
+              <div class="micro-bache-title">{{ chart.pair.label }}</div>
+
+              <div class="micro-bache-linechart">
+                <p-chart type="line" [data]="chart.data" [options]="chart.options" />
+              </div>
+
+              <div class="micro-bache-annotation" [ngClass]="effectivenessClass(chart.pair)">
+                {{ effectivenessText(chart.pair) }}
+              </div>
+
+              <div class="micro-bache-residual-row">
+                @if (first) {
+                  <div class="micro-bache-residual-axis">
+                    <span class="micro-bache-residual-axis-title">Residual %</span>
+                    <div class="micro-bache-residual-axis-ticks">
+                      @for (t of residualTicks(); track t) {
+                        <span>{{ t }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <div class="micro-bache-residual-plot">
+                  <div
+                    class="micro-bache-residual-threshold"
+                    [style.top.%]="residualThresholdTopPct()"
+                  >
+                    @if (first) {
+                      <span class="micro-bache-residual-threshold-label"
+                        >Mínimo {{ RESIDUAL_MIN }}%</span
+                      >
+                    }
+                  </div>
+                  <div
+                    class="micro-bache-residual-bar"
+                    [style.height.%]="residualBarHeightPct(chart.pair)"
+                    [class.is-ok]="isResidualOk(chart.pair) === true"
+                    [class.is-bad]="isResidualOk(chart.pair) === false"
+                  >
+                    <span class="micro-bache-residual-value">
+                      {{
+                        residualValue(chart.pair) != null ? residualValue(chart.pair) + '%' : '—'
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="micro-bache-residual-label"
+                [class.is-ok]="isResidualOk(chart.pair) === true"
+                [class.is-bad]="isResidualOk(chart.pair) === false"
+              >
+                {{
+                  isResidualOk(chart.pair) == null
+                    ? 'Sin dato'
+                    : isResidualOk(chart.pair)
+                      ? 'Cumple'
+                      : 'Deficiente'
+                }}
+              </div>
+            </div>
+          }
+        </div>
       } @else {
         <div class="micro-chart-empty">
           <i class="pi pi-chart-bar"></i>
@@ -23,7 +102,21 @@
     </div>
 
     <div class="micro-table-panel">
-      
+      <h2 class="micro-table-title">Control mensual por variable</h2>
+      @if (monthlyControlChartData().datasets.length) {
+        <div class="micro-monthly-chart">
+          <p-chart
+            type="bar"
+            [data]="monthlyControlChartData()"
+            [options]="monthlyControlChartOptions"
+          />
+        </div>
+      } @else {
+        <div class="micro-chart-empty">
+          <i class="pi pi-chart-bar"></i>
+          <p>No hay datos de control mensual para graficar.</p>
+        </div>
+      }
     </div>
   } @else {
     <p>Selecciona un tanque para ver los datos de microbiología.</p>

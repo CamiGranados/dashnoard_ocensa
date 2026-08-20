@@ -10,6 +10,16 @@ export interface MicroRecordDto {
   standardSamplingType: string;
 }
 
+export interface MonthlyControlDto {
+  year: number;
+  month: number;
+  bsrControlPercent: number | null;
+  bpaControlPercent: number | null;
+  bhtControlPercent: number | null;
+  bAntControlPercent: number | null;
+}
+
 export interface MicroResponseDto {
   data: MicroRecordDto[];
+  monthlyControl: MonthlyControlDto[];
 }
