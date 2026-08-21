@@ -101,6 +101,29 @@
     }
   }
 
+  @if (importState().code || importState().importBatchId || importState().releaseIdentity) {
+    <dl class="data-upload__diagnostics" aria-label="Diagnóstico técnico de importación">
+      @if (importState().code) {
+        <div>
+          <dt>Código</dt>
+          <dd><code>{{ importState().code }}</code></dd>
+        </div>
+      }
+      @if (importState().importBatchId) {
+        <div>
+          <dt>Lote</dt>
+          <dd><code>{{ importState().importBatchId }}</code></dd>
+        </div>
+      }
+      @if (importState().releaseIdentity) {
+        <div>
+          <dt>Release</dt>
+          <dd><code>{{ importState().releaseIdentity }}</code></dd>
+        </div>
+      }
+    </dl>
+  }
+
   @if (!validation().valid && files().length) {
     <div class="data-upload__notes">
       <p-message severity="error" [closable]="false" class="data-upload__note">

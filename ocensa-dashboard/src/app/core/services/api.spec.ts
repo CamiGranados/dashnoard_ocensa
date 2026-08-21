@@ -71,24 +71,33 @@ describe('Api', () => {
       ),
     ).toMatchObject({ kind: 'retired', code: 'LEGACY_IMPORT_RETIRED' });
 
-    expect(
-      classifyImportFailure(
-        new HttpErrorResponse({
-          status: 503,
-          error: {
-            code: 'IMPORT_STORAGE_NOT_READY',
-            importBatchId: 'batch-1',
-            importBatch: { batchIdentity: 'batch-1' },
-            release: null,
-            blockedRelease: { releaseIdentity: 'release-1' },
-          },
-        }),
-      ),
-    ).toMatchObject({
+    const blocked = classifyImportFailure(
+      new HttpErrorResponse({
+        status: 503,
+        error: {
+          code: 'IMPORT_STORAGE_NOT_READY',
+          importBatchId: 'batch-1',
+          importBatch: { batchIdentity: 'batch-1' },
+          release: null,
+          blockedRelease: { releaseIdentity: 'release-1' },
+        },
+      }),
+    );
+    expect(blocked).toMatchObject({
       kind: 'blocked',
       code: 'IMPORT_STORAGE_NOT_READY',
       importBatchId: 'batch-1',
       releaseIdentity: 'release-1',
     });
+    expect(blocked.message).toContain('perfil local-analytics');
+
+    const unavailable = classifyImportFailure(
+      new HttpErrorResponse({
+        status: 503,
+        error: { code: 'IMPORT_STORAGE_UNAVAILABLE' },
+      }),
+    );
+    expect(unavailable.message).toContain('SQL Server');
+    expect(unavailable.message).toContain('migración');
   });
 });

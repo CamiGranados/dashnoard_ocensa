@@ -212,3 +212,32 @@
     justify-content: flex-end;
   }
 }
+.data-upload__diagnostics {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+}
+
+.data-upload__diagnostics > div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.data-upload__diagnostics dt {
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.data-upload__diagnostics dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.data-upload__diagnostics code {
+  overflow-wrap: anywhere;
+}

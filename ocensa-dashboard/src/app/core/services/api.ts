@@ -64,12 +64,20 @@ export function classifyImportFailure(error: unknown): ImportFailure {
   }
 
   if (error.status === 503) {
+    const code = body?.code ?? 'IMPORT_STORAGE_NOT_READY';
+    const operationalHint =
+      code === 'IMPORT_STORAGE_NOT_READY'
+        ? ' En desarrollo local, reinicie la API con el perfil local-analytics después de configurar SQL Server y aplicar la migración.'
+        : code === 'IMPORT_STORAGE_UNAVAILABLE'
+          ? ' Verifique que SQL Server esté disponible y que la migración raw/release haya sido aplicada.'
+          : '';
     return {
       kind: 'blocked',
-      code: body?.code ?? 'IMPORT_STORAGE_NOT_READY',
+      code,
       message:
-        message ??
-        'El almacenamiento trazable todavía no está habilitado. El lote no fue publicado y no se muestran resultados.',
+        (message ??
+          'El almacenamiento trazable todavía no está habilitado. El lote no fue publicado y no se muestran resultados.') +
+        operationalHint,
       ...diagnostics,
     };
   }

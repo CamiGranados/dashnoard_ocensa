@@ -100,8 +100,12 @@ describe('DataUpload', () => {
     });
 
     await component.proceed();
+    fixture.detectChanges();
 
     expect(releaseStore.importState().kind).toBe('blocked');
     expect(releaseStore.release()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('IMPORT_STORAGE_NOT_READY');
+    expect(fixture.nativeElement.textContent).toContain('batch-1');
+    expect(fixture.nativeElement.textContent).toContain('release-1');
   });
 });
