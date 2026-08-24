@@ -45,10 +45,15 @@ export function classifyImportFailure(error: unknown): ImportFailure {
         release?: { releaseIdentity?: string } | null;
         importBatch?: { batchIdentity?: string };
         blockedRelease?: { releaseIdentity?: string } | null;
+        details?: { traceId?: unknown } | null;
       }
     | null;
   const message = body?.message ?? body?.title;
+  const rawTraceId =
+    typeof body?.details?.traceId === 'string' ? body.details.traceId.trim() : '';
+  const traceId = rawTraceId && rawTraceId.length <= 128 ? rawTraceId : null;
   const diagnostics = {
+    traceId,
     importBatchId: body?.importBatchId ?? body?.importBatch?.batchIdentity ?? null,
     releaseIdentity:
       body?.release?.releaseIdentity ?? body?.blockedRelease?.releaseIdentity ?? null,

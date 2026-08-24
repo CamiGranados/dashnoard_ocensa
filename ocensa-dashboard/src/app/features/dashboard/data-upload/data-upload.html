@@ -101,12 +101,18 @@
     }
   }
 
-  @if (importState().code || importState().importBatchId || importState().releaseIdentity) {
+  @if (importState().code || importState().traceId || importState().importBatchId || importState().releaseIdentity) {
     <dl class="data-upload__diagnostics" aria-label="Diagnóstico técnico de importación">
       @if (importState().code) {
         <div>
           <dt>Código</dt>
           <dd><code>{{ importState().code }}</code></dd>
+        </div>
+      }
+      @if (importState().traceId) {
+        <div>
+          <dt>Seguimiento</dt>
+          <dd><code>{{ importState().traceId }}</code></dd>
         </div>
       }
       @if (importState().importBatchId) {

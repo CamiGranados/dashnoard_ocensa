@@ -204,6 +204,7 @@ export class DatasetReleaseStore {
       kind: failure.kind,
       code: failure.code,
       message: failure.message,
+      traceId: failure.traceId,
       importBatchId: failure.importBatchId,
       releaseIdentity: failure.releaseIdentity,
     });

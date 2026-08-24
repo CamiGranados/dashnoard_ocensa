@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
@@ -107,5 +107,31 @@ describe('DataUpload', () => {
     expect(fixture.nativeElement.textContent).toContain('IMPORT_STORAGE_NOT_READY');
     expect(fixture.nativeElement.textContent).toContain('batch-1');
     expect(fixture.nativeElement.textContent).toContain('release-1');
+  });
+
+  it('shows the server trace identifier after a structured unexpected failure', async () => {
+    filesStore.setFiles([new File(['x'], 'dataset.xlsx')]);
+    vi.spyOn(api, 'preflightImport').mockRejectedValue(
+      new HttpErrorResponse({
+        status: 500,
+        error: {
+          code: 'IMPORT_UNEXPECTED_ERROR',
+          message: 'Error inesperado.',
+          details: { traceId: 'trace-visible-500' },
+        },
+      }),
+    );
+
+    await component.proceed();
+    fixture.detectChanges();
+
+    expect(releaseStore.importState()).toMatchObject({
+      kind: 'error',
+      code: 'IMPORT_UNEXPECTED_ERROR',
+      traceId: 'trace-visible-500',
+    });
+    expect(fixture.nativeElement.textContent).toContain('Seguimiento');
+    expect(fixture.nativeElement.textContent).toContain('trace-visible-500');
+    expect(releaseStore.release()).toBeNull();
   });
 });

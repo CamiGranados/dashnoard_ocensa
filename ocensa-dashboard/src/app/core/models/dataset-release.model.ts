@@ -223,6 +223,7 @@ export interface ImportUiState {
   kind: ImportUiStateKind;
   code?: string | null;
   message: string;
+  traceId?: string | null;
   importBatchId?: string | null;
   releaseIdentity?: string | null;
 }
@@ -231,6 +232,7 @@ export interface ImportFailure {
   kind: Extract<ImportUiStateKind, 'blocked' | 'retired' | 'error'>;
   code: string;
   message: string;
+  traceId?: string | null;
   importBatchId?: string | null;
   releaseIdentity?: string | null;
 }

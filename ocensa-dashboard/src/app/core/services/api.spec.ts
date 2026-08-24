@@ -100,4 +100,44 @@ describe('Api', () => {
     expect(unavailable.message).toContain('SQL Server');
     expect(unavailable.message).toContain('migración');
   });
+
+  it('propagates only a string trace identifier from a structured 500 response', () => {
+    const failure = classifyImportFailure(
+      new HttpErrorResponse({
+        status: 500,
+        error: {
+          code: 'IMPORT_UNEXPECTED_ERROR',
+          message: 'Error inesperado.',
+          details: { traceId: '  trace-server-500  ' },
+        },
+      }),
+    );
+
+    expect(failure).toEqual({
+      kind: 'error',
+      code: 'IMPORT_UNEXPECTED_ERROR',
+      message: 'Error inesperado.',
+      traceId: 'trace-server-500',
+      importBatchId: null,
+      releaseIdentity: null,
+    });
+
+    expect(
+      classifyImportFailure(
+        new HttpErrorResponse({
+          status: 500,
+          error: { details: { traceId: { unsafe: true } } },
+        }),
+      ).traceId,
+    ).toBeNull();
+
+    expect(
+      classifyImportFailure(
+        new HttpErrorResponse({
+          status: 500,
+          error: { details: { traceId: 'x'.repeat(129) } },
+        }),
+      ).traceId,
+    ).toBeNull();
+  });
 });
