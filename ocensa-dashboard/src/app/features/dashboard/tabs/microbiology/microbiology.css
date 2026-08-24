@@ -248,11 +248,13 @@
 }
 
 .micro-bache-residual-bar.is-ok {
-  background: var(--color-green);
+  /* background: var(--color-green); */
+  background: #c8e6d4;
 }
 
 .micro-bache-residual-bar.is-bad {
-  background: var(--color-orange-dark);
+  /* background: var(--color-orange-dark); */
+  background: #f7d5c1;
 }
 
 .micro-bache-residual-label {

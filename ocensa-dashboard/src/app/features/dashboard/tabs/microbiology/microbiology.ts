@@ -29,7 +29,7 @@ interface ControlSeriesConfig {
 // Mismos colores para bsr/bpa/bht/bant que ya usa thps-tolerance, para que la lectura sea
 // consistente entre tabs aunque esta gráfica no importe ese archivo.
 const SCATTER_SERIES: Record<MicroVariableKey, SeriesConfig> = {
-  bsrPlanct: { label: 'BSR', color: '#1c4463', pointStyle: 'circle' },
+  bsrPlanct: { label: 'BSR', color: '#2e81d4', pointStyle: 'circle' },
   bpaPlanct: { label: 'BPA', color: '#e8590c', pointStyle: 'triangle' },
   bhtPlanct: { label: 'BHT', color: '#239a59', pointStyle: 'rect' },
   bAntPlanct: { label: 'BAnT', color: '#43474f', pointStyle: 'rectRot' },
@@ -40,7 +40,7 @@ const RESIDUAL_COLOR = '#9aa5b8';
 // Mismos colores que SCATTER_SERIES para las variables equivalentes, así el % de control
 // mensual se lee con la misma paleta que la gráfica de baches.
 const CONTROL_SERIES: Record<ControlKey, ControlSeriesConfig> = {
-  bsrControlPercent: { label: 'BSR', color: '#1c4463' },
+  bsrControlPercent: { label: 'BSR', color: '#2e81d4' },
   bpaControlPercent: { label: 'BPA', color: '#e8590c' },
   bhtControlPercent: { label: 'BHT', color: '#239a59' },
   bAntControlPercent: { label: 'BAnT', color: '#43474f' },
@@ -134,7 +134,7 @@ export class Microbiology {
   // null = sin dato de residual para este bache
   isResidualOk(pair: BachePair): boolean | null {
     const value = this.residualValue(pair);
-    return value == null ? null : value >= this.RESIDUAL_MIN;
+    return value == null ? null : value <= this.RESIDUAL_MIN;
   }
 
   effectivenessText(pair: BachePair): string {
@@ -214,7 +214,7 @@ export class Microbiology {
           grid: { color: '#eef2f7' },
           title: {
             display: showAxis,
-            text: 'log10 (UFC/mL)',
+            text: 'log10 (Bact/mL)',
             color: '#6b7a99',
             font: { size: 11 },
           },
