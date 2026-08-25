@@ -45,7 +45,7 @@
                     <span class="micro-bache-residual-axis-title">Residual %</span>
                     <div class="micro-bache-residual-axis-ticks">
                       @for (t of residualTicks(); track t) {
-                        <span>{{ t }}</span>
+                        <span>{{ t | number: '1.2-2' }}</span>
                       }
                     </div>
                   </div>

@@ -37,6 +37,12 @@ const SCATTER_SERIES: Record<MicroVariableKey, SeriesConfig> = {
 
 const RESIDUAL_COLOR = '#9aa5b8';
 
+// Umbral de control del dominio: 10^2 UFC/mL == log10 2 (ver comentario de EFFECTIVE_LOG_DROP
+// en microbiology-bache.transform.ts). Se dibuja como línea punteada de referencia en la
+// gráfica Pre→Post.
+const CONTROL_THRESHOLD_LOG = 2;
+const THRESHOLD_COLOR = '#07a771';
+
 // Mismos colores que SCATTER_SERIES para las variables equivalentes, así el % de control
 // mensual se lee con la misma paleta que la gráfica de baches.
 const CONTROL_SERIES: Record<ControlKey, ControlSeriesConfig> = {
@@ -176,7 +182,18 @@ export class Microbiology {
       };
     });
 
-    return { labels: ['Pre', 'Post'], datasets };
+    const thresholdDataset = {
+      label: 'Límite de control',
+      data: [CONTROL_THRESHOLD_LOG, CONTROL_THRESHOLD_LOG],
+      borderColor: THRESHOLD_COLOR,
+      borderWidth: 1.5,
+      borderDash: [4, 4],
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0,
+    };
+
+    return { labels: ['Pre', 'Post'], datasets: [...datasets, thresholdDataset] };
   }
 
   private buildBacheLineOptions(showAxis: boolean): Record<string, unknown> {
@@ -193,6 +210,7 @@ export class Microbiology {
           borderColor: '#2a4f6b',
           borderWidth: 1,
           cornerRadius: 6,
+          filter: (item: any) => item.dataset.label !== 'Límite de control',
           callbacks: {
             label: (context: any) => {
               const value = context.parsed.y;

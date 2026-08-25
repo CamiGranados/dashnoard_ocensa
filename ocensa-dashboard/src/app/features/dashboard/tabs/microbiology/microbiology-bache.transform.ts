@@ -57,7 +57,7 @@ const MESES_ABREV_MIN = [
 function formatBacheLabel(date: Date | null): string {
   if (!date) return 'Bache';
   const dd = String(date.getDate()).padStart(2, '0');
-  return `Bache ${dd} ${MESES_ABREV_MIN[date.getMonth()]}`;
+  return `Bache ${dd} ${MESES_ABREV_MIN[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 function buildVariables(
