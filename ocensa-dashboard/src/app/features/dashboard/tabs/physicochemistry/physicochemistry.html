@@ -1,1 +1,158 @@
-<p>physicochemistry works!</p>
+<div class="pq-container">
+  <div class="pq-header">
+    <h1 class="pq-title">Fisicoquímica</h1>
+    @if (totalRecords()) {
+      <span class="pq-registros-info">{{ totalRecords() | number }} registros</span>
+    }
+  </div>
+
+  @if (review.isLoading()) {
+    <p>Cargando datos fisicoquímicos…</p>
+  } @else if (review.error()) {
+    <p>No se pudo cargar la información fisicoquímica.</p>
+  } @else if (records().length) {
+    <div class="pq-controls">
+      @for (key of getSeriesKeys(); track key) {
+        @let config = getSeriesConfig()[key];
+        @let isVisible = visibleSeries()[key];
+
+        <div class="pq-series-card">
+          <input
+            type="checkbox"
+            [checked]="isVisible"
+            (change)="toggleSeriesVisibility(key)"
+            class="pq-checkbox"
+            [id]="'pq-series-' + key"
+          />
+          <label [for]="'pq-series-' + key" class="pq-series-name">
+            <span class="pq-series-dot" [style.backgroundColor]="config.color"></span>
+            {{ config.label }}
+          </label>
+
+          <div class="pq-type-buttons">
+            <p-selectButton
+              [ngModel]="seriesTypes()[key]"
+              [options]="chartTypeOptions"
+              optionLabel="label"
+              optionValue="value"
+              (onChange)="toggleSeriesType(key, $event.value)"
+            >
+            </p-selectButton>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="pq-chart">
+      <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
+    </div>
+
+    @if (mainPages().length > 1) {
+      <div class="pq-window">
+        <div class="pq-window-info">
+          <span class="pq-window-title">Ventana visible</span>
+          @if (mainPage(); as page) {
+            <span class="pq-window-range">
+              @if (page.startYear === page.endYear) {
+                {{ page.startYear }}
+              } @else {
+                {{ page.startYear }} - {{ page.endYear }}
+              }
+            </span>
+          }
+        </div>
+
+        <p-slider
+          [min]="0"
+          [max]="mainPages().length - 1"
+          [step]="1"
+          [(ngModel)]="mainPageIndex"
+          class="pq-slider"
+        />
+
+        <button class="pq-reset" (click)="resetMainView()">Restablecer zoom</button>
+      </div>
+    }
+
+    <div class="pq-mini-section">
+      <h2 class="pq-mini-heading">Otras variables fisicoquímicas</h2>
+
+      @if (sortedRecords().length > 1) {
+        <div class="pq-window">
+          <div class="pq-window-info">
+            <span class="pq-window-title">Ventana visible</span>
+            <span class="pq-window-range">
+              {{ formatDate(sortedRecords()[visibleRange()[0]].date) }}
+              →
+              {{ formatDate(sortedRecords()[visibleRange()[1]].date) }}
+            </span>
+          </div>
+
+          <p-slider
+            [min]="0"
+            [max]="Math.max(0, sortedRecords().length - windowSize)"
+            [(ngModel)]="sliderPosition"
+            (ngModelChange)="onSliderChange($event)"
+            class="pq-slider"
+          />
+
+          <button class="pq-reset" (click)="resetZoom()">Restablecer zoom</button>
+        </div>
+      }
+
+      <div class="pq-mini-grid">
+        @for (chart of miniCharts(); track chart.key) {
+          <div class="pq-mini-card" [class.pq-mini-card--alert]="chart.hasAlert">
+            <h3 class="pq-mini-title">
+              {{ chart.label }}
+              @if (chart.hasAlert) {
+                <i class="pi pi-exclamation-triangle pq-mini-alert-icon" title="Valores fuera de rango"></i>
+              }
+            </h3>
+            <div class="pq-mini-chart">
+              <p-chart type="line" [data]="chart.data" [options]="chart.options" [plugins]="chart.plugins" />
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="pq-table-panel">
+      <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="pq-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Temperatura (°C)</th>
+            <th>H2S</th>
+            <th>pH</th>
+            <th>Conductividad</th>
+            <th>Alcalinidad</th>
+            <th>Calcio</th>
+            <th>Tasa de corrosión general</th>
+            <th>Velocidad máxima de picadura</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-record>
+          <tr>
+            <td>{{ record.date | date: "d 'de' MMM 'de' y" }}</td>
+            <td>{{ record.temperatureC ?? '—' }}</td>
+            <td>{{ record.h2S ?? '—' }}</td>
+            <td>{{ record.ph ?? '—' }}</td>
+            <td>{{ record.conductivity ?? '—' }}</td>
+            <td>{{ record.alkalinity ?? '—' }}</td>
+            <td>{{ record.calcium ?? '—' }}</td>
+            <td>{{ record.generalCorrosionRate ?? '—' }}</td>
+            <td>{{ record.maximumStingSpeed ?? '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="9">Sin registros para los filtros seleccionados.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  } @else {
+    <p>Selecciona un tanque para ver la información fisicoquímica.</p>
+  }
+</div>

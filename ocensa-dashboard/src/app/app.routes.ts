@@ -28,6 +28,10 @@ export const routes: Routes = [{
         path: 'microbiology',
         loadComponent: () => import('./features/dashboard/tabs/microbiology/microbiology')
           .then(m => m.Microbiology),
+      },{
+        path: 'physicochemistry',
+        loadComponent: () => import('./features/dashboard/tabs/physicochemistry/physicochemistry')
+          .then(m => m.Physicochemistry),
       }],
     }],
 }];

@@ -1,0 +1,241 @@
+.pq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pq-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.pq-title {
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pq-registros-info {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.pq-table-panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+}
+
+/* --- Controles de serie (checkbox + línea/barra) --- */
+.pq-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  flex-wrap: wrap;
+}
+
+.pq-series-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: var(--color-white);
+  padding: 11px 14px;
+  border: 1px solid #bfd4e7;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 7px #123e6f0f;
+}
+
+.pq-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #2e7dd1;
+  flex-shrink: 0;
+}
+
+.pq-series-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pq-series-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pq-type-buttons {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+/* --- Gráfico principal: tamaño y eje Y siempre fijos. Todo el histórico se le pasa siempre
+   completo; el control "Ventana visible" de abajo solo desplaza el rango de fechas visible
+   (scales.x.min/max), así que el canvas, el eje Y y la leyenda nunca se mueven ni desaparecen. --- */
+.pq-chart {
+  height: 420px;
+  padding: 1rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.pq-chart p-chart {
+  display: block;
+  height: 100%;
+}
+
+/* --- Slider de ventana visible --- */
+.pq-window {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.pq-window-info {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-width: 180px;
+}
+
+.pq-window-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.pq-window-range {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-top: 0.15rem;
+}
+
+.pq-slider {
+  flex: 1;
+}
+
+.pq-reset {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  background: var(--color-white);
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pq-reset:hover {
+  background: #f3f5f7;
+  border-color: #94a3b8;
+}
+
+:host ::ng-deep .pq-slider .p-slider-range {
+  background: #10b981;
+}
+
+:host ::ng-deep .pq-slider .p-slider-handle {
+  border-color: #10b981;
+  background: #10b981;
+}
+
+/* --- Grilla de variables restantes (3 por fila) --- */
+.pq-mini-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pq-mini-heading {
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pq-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .pq-mini-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .pq-mini-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pq-mini-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pq-mini-title {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* --- Tarjeta en alerta: hay valores fuera de los límites definidos --- */
+.pq-mini-card--alert {
+  border-color: #f1a3a3;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12), 0 0 18px rgba(220, 38, 38, 0.28);
+}
+
+.pq-mini-alert-icon {
+  color: #dc2626;
+  font-size: 0.8rem;
+}
+
+.pq-mini-chart {
+  height: 220px;
+}
+
+.pq-mini-chart p-chart {
+  display: block;
+  height: 100%;
+}
