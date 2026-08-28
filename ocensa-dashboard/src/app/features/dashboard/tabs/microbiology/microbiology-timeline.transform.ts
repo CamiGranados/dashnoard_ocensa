@@ -1,12 +1,14 @@
 // microbiology-timeline.transform.ts
-// Funciones puras (sin Angular) que preparan MicroRecordDto[] para la gráfica de serie
-// temporal: parseo de fecha, filtro de categoría graficable y deduplicación.
+// Funciones puras (sin Angular) que preparan MicroRecordDto[] como serie cronológica de puntos
+// (parseo de fecha, filtro de categoría graficable y deduplicación) para agruparlos luego en
+// baches (ver microbiology-bache.transform.ts).
 
 import { MicroRecordDto } from '../../../../core/models/microbiology.model';
 
-// El backend ya entrega standardSamplingType normalizado. Solo Prebache/Postbache se
-// grafican: Seguimiento, "No disponible por OPS" y cualquier otro valor se excluyen.
-export type SamplingCategory = 'Prebache' | 'Postbache';
+// El backend ya entrega standardSamplingType normalizado. Se grafican Prebache, Postbache y
+// Seguimiento; "No disponible por OPS", cualquier otro valor y los vacíos se excluyen (un
+// standardSamplingType en blanco no entra al set, así que no se grafica).
+export type SamplingCategory = 'Prebache' | 'Postbache' | 'Seguimiento';
 
 export interface TimelinePoint {
   timestamp: number;
@@ -21,7 +23,7 @@ export interface TimelinePoint {
 
 const VALUE_KEYS = ['thpsPercent', 'bsrPlanct', 'bpaPlanct', 'bhtPlanct', 'bAntPlanct'] as const;
 
-const PLOTTABLE_CATEGORIES: ReadonlySet<string> = new Set(['Prebache', 'Postbache']);
+const PLOTTABLE_CATEGORIES: ReadonlySet<string> = new Set(['Prebache', 'Postbache', 'Seguimiento']);
 
 function toPlottableCategory(raw: string): SamplingCategory | null {
   const trimmed = (raw ?? '').trim();
@@ -97,8 +99,8 @@ interface GroupEntry {
 }
 
 /**
- * Filtra a solo Prebache/Postbache, parsea la fecha, deduplica (fecha + categoría + misma
- * tupla de valores -> 1 registro) y ordena ascendente por fecha. Si dentro del mismo grupo
+ * Filtra a solo Prebache/Postbache/Seguimiento, parsea la fecha, deduplica (fecha + categoría +
+ * misma tupla de valores -> 1 registro) y ordena ascendente por fecha. Si dentro del mismo grupo
  * hay valores distintos, no se colapsan: se conservan todos y se deja un warning.
  */
 export function buildTimelinePoints(records: MicroRecordDto[]): TimelinePoint[] {
@@ -107,7 +109,7 @@ export function buildTimelinePoints(records: MicroRecordDto[]): TimelinePoint[] 
 
   records.forEach((record, order) => {
     const category = toPlottableCategory(record.standardSamplingType);
-    if (!category) return; // Seguimiento, "No disponible por OPS", etc.: no se grafican
+    if (!category) return; // vacío, "No disponible por OPS", etc.: no se grafican
 
     const date = parseRecordDate(record.date);
     if (!date) {

@@ -1,7 +1,8 @@
 // microbiology-bache.transform.ts
-// Funciones puras (sin Angular) que agrupan la serie temporal en "baches": cada Prebache se
-// empareja con el siguiente Postbache cronológico para poder graficar el efecto Pre→Post del
-// tratamiento por evento de bacheo.
+// Funciones puras (sin Angular) que agrupan la serie temporal en "baches": cada Prebache abre
+// un bache que absorbe el Postbache y los Seguimientos posteriores, hasta el siguiente Prebache.
+// Cada bache se pinta en una o más columnas (máx. MAX_SAMPLES_PER_COLUMN puntos por columna;
+// el desborde va a columnas contiguas con el mismo título "ÚLTIMO BACHE").
 
 import { TimelinePoint, toLog10 } from './microbiology-timeline.transform';
 
@@ -9,137 +10,141 @@ export type MicroVariableKey = 'bsrPlanct' | 'bpaPlanct' | 'bhtPlanct' | 'bAntPl
 
 const VARIABLE_KEYS: MicroVariableKey[] = ['bsrPlanct', 'bpaPlanct', 'bhtPlanct', 'bAntPlanct'];
 
-// Reducción mínima (en log10) para considerar el bache "Efectivo". El umbral de control del
-// dominio es 10^2 UFC/mL (log10 = 2) -- una variable por debajo de eso está "en control"-- pero
-// usarlo como condición de "todas las variables deben terminar en control" no reproduce casos
-// reales donde el tratamiento sí funcionó (caída de ≥2 log) sin que todas las variables lleguen
-// a ese piso absoluto. Por eso la magnitud de la caída Pre→Post es el criterio de efectividad.
-export const EFFECTIVE_LOG_DROP = 2;
+export type BacheRole = 'Pre' | 'Post' | 'Seg';
 
-export interface BacheVariableSample {
-  key: MicroVariableKey;
-  pre: number | null;
-  post: number | null;
-  preLog: number | null;
-  postLog: number | null;
+export interface BacheSample {
+  role: BacheRole;
+  // Etiqueta que se muestra en el eje X: 'Pre', 'Post', 'Seg 1', 'Seg 2'…
+  roleLabel: string;
+  date: Date;
+  // Fecha de toma de la muestra en formato corto dd/mm/aa (va debajo de roleLabel).
+  dateLabel: string;
+  thpsPercent: number | null;
+  values: Record<MicroVariableKey, number | null>;
+  logs: Record<MicroVariableKey, number | null>;
 }
 
-export type BacheEffectiveness =
-  | { kind: 'efectivo'; minLog: number; maxLog: number }
-  | { kind: 'rebote'; variables: MicroVariableKey[] }
-  | { kind: 'sin-respuesta' };
-
-export interface BachePair {
-  label: string;
-  preDate: Date | null;
-  postDate: Date | null;
-  preThpsPercent: number | null;
-  postThpsPercent: number | null;
-  variables: BacheVariableSample[];
-  effectiveness: BacheEffectiveness;
+export interface BacheGroup {
+  // Fecha del Prebache que gobierna el bache. Si el grupo no tiene Prebache propio (p.ej. un
+  // Postbache suelto), se arrastra la del último Prebache visto -> la fecha "se repite" hasta
+  // que aparece un nuevo Prebache.
+  ultimoBacheDate: Date | null;
+  ultimoBacheLabel: string;
+  // Muestras del ciclo ordenadas cronológicamente (Pre, Post, Seg 1, Seg 2…).
+  samples: BacheSample[];
 }
 
-const MESES_ABREV_MIN = [
-  'ene',
-  'feb',
-  'mar',
-  'abr',
-  'may',
-  'jun',
-  'jul',
-  'ago',
-  'sep',
-  'oct',
-  'nov',
-  'dic',
-];
+// Máximo de puntos (Pre/Post/Seg) por columna: con más, las fechas del eje se enciman.
+export const MAX_SAMPLES_PER_COLUMN = 4;
 
-function formatBacheLabel(date: Date | null): string {
-  if (!date) return 'Bache';
+export interface BacheColumn {
+  ultimoBacheDate: Date | null;
+  ultimoBacheLabel: string;
+  // Trozo de las muestras del bache (<= MAX_SAMPLES_PER_COLUMN), en orden cronológico.
+  // Cada muestra lleva su propio thpsPercent -> el residual se grafica muestra a muestra.
+  samples: BacheSample[];
+}
+
+function formatShortDate(date: Date): string {
   const dd = String(date.getDate()).padStart(2, '0');
-  return `Bache ${dd} ${MESES_ABREV_MIN[date.getMonth()]} ${date.getFullYear()}`;
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yy = String(date.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 }
 
-function buildVariables(
-  pre: TimelinePoint | null,
-  post: TimelinePoint | null,
-): BacheVariableSample[] {
-  return VARIABLE_KEYS.map((key) => {
-    const preVal = pre ? pre[key] : null;
-    const postVal = post ? post[key] : null;
-    return {
-      key,
-      pre: preVal,
-      post: postVal,
-      preLog: toLog10(preVal),
-      postLog: toLog10(postVal),
-    };
-  });
-}
-
-/**
- * Rebote: si alguna variable sube respecto al pre (postLog > preLog), se señala esa variable aunque
- * otras hayan mejorado -- tiene prioridad sobre "efectivo". Efectivo: si ninguna rebota y la mayor
- * caída Pre→Post entre variables es ≥ EFFECTIVE_LOG_DROP log10. En otro caso, "sin respuesta".
- */
-function computeEffectiveness(variables: BacheVariableSample[]): BacheEffectiveness {
-  const withBoth = variables.filter(
-    (v): v is BacheVariableSample & { preLog: number; postLog: number } =>
-      v.preLog != null && v.postLog != null,
-  );
-
-  const rebote = withBoth.filter((v) => v.postLog > v.preLog);
-  if (rebote.length) {
-    return { kind: 'rebote', variables: rebote.map((v) => v.key) };
+function toSample(point: TimelinePoint, role: BacheRole): BacheSample {
+  const values = {} as Record<MicroVariableKey, number | null>;
+  const logs = {} as Record<MicroVariableKey, number | null>;
+  for (const key of VARIABLE_KEYS) {
+    values[key] = point[key];
+    logs[key] = toLog10(point[key]);
   }
-
-  const drops = withBoth.filter((v) => v.preLog > v.postLog).map((v) => v.preLog - v.postLog);
-  const maxDrop = drops.length ? Math.max(...drops) : 0;
-
-  if (maxDrop >= EFFECTIVE_LOG_DROP) {
-    const minLog = Math.round(Math.min(...drops));
-    const maxLog = Math.round(maxDrop);
-    return { kind: 'efectivo', minLog, maxLog };
-  }
-
-  return { kind: 'sin-respuesta' };
+  return {
+    role,
+    roleLabel: role,
+    date: point.date,
+    dateLabel: formatShortDate(point.date),
+    thpsPercent: point.thpsPercent,
+    values,
+    logs,
+  };
 }
 
-function toBachePair(pre: TimelinePoint | null, post: TimelinePoint | null): BachePair {
-  const variables = buildVariables(pre, post);
-  const anchor = post?.date ?? pre?.date ?? null;
+interface WorkingGroup {
+  samples: BacheSample[];
+}
+
+function finalizeGroup(group: WorkingGroup, lastPrebacheDate: Date | null): BacheGroup {
+  const samples = group.samples.slice().sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  // Numera los seguimientos en orden cronológico: Seg 1, Seg 2…
+  let segCount = 0;
+  for (const sample of samples) {
+    if (sample.role === 'Seg') {
+      segCount += 1;
+      sample.roleLabel = `Seg ${segCount}`;
+    }
+  }
 
   return {
-    label: formatBacheLabel(anchor),
-    preDate: pre?.date ?? null,
-    postDate: post?.date ?? null,
-    preThpsPercent: pre?.thpsPercent ?? null,
-    postThpsPercent: post?.thpsPercent ?? null,
-    variables,
-    effectiveness: computeEffectiveness(variables),
+    ultimoBacheDate: lastPrebacheDate,
+    ultimoBacheLabel: lastPrebacheDate ? formatShortDate(lastPrebacheDate) : '—',
+    samples,
   };
 }
 
 /**
- * Empareja secuencialmente: cada Prebache toma el siguiente Postbache cronológico. Un Prebache
- * sin Postbache posterior (o un Postbache sin Prebache previo) igual genera su propio panel, con
- * el lado faltante en null, para no perder datos silenciosamente.
+ * Agrupa por evento de bacheo: un Prebache abre un bache nuevo; el Postbache y los Seguimientos
+ * siguientes se acumulan en ese mismo bache. Un segundo Postbache sin Prebache de por medio abre
+ * otro bache (que hereda la fecha del último Prebache -> "se repite"). Los puntos previos al
+ * primer Prebache forman su propio bache con ultimoBacheDate en null ('—').
  */
-export function buildBachePairs(points: TimelinePoint[]): BachePair[] {
-  const pairs: BachePair[] = [];
-  let pendingPre: TimelinePoint | null = null;
+export function buildBacheGroups(points: TimelinePoint[]): BacheGroup[] {
+  const groups: BacheGroup[] = [];
+  let current: WorkingGroup | null = null;
+  let lastPrebacheDate: Date | null = null;
+
+  const flush = () => {
+    if (current && current.samples.length) {
+      groups.push(finalizeGroup(current, lastPrebacheDate));
+    }
+    current = null;
+  };
 
   for (const point of points) {
     if (point.category === 'Prebache') {
-      if (pendingPre) pairs.push(toBachePair(pendingPre, null));
-      pendingPre = point;
+      flush();
+      lastPrebacheDate = point.date;
+      current = { samples: [toSample(point, 'Pre')] };
+    } else if (point.category === 'Postbache') {
+      if (current?.samples.some((s) => s.role === 'Post')) flush();
+      current ??= { samples: [] };
+      current.samples.push(toSample(point, 'Post'));
     } else {
-      pairs.push(toBachePair(pendingPre, point));
-      pendingPre = null;
+      current ??= { samples: [] };
+      current.samples.push(toSample(point, 'Seg'));
     }
   }
 
-  if (pendingPre) pairs.push(toBachePair(pendingPre, null));
+  flush();
 
-  return pairs;
+  return groups;
+}
+
+/**
+ * Aplana los baches a columnas para la gráfica: cada bache se parte en trozos de
+ * MAX_SAMPLES_PER_COLUMN muestras. Todos los trozos de un mismo bache comparten el título
+ * "ÚLTIMO BACHE" (misma fecha de prebache). Cada columna grafica el residual THPS de cada una
+ * de sus muestras.
+ */
+export function buildBacheColumns(points: TimelinePoint[]): BacheColumn[] {
+  return buildBacheGroups(points).flatMap((group) => {
+    const chunkCount = Math.max(1, Math.ceil(group.samples.length / MAX_SAMPLES_PER_COLUMN));
+
+    return Array.from({ length: chunkCount }, (_, i): BacheColumn => ({
+      ultimoBacheDate: group.ultimoBacheDate,
+      ultimoBacheLabel: group.ultimoBacheLabel,
+      samples: group.samples.slice(i * MAX_SAMPLES_PER_COLUMN, (i + 1) * MAX_SAMPLES_PER_COLUMN),
+    }));
+  });
 }

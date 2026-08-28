@@ -29,14 +29,13 @@
         <div class="micro-bache-scroll">
           @for (chart of bacheCharts(); track $index; let first = $first) {
             <div class="micro-bache-col">
-              <div class="micro-bache-title">{{ chart.pair.label }}</div>
+              <div class="micro-bache-title">
+                <span class="micro-bache-title-label">ÚLTIMO BACHE</span>
+                <span class="micro-bache-title-date">{{ chart.column.ultimoBacheLabel }}</span>
+              </div>
 
               <div class="micro-bache-linechart">
                 <p-chart type="line" [data]="chart.data" [options]="chart.options" />
-              </div>
-
-              <div class="micro-bache-annotation" [ngClass]="effectivenessClass(chart.pair)">
-                {{ effectivenessText(chart.pair) }}
               </div>
 
               <div class="micro-bache-residual-row">
@@ -44,48 +43,69 @@
                   <div class="micro-bache-residual-axis">
                     <span class="micro-bache-residual-axis-title">Residual %</span>
                     <div class="micro-bache-residual-axis-ticks">
-                      @for (t of residualTicks(); track t) {
-                        <span>{{ t | number: '1.2-2' }}</span>
+                      @for (t of residualTicks(); track $index) {
+                        <span>{{ t | number: '1.0-1' }}</span>
                       }
                     </div>
                   </div>
                 }
 
                 <div class="micro-bache-residual-plot">
-                  <div
-                    class="micro-bache-residual-threshold"
-                    [style.top.%]="residualThresholdTopPct()"
-                  >
-                    @if (first) {
-                      <span class="micro-bache-residual-threshold-label"
-                        >Mínimo {{ RESIDUAL_MIN }}%</span
-                      >
-                    }
-                  </div>
-                  <div
-                    class="micro-bache-residual-bar"
-                    [style.height.%]="residualBarHeightPct(chart.pair)"
-                    [class.is-ok]="isResidualOk(chart.pair) === true"
-                    [class.is-bad]="isResidualOk(chart.pair) === false"
-                  >
-                    <span class="micro-bache-residual-value">
-                      {{
-                        residualValue(chart.pair) != null ? residualValue(chart.pair) + '%' : '—'
-                      }}
-                    </span>
+                  <div class="micro-bache-residual-grid">
+                    <div
+                      class="micro-bache-residual-threshold"
+                      [style.top.%]="residualThresholdTopPct()"
+                    >
+                      @if (first) {
+                        <span class="micro-bache-residual-threshold-label"
+                          >Límite {{ RESIDUAL_MIN }}%</span
+                        >
+                      }
+                    </div>
+                    <div
+                      class="micro-bache-residual-zero"
+                      [style.top.%]="residualZeroTopPct()"
+                    ></div>
+
+                    <div class="micro-bache-residual-slots">
+                      @for (sample of chart.column.samples; track $index) {
+                        <div class="micro-bache-residual-slot">
+                          @if (sample.thpsPercent !== null) {
+                            <div
+                              class="micro-bache-residual-bar"
+                              [class.is-negative]="sample.thpsPercent < 0"
+                              [class.is-ok]="residualSampleOk(sample) === true"
+                              [class.is-bad]="residualSampleOk(sample) === false"
+                              [style.top]="residualBarStyle(sample).top"
+                              [style.height]="residualBarStyle(sample).height"
+                            >
+                              <span class="micro-bache-residual-value">
+                                {{ sample.thpsPercent | number: '1.0-1' }}%
+                              </span>
+                              <span class="micro-bache-residual-tooltip">
+                                {{ sample.roleLabel }} · {{ sample.dateLabel }}<br />
+                                <strong
+                                  >{{ sample.thpsPercent | number: '1.0-2' }}% residual</strong
+                                >
+                              </span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div
                 class="micro-bache-residual-label"
-                [class.is-ok]="isResidualOk(chart.pair) === true"
-                [class.is-bad]="isResidualOk(chart.pair) === false"
+                [class.is-ok]="sectionResidualOk(chart.column) === true"
+                [class.is-bad]="sectionResidualOk(chart.column) === false"
               >
                 {{
-                  isResidualOk(chart.pair) == null
+                  sectionResidualOk(chart.column) == null
                     ? 'Sin dato'
-                    : isResidualOk(chart.pair)
+                    : sectionResidualOk(chart.column)
                       ? 'Cumple'
                       : 'Deficiente'
                 }}
@@ -102,19 +122,84 @@
     </div>
 
     <div class="micro-table-panel">
-      <h2 class="micro-table-title">Control mensual por variable</h2>
-      @if (monthlyControlChartData().datasets.length) {
-        <div class="micro-monthly-chart">
-          <p-chart
-            type="bar"
-            [data]="monthlyControlChartData()"
-            [options]="monthlyControlChartOptions"
-          />
+      <h2 class="micro-table-title">Cumplimiento mensual por variable</h2>
+      @if (complianceGrid().rows.length) {
+        <div class="micro-compliance-scroll">
+          <table
+            class="micro-compliance-table"
+            [style.minWidth.px]="complianceGrid().months.length * 58 + 64"
+          >
+            <thead>
+              <tr>
+                <th class="micro-compliance-corner" scope="col"></th>
+                @for (month of complianceGrid().months; track $index) {
+                  <th
+                    class="micro-compliance-month"
+                    [class.is-current]="month.isCurrent"
+                    scope="col"
+                  >
+                    {{ month.label }}
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of complianceGrid().rows; track row.key; let ri = $index) {
+                <tr>
+                  <th class="micro-compliance-rowhead" scope="row">{{ row.label }}</th>
+                  @for (cell of row.cells; track $index) {
+                    <td
+                      class="micro-compliance-cell status-{{ cell.status }}"
+                      [class.tt-below]="ri === 0"
+                    >
+                      <span class="micro-compliance-cell-value">{{ cell.label }}</span>
+
+                      <span class="micro-compliance-tooltip" role="tooltip">
+                        <span class="micro-compliance-tooltip-head">
+                          {{ row.label }} · {{ cell.monthLabel }}
+                        </span>
+                        @if (cell.taken) {
+                          <span
+                            >Dentro de 10² Bact/mL:
+                            <strong>{{ cell.withinLimit }}/{{ cell.taken }}</strong></span
+                          >
+                          @if (cell.outOfLimit) {
+                            <span
+                              >Fuera de límite: <strong>{{ cell.outOfLimit }}</strong></span
+                            >
+                          }
+                        } @else {
+                          <span>Sin muestreo este mes</span>
+                        }
+                        <span class="micro-compliance-tooltip-db">
+                          Cumplimiento %:
+                          <strong>{{
+                            cell.controlPercent != null
+                              ? (cell.controlPercent | number: '1.0-0') + '%'
+                              : '—'
+                          }}</strong>
+                        </span>
+                      </span>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
+
+        <ul class="micro-compliance-legend">
+          @for (item of complianceLegend; track item.status) {
+            <li class="micro-legend-item">
+              <i class="micro-compliance-swatch status-{{ item.status }}"></i>
+              {{ item.label }}
+            </li>
+          }
+        </ul>
       } @else {
         <div class="micro-chart-empty">
-          <i class="pi pi-chart-bar"></i>
-          <p>No hay datos de control mensual para graficar.</p>
+          <i class="pi pi-table"></i>
+          <p>No hay datos de cumplimiento para mostrar.</p>
         </div>
       }
     </div>

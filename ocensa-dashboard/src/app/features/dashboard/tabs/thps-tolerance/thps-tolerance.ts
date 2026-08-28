@@ -43,7 +43,7 @@ interface BandSeriesConfig {
 const BAND1_Y_TITLE = 'Dosis(ppm)';
 const BAND1_SERIES: BandSeriesConfig[] = [
   { key: 'dosisReal', label: 'Dosis Real', color: '#b8d3ef', border:'#83b2e3' },
-  { key: 'dosisProgramada', label: 'Dosis Programada', color: '#f8c57c', border:'#f6b961' },
+  { key: 'dosisProgramada', label: 'Dosis Programada', color: '#f8c57c', border:'#c57300' },
 ];
 
 // Banda FWV: incluye Residual en un eje Y secundario (y1, %) — antes era una banda propia.

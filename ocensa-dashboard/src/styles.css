@@ -32,6 +32,10 @@
   --color-orange:         #e8590c;
   --color-orange-dark:    #c94a08;
   --color-orange-light:   #fdece0;
+  --color-warn:           #8a6d1f;
+  --color-warn-light:     #fcefcf;
+  --color-danger:         #b23b3b;
+  --color-danger-light:   #fbdcdc;
   --color-text:           #0d1b2e;
   --color-muted:          #6b7a99;
   --color-faint:          #a8b4cc;

@@ -37,14 +37,206 @@
   margin: 0 0 1rem;
 }
 
-/* Mismo tema/estructura que usa .micro-chart-panel para la gráfica de la serie temporal */
-.micro-monthly-chart {
-  height: 360px;
+/* --- Grid de cumplimiento mensual por variable --- */
+/* El scroll horizontal vive en este contenedor: la barra queda al pie del grid. El
+   padding vertical reserva el espacio justo para que el tooltip de la 1ª/última fila no
+   se recorte (overflow-x: auto obliga a overflow-y a recortar). */
+.micro-compliance-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
-.micro-monthly-chart p-chart {
-  display: block;
-  height: 100%;
+.micro-compliance-table {
+  /* Ocupa todo el ancho del panel y reparte las columnas de mes en partes iguales (layout fijo);
+     el min-width de cada mes fuerza el scroll horizontal cuando ya no caben (~15+ columnas). */
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.78rem;
+}
+
+.micro-compliance-table th,
+.micro-compliance-table td {
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  padding: 0.4rem 0.55rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.micro-compliance-table thead th {
+  background: var(--color-accent-light);
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+/* Con table-layout: fixed las columnas de mes (sin width propio) se reparten el sobrante en
+   partes iguales. El ancho mínimo real lo pone el [style.minWidth] de la tabla (según nº de meses). */
+.micro-compliance-month {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.micro-compliance-month.is-current {
+  color: var(--color-primary-sub);
+  font-weight: 700;
+}
+
+/* Primera columna (BSR/BPA/…) fija al hacer scroll horizontal; ancho acotado para que el
+   resto del espacio quede para los meses. */
+.micro-compliance-corner,
+.micro-compliance-rowhead {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-white);
+}
+
+.micro-compliance-corner {
+  z-index: 3;
+  background: var(--color-accent-light);
+}
+
+.micro-compliance-cell {
+  position: relative;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Al pasar el cursor la celda sube por encima de la cabecera fija y de las celdas vecinas
+   para que el tooltip no quede tapado. */
+.micro-compliance-cell:hover {
+  z-index: 10;
+}
+
+.micro-compliance-cell.status-ok {
+  background: var(--color-green-light);
+  color: var(--color-green);
+}
+
+.micro-compliance-cell.status-warn {
+  background: var(--color-warn-light);
+  color: var(--color-warn);
+}
+
+.micro-compliance-cell.status-bad {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.micro-compliance-cell.status-none {
+  background: var(--color-background);
+  color: var(--color-faint);
+}
+
+.micro-compliance-cell.status-current {
+  background: var(--color-primary-brand);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* --- Tooltip de celda --- */
+.micro-compliance-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 5px);
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: max-content;
+  max-width: 15rem;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: #1f3a52;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+/* La primera fila no tiene sitio arriba: su tooltip cae hacia abajo. */
+.micro-compliance-cell.tt-below .micro-compliance-tooltip {
+  bottom: auto;
+  top: calc(100% + 5px);
+}
+
+.micro-compliance-cell:hover .micro-compliance-tooltip {
+  opacity: 1;
+}
+
+.micro-compliance-tooltip-head {
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.micro-compliance-tooltip strong {
+  font-weight: 700;
+}
+
+.micro-compliance-tooltip-db {
+  margin-top: 2px;
+  color: var(--color-gray);
+}
+
+.micro-compliance-tooltip-db strong {
+  color: #fff;
+}
+
+.micro-compliance-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Relleno = color de la celda; borde = color fuerte del estado, para que el chip se lea sobre
+   el fondo blanco de la leyenda. */
+.micro-compliance-swatch {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  border: 1.5px solid var(--color-faint);
+}
+
+.micro-compliance-swatch.status-ok {
+  background: var(--color-green-light);
+  border-color: var(--color-green);
+}
+
+.micro-compliance-swatch.status-warn {
+  background: var(--color-warn-light);
+  border-color: var(--color-warn);
+}
+
+.micro-compliance-swatch.status-bad {
+  background: var(--color-danger-light);
+  border-color: var(--color-danger);
+}
+
+.micro-compliance-swatch.status-none {
+  background: var(--color-background);
+  border-color: var(--color-faint);
+}
+
+.micro-compliance-swatch.status-current {
+  background: var(--color-primary-brand);
+  border-color: var(--color-primary-sub);
 }
 
 /* Mismo tema/estructura que usa corrosion para su bloque de gráfica */
@@ -125,8 +317,8 @@
 .micro-bache-col {
   display: flex;
   flex-direction: column;
-  flex: 1 0 170px;
-  min-width: 170px;
+  flex: 1 0 190px;
+  min-width: 190px;
   padding: 0 0.75rem;
   border-left: 1px solid var(--color-border);
 }
@@ -137,16 +329,31 @@
 }
 
 .micro-bache-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
   text-align: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
   flex-shrink: 0;
 }
 
+.micro-bache-title-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.micro-bache-title-date {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
 .micro-bache-linechart {
-  height: 190px;
+  /* +espacio vs. la versión anterior: el eje X ahora lleva dos líneas (rol + fecha). */
+  height: 205px;
   flex-shrink: 0;
 }
 
@@ -155,30 +362,23 @@
   height: 100%;
 }
 
-.micro-bache-annotation {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--color-muted);
-  padding: 0.35rem 0;
-  flex-shrink: 0;
-}
-
 .micro-bache-residual-row {
   display: flex;
   align-items: stretch;
-  gap: 0.5rem;
-  height: 110px;
-  padding-top: 1.4rem;
+  gap: 0.25rem;
+  height: 116px;
+  padding-top: 0.5rem;
   flex-shrink: 0;
 }
 
+/* Gutter vertical (para las etiquetas de valor) que comparten el eje y el área de dibujo. */
 .micro-bache-residual-axis {
   flex-shrink: 0;
-  width: 42px;
+  width: 40px;
   display: flex;
   align-items: stretch;
   gap: 0.15rem;
-  padding-bottom: 1.1rem;
+  padding: 12px 0;
 }
 
 .micro-bache-residual-axis-title {
@@ -189,7 +389,7 @@
   text-align: center;
   white-space: nowrap;
   color: var(--color-muted);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 600;
 }
 
@@ -198,7 +398,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--color-faint);
   text-align: right;
 }
@@ -206,10 +406,13 @@
 .micro-bache-residual-plot {
   position: relative;
   flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 1.1rem;
+  min-width: 0;
+}
+
+/* Área de dibujo: 0 % arriba = residualDomainMax, 100 % abajo = residualDomainMin. */
+.micro-bache-residual-grid {
+  position: absolute;
+  inset: 12px 0;
 }
 
 .micro-bache-residual-threshold {
@@ -222,39 +425,142 @@
 .micro-bache-residual-threshold-label {
   position: absolute;
   right: 0;
-  top: -1.1rem;
-  font-size: 0.65rem;
+  top: -1.05rem;
+  font-size: 0.62rem;
   color: var(--color-orange-dark);
   white-space: nowrap;
 }
 
-.micro-bache-residual-value {
+.micro-bache-residual-zero {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 0.25rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  white-space: nowrap;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.micro-bache-residual-slots {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.micro-bache-residual-slot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Al pasar el cursor por la franja de la muestra: se resalta la barra y aparece el tooltip. */
+.micro-bache-residual-slot:hover {
+  z-index: 5;
 }
 
 .micro-bache-residual-bar {
-  position: relative;
-  width: 32px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(60%, 26px);
+  min-height: 2px;
+  background: var(--bar-bg);
+  border: 1px solid var(--bar-bg-border);
   border-radius: 3px 3px 0 0;
-  transition: height 0.2s ease;
+  transition: background-color 0.12s ease;
+}
+
+.micro-bache-residual-bar.is-negative {
+  border-radius: 0 0 3px 3px;
 }
 
 .micro-bache-residual-bar.is-ok {
-  /* background: var(--color-green); */
-  background: #c8e6d4;
+  --bar-bg: #d0f1e0;
+  --bar-bg-hover: #7ae29d;
+  --bar-bg-border: #188a56;
 }
 
 .micro-bache-residual-bar.is-bad {
-  /* background: var(--color-orange-dark); */
-  background: #f7d5c1;
+  --bar-bg: #f8c57c;
+  --bar-bg-hover: #fcb450;
+  --bar-bg-border: #f3a12b;
+}
+
+.micro-bache-residual-slot:hover .micro-bache-residual-bar {
+  background: var(--bar-bg-hover);
+}
+
+.micro-bache-residual-value {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 100%;
+  margin-bottom: 2px;
+  padding: 0 2px;
+  border-radius: 2px;
+  /* Fondo opaco + z-index: el número tapa la línea (umbral / cero) que quede detrás. */
+  background: var(--color-white);
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.micro-bache-residual-bar.is-negative .micro-bache-residual-value {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 2px;
+}
+
+/* Escalona las etiquetas pares para que 3–4 valores no se solapen en columnas angostas. */
+.micro-bache-residual-slot:nth-of-type(even) .micro-bache-residual-value {
+  margin-bottom: 0.95rem;
+}
+
+.micro-bache-residual-slot:nth-of-type(even)
+  .micro-bache-residual-bar.is-negative
+  .micro-bache-residual-value {
+  margin-bottom: 0;
+  margin-top: 0.95rem;
+}
+
+/* Oculta el % suelto mientras el tooltip (valor + fecha) está visible, para que no se encimen. */
+.micro-bache-residual-slot:hover .micro-bache-residual-value {
+  opacity: 0;
+}
+
+.micro-bache-residual-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #1f3a52;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.micro-bache-residual-tooltip strong {
+  font-weight: 700;
+}
+
+.micro-bache-residual-bar.is-negative .micro-bache-residual-tooltip {
+  bottom: auto;
+  top: 100%;
+  margin-bottom: 0;
+  margin-top: 4px;
+}
+
+.micro-bache-residual-slot:hover .micro-bache-residual-tooltip {
+  opacity: 1;
 }
 
 .micro-bache-residual-label {
@@ -262,6 +568,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-muted);
+  min-height: 1.1rem;
 }
 
 .micro-bache-residual-label.is-ok {
