@@ -72,45 +72,7 @@
       </div>
 
       <div class="thps-band">
-        <h3 class="thps-band__heading">Residual %</h3>
-        @if (band2Empty()) {
-          <div class="thps-band__empty">
-            <i class="pi pi-chart-line"></i>
-            <p>Sin datos para esta banda.</p>
-          </div>
-        } @else {
-          <div class="thps-band__controls">
-            @for (cfg of band2Series; track cfg.key) {
-              <div class="thps-series-card">
-                <input
-                  type="checkbox"
-                  [checked]="visibleSeries()[cfg.key]"
-                  (change)="toggleSeriesVisibility(cfg.key)"
-                  class="thps-checkbox"
-                  [id]="'series-' + cfg.key"
-                />
-                <label [for]="'series-' + cfg.key" class="thps-series-name">
-                  <span class="thps-series-dot" [style.backgroundColor]="cfg.color"></span>
-                  {{ cfg.label }}
-                </label>
-                <p-selectButton
-                  [ngModel]="seriesTypes()[cfg.key]"
-                  [options]="chartTypeOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  (onChange)="toggleSeriesType(cfg.key, $event.value)"
-                />
-              </div>
-            }
-          </div>
-          <div class="thps-band__chart">
-            <p-chart type="line" [data]="band2Data()" [options]="band2Options()" [plugins]="band2Plugins" />
-          </div>
-        }
-      </div>
-
-      <div class="thps-band">
-        <h3 class="thps-band__heading">FWV</h3>
+        <h3 class="thps-band__heading">FWV y Residual</h3>
         @if (band3Empty()) {
           <div class="thps-band__empty">
             <i class="pi pi-chart-line"></i>
@@ -201,14 +163,6 @@
               </div>
             }
           }
-          @for (cfg of band2Series; track cfg.key) {
-            @if (hr[cfg.key] !== null) {
-              <div class="thps-crosshair-tooltip__row">
-                <span class="thps-crosshair-tooltip__dot" [style.backgroundColor]="cfg.color"></span>
-                {{ cfg.label }}: {{ hr[cfg.key] | number: '1.0-2' }}
-              </div>
-            }
-          }
           @for (cfg of band3Series; track cfg.key) {
             @if (hr[cfg.key] !== null) {
               <div class="thps-crosshair-tooltip__row">
@@ -228,6 +182,25 @@
         </div>
       }
     </div>
+
+    @if (hasChartData() && sortedRows().length > windowSize) {
+      <div class="thps-window">
+        <div class="thps-window-info">
+          <span class="thps-window-title">Ventana visible</span>
+          <span class="thps-window-range">{{ windowLabel() }}</span>
+        </div>
+
+        <p-slider
+          [min]="0"
+          [max]="Math.max(0, sortedRows().length - windowSize)"
+          [(ngModel)]="sliderPosition"
+          (ngModelChange)="onSliderChange($event)"
+          class="thps-slider"
+        />
+
+        <button class="thps-reset" (click)="resetZoom()">Restablecer zoom</button>
+      </div>
+    }
 
     <div class="thps-table-panel">
       <h3 class="thps-table-title">Registros históricos</h3>

@@ -8,6 +8,7 @@ export interface CrosshairSyncOptions {
 export interface ReferenceLineOptions {
   value: number;
   label: string;
+  scaleId?: string;
 }
 
 const groups = new Map<string, Set<Chart>>();
@@ -89,13 +90,13 @@ export const crosshairSyncPlugin: Plugin<'line' | 'bar'> = {
   },
 };
 
-/** Línea horizontal punteada de referencia (banda Residual, límite contractual 20%). */
+/** Línea horizontal punteada de referencia (Residual, límite contractual 20%, sobre el eje y1). */
 export const referenceLinePlugin: Plugin<'line' | 'bar'> = {
   id: 'referenceLine',
 
   afterDatasetsDraw(chart, _args, options: ReferenceLineOptions) {
     if (!options) return;
-    const yScale = chart.scales['y'];
+    const yScale = chart.scales[options.scaleId ?? 'y'];
     if (!yScale) return;
 
     const pixel = yScale.getPixelForValue(options.value);

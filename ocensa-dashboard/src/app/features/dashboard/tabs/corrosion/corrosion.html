@@ -53,7 +53,7 @@
         <app-spinner size="80px" />
       </div>
     } @else if (measurements().length) {
-      <p-chart type="bar" [data]="chartData()" [options]="chartOptions" />
+      <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
     } @else {
       <div class="corrosion__empty">
         <i class="pi pi-chart-bar"></i>

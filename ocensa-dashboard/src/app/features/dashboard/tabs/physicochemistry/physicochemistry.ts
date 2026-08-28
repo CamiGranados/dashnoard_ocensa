@@ -138,7 +138,7 @@ export class Physicochemistry {
 
     const minYear = new Date(records[0].date).getFullYear();
     const maxYear = new Date(records[records.length - 1].date).getFullYear();
-    const pageSizeYears = maxYear - minYear + 1 <= 1 ? 1 : 2;
+    const pageSizeYears = maxYear - minYear + 1 <= 1 ? 1 : 4;
 
     const pages: YearPage[] = [];
     let end = maxYear;
@@ -147,7 +147,7 @@ export class Physicochemistry {
       pages.push({
         startYear: start,
         endYear: end,
-        start: new Date(start, 0, 1).getTime(),
+        start: new Date(start, 0, 2).getTime(),
         end: new Date(end + 1, 0, 1).getTime() - 1,
       });
       end = start - 1;
