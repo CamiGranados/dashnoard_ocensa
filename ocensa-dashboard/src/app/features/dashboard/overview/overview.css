@@ -6,9 +6,239 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
   height: 100%;
+}
+
+.col-right {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ------------------ Grid de 4 gráficas ------------------ */
+.ov-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .ov-charts-grid { grid-template-columns: 1fr; }
+}
+
+.ov-chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.ov-chart-card--wide {
+  grid-column: 1 / -1;
+}
+
+.ov-chart-card--placeholder {
+  border-style: dashed;
+  background: var(--color-accent-light);
+  box-shadow: none;
+}
+
+.ov-chart-title {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.ov-chart-body {
+  height: 300px;
+}
+
+.ov-chart-body p-chart {
+  display: block;
+  height: 100%;
+}
+
+.ov-chart-empty {
+  min-height: 160px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-muted);
+}
+
+.ov-chart-empty i {
+  font-size: 2rem;
+}
+
+.ov-chart-empty p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* ------------------ Grid de control microbiológico ------------------ */
+.ov-micro-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ov-micro-kpi {
+  color: var(--color-warn);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.ov-micro-sub {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.ov-micro-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.ov-micro-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.78rem;
+}
+
+.ov-micro-table th,
+.ov-micro-table td {
+  padding: 0.5rem 0.6rem;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.ov-micro-table thead th {
+  color: var(--color-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ov-micro-month.is-current {
+  color: var(--color-primary-sub);
+  font-weight: 700;
+}
+
+.ov-micro-encurso {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--color-faint);
+}
+
+.ov-micro-corner {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ov-micro-rowhead {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ov-micro-rowhead strong {
+  display: block;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.ov-micro-rowhead span {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+
+.ov-micro-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  max-width: 120px;
+  margin: 0 auto;
+}
+
+.ov-micro-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-faint);
+}
+
+.ov-micro-dot.is-ok {
+  background: var(--color-green-mid);
+}
+
+.ov-micro-dot.is-bad {
+  background: var(--color-danger);
+}
+
+.ov-micro-count {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-muted);
+  font-size: 0.68rem;
+}
+
+.ov-micro-none {
+  color: var(--color-faint);
+}
+
+.ov-micro-pct {
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.ov-micro-pct.is-ok {
+  color: var(--color-green);
+}
+
+.ov-micro-pct.is-warn {
+  color: var(--color-warn);
+}
+
+.ov-micro-pct.is-bad {
+  color: var(--color-danger);
+}
+
+.ov-micro-total-row th,
+.ov-micro-total-row td {
+  border-top: 2px solid var(--color-border);
+  border-bottom: none;
+}
+
+.ov-micro-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.ov-micro-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 @media (max-width: 768px) {

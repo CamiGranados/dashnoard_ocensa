@@ -129,11 +129,11 @@ export class Microbiology {
   }
 
   // Veredicto de la columna (peor caso): Deficiente si alguna muestra supera RESIDUAL_MIN.
-  sectionResidualOk(column: BacheColumn): boolean | null {
-    const values = column.samples.map((s) => s.thpsPercent).filter((v): v is number => v != null);
-    if (!values.length) return null;
-    return values.every((v) => v <= this.RESIDUAL_MIN);
-  }
+  // sectionResidualOk(column: BacheColumn): boolean | null {
+  //   const values = column.samples.map((s) => s.thpsPercent).filter((v): v is number => v != null);
+  //   if (!values.length) return null;
+  //   return values.every((v) => v <= this.RESIDUAL_MIN);
+  // }
 
   private buildBacheLineData(column: BacheColumn): { labels: string[][]; datasets: unknown[] } {
     const keys = Object.keys(SCATTER_SERIES) as MicroVariableKey[];

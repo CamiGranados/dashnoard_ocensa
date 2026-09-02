@@ -9,16 +9,28 @@ import { PhysicochemistryService } from '../../../../core/services/physicochemis
 import { PhysicalChemistryRecord } from '../../../../core/models/physicochemistry.model';
 import { limitLinesPlugin } from './physicochemistry-limit-line.plugin';
 
-type SeriesKey = 'generalCorrosionRate' | 'maximumStingSpeed';
+type SeriesKey =
+  | 'generalCorrosionRate'
+  | 'corrosionRateMean'
+  | 'maximumStingSpeed'
+  | 'maximumStingMean';
 
 const SERIES_CONFIG: Record<SeriesKey, {
   label: string;
   axis: 'y' | 'y1';
   defaultType: 'line' | 'bar';
   color: string;
+  /**
+   * Relleno translúcido bajo la línea. Su presencia marca la serie como "media": se dibuja
+   * como área rellena con marcadores de círculo hueco (relleno blanco + borde de color),
+   * igual que en la gráfica de referencia.
+   */
+  fill?: string;
 }> = {
   generalCorrosionRate: { label: 'Tasa de corrosión general', axis: 'y', defaultType: 'line', color: '#2f80d7' },
+  corrosionRateMean: { label: 'Media tasa de corrosión', axis: 'y', defaultType: 'line', color: '#2f80d7', fill: 'rgba(47, 128, 215, 0.14)' },
   maximumStingSpeed: { label: 'Velocidad máxima de picadura', axis: 'y1', defaultType: 'line', color: '#f3a12b' },
+  maximumStingMean: { label: 'Media velocidad de picadura', axis: 'y1', defaultType: 'line', color: '#e0850b', fill: 'rgba(243, 161, 43, 0.16)' },
 };
 
 type MiniSeriesKey = 'temperatureC' | 'h2S' | 'ph' | 'conductivity' | 'alkalinity' | 'calcium';
@@ -99,6 +111,13 @@ export class Physicochemistry {
   );
 
   constructor() {
+    // DEBUG: respuesta cruda del servicio de fisicoquímica — quitar cuando ya no se necesite.
+    effect(() => {
+      if (this.review.status() !== 'resolved') return;
+      const res = this.review.value();
+      console.log(res?.data.map((r) => ({ date: r.date, corrosionRateMean: r.corrosionRateMean, maximumStingMean: r.maximumStingMean })));
+    });
+
     // al llegar datos nuevos (cambio de filtros), reencuadra ambas ventanas visibles (gráfica
     // principal y grilla de variables restantes) en los últimos puntos
     effect(() => {
@@ -138,7 +157,7 @@ export class Physicochemistry {
 
     const minYear = new Date(records[0].date).getFullYear();
     const maxYear = new Date(records[records.length - 1].date).getFullYear();
-    const pageSizeYears = maxYear - minYear + 1 <= 1 ? 1 : 4;
+    const pageSizeYears = maxYear - minYear + 1 <= 1 ? 1 : 6;
 
     const pages: YearPage[] = [];
     let end = maxYear;
@@ -176,7 +195,7 @@ export class Physicochemistry {
   private readonly mainYDomain = computed(() =>
     Physicochemistry.domainOf(
       this.sortedRecords()
-        .map((r) => r.generalCorrosionRate)
+        .flatMap((r) => [r.generalCorrosionRate, r.corrosionRateMean])
         .filter((v): v is number => v != null),
     ),
   );
@@ -184,7 +203,7 @@ export class Physicochemistry {
   private readonly mainY1Domain = computed(() =>
     Physicochemistry.domainOf(
       this.sortedRecords()
-        .map((r) => r.maximumStingSpeed)
+        .flatMap((r) => [r.maximumStingSpeed, r.maximumStingMean])
         .filter((v): v is number => v != null),
     ),
   );
@@ -202,18 +221,25 @@ export class Physicochemistry {
         const cfg = SERIES_CONFIG[key];
         const currentType = types[key];
         const isBar = currentType === 'bar';
+        // Serie "media": área rellena + marcadores de círculo hueco (ver SERIES_CONFIG.fill).
+        const isMean = !isBar && !!cfg.fill;
 
         return {
           type: currentType,
           label: cfg.label,
           yAxisID: cfg.axis,
           borderColor: cfg.color,
-          backgroundColor: cfg.color,
-          order: isBar ? 999 : 0,
-          borderWidth: isBar ? 0 : 2,
+          backgroundColor: isMean ? cfg.fill : cfg.color,
+          fill: isMean ? 'origin' : false,
+          order: isBar ? 999 : isMean ? 1 : 0,
+          borderWidth: isBar ? 0 : 2.5,
           barThickness: isBar ? 8 : undefined,
-          pointHoverRadius: isBar ? undefined : 3,
-          pointRadius: isBar ? undefined : 1,
+          pointStyle: 'circle',
+          pointRadius: isBar ? undefined : isMean ? 3.5 : 1,
+          pointHoverRadius: isBar ? undefined : isMean ? 5 : 3,
+          pointBackgroundColor: isMean ? '#ffffff' : cfg.color,
+          pointBorderColor: cfg.color,
+          pointBorderWidth: isMean ? 2 : 1,
           tension: 0.3,
           spanGaps: true,
           data: records.map((r) => ({ x: new Date(r.date).getTime(), y: r[key] })),
@@ -234,11 +260,20 @@ export class Physicochemistry {
       responsive: true,
       maintainAspectRatio: false,
       animation: false as const,
+      // Interacción unificada: hover y tooltip resuelven SIEMPRE el mismo conjunto de puntos
+      // (los del índice más cercano en X). Sin esto, el hover (modo `nearest` por defecto) y el
+      // tooltip (`index`) apuntan a elementos distintos y aparecen dos cajas parpadeando.
+      interaction: {
+        mode: 'index' as const,
+        intersect: false,
+        axis: 'x' as const,
+      },
       plugins: {
         legend: { position: 'top' as const },
         tooltip: {
-          mode: 'index' as const,
-          intersect: false,
+          // Ancla la caja al punto más cercano en vez del promedio de puntos repartidos en los
+          // dos ejes Y (que hacía "saltar" el tooltip y trababa la gráfica).
+          position: 'nearest' as const,
           backgroundColor: '#1f3a52',
           padding: 12,
           titleColor: '#ffffff',

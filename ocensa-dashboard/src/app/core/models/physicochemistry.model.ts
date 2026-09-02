@@ -10,6 +10,8 @@ export interface PhysicalChemistryRecord {
   calcium: number | null;
   generalCorrosionRate: number | null;
   maximumStingSpeed: number | null;
+  corrosionRateMean: number | null;
+  maximumStingMean: number | null;
 }
 
 export interface PhysicalChemistryResponse {

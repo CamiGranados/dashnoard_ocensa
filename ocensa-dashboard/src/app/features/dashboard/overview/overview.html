@@ -5,7 +5,7 @@
       <h1 class="dashboard-title">Vista ejecutiva</h1>
     </div>
     <div class="header-right">
-      <span class="registros-info">{{ registrosVisibles | number }} registros visibles</span>
+      <!-- <span class="registros-info">{{ registrosVisibles | number }} registros visibles</span> -->
       <button pButton
               type="button"
               label="Exportar CSV"
@@ -50,7 +50,7 @@
 
 
   <div class="layout">
-    <aside class="col-left panel last-values">
+    <!-- <aside class="col-left panel last-values">
       <h4 class="last-values__title">Porqué un tanque requiere atención</h4>
       <p class="last-values__subtitle">Valores reales y criterios transparentes; esta vista no crea un ranking.</p>
       <div class="last-values_panel">
@@ -100,9 +100,163 @@
           Galones = mediana por aplicación; no suma mensual.
         </span>
       </div>
-    </aside>
-    <main class="col-right panel">
+    </aside> -->
+    <main class="col-right">
+      @if (summary.isLoading()) {
+        <p>Cargando gráficas…</p>
+      } @else if (summary.error()) {
+        <p>No se pudieron cargar las gráficas.</p>
+      } @else if (summary.value()) {
+        <div class="ov-charts-grid">
+          <!-- 1. Desviación FWV reportada vs. calculada -->
+          <section class="ov-chart-card">
+            <h3 class="ov-chart-title">Desviación entre FWV reportada y calculada</h3>
+            <div class="ov-chart-body">
+              @if (fwvChart().labels.length) {
+                <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions" />
+              } @else {
+                <div class="ov-chart-empty">
+                  <i class="pi pi-chart-bar"></i>
+                  <p>Sin datos de FWV para los filtros seleccionados.</p>
+                </div>
+              }
+            </div>
+          </section>
 
+          <!-- 2. Dosificación programada vs. inyectada -->
+          <section class="ov-chart-card">
+            <h3 class="ov-chart-title">Dosificación programada vs. inyectada</h3>
+            <div class="ov-chart-body">
+              @if (doseChart().labels.length) {
+                <p-chart type="bar" [data]="doseChart()" [options]="doseOptions" />
+              } @else {
+                <div class="ov-chart-empty">
+                  <i class="pi pi-chart-bar"></i>
+                  <p>Sin datos de dosificación para los filtros seleccionados.</p>
+                </div>
+              }
+            </div>
+          </section>
+
+          <!-- 3. Resumen de control microbiológico -->
+          <section class="ov-chart-card ov-chart-card--wide">
+            <div class="ov-micro-head">
+              <h3 class="ov-chart-title">Resumen de control microbiológico</h3>
+              @if (microGrid(); as g) {
+                <span class="ov-micro-kpi">
+                  {{ g.controlPercent != null ? (g.controlPercent | number: '1.0-0') : '—' }}% del
+                  periodo en control ({{ g.inControl }} de {{ g.total }})
+                </span>
+              }
+            </div>
+
+            @if (microGrid(); as g) {
+              <p class="ov-micro-sub">
+                Cada punto es una medición del mes. Verde: dentro de 10² Bact/mL.
+              </p>
+
+              <div class="ov-micro-scroll">
+                <table class="ov-micro-table">
+                  <thead>
+                    <tr>
+                      <th class="ov-micro-corner"></th>
+                      @for (col of g.columns; track col.key) {
+                        <th class="ov-micro-month" [class.is-current]="col.isCurrent">
+                          {{ col.label }}
+                          @if (col.isCurrent) {
+                            <span class="ov-micro-encurso">en curso</span>
+                          }
+                        </th>
+                      }
+                      <th class="ov-micro-month">Total periodo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of g.rows; track row.key) {
+                      <tr>
+                        <th class="ov-micro-rowhead" scope="row">
+                          <strong>{{ row.short }}</strong>
+                          <span>{{ row.long }}</span>
+                        </th>
+                        @for (cell of row.cells; track $index) {
+                          <td>
+                            @if (cell.sampled) {
+                              <span class="ov-micro-dots">
+                                @for (ok of dots(cell.ok, cell.total); track $index) {
+                                  <span
+                                    class="ov-micro-dot"
+                                    [class.is-ok]="ok"
+                                    [class.is-bad]="!ok"
+                                  ></span>
+                                }
+                              </span>
+                              <span class="ov-micro-count">{{ cell.ok }}/{{ cell.total }}</span>
+                            } @else {
+                              <span class="ov-micro-none">—</span>
+                            }
+                          </td>
+                        }
+                        <td [ngClass]="['ov-micro-pct', pctClass(row.controlPercent)]">
+                          {{
+                            row.controlPercent != null
+                              ? (row.controlPercent | number: '1.0-0') + '%'
+                              : '—'
+                          }}
+                        </td>
+                      </tr>
+                    }
+                    <tr class="ov-micro-total-row">
+                      <th class="ov-micro-rowhead" scope="row">
+                        <strong>Todas las variables</strong>
+                      </th>
+                      @for (tc of g.totalCells; track $index) {
+                        <td>
+                          @if (tc.sampled) {
+                            <span [ngClass]="['ov-micro-pct', pctClass(tc.percent)]">
+                              {{ tc.percent != null ? (tc.percent | number: '1.0-0') + '%' : '—' }}
+                            </span>
+                            <span class="ov-micro-count">{{ tc.ok }}/{{ tc.total }}</span>
+                          } @else {
+                            <span class="ov-micro-none">—</span>
+                          }
+                        </td>
+                      }
+                      <td [ngClass]="['ov-micro-pct', pctClass(g.controlPercent)]">
+                        {{
+                          g.controlPercent != null
+                            ? (g.controlPercent | number: '1.0-0') + '%'
+                            : '—'
+                        }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <ul class="ov-micro-legend">
+                <li><span class="ov-micro-dot is-ok"></span> Dentro de límite</li>
+                <li><span class="ov-micro-dot is-bad"></span> Fuera de límite</li>
+                <li><span class="ov-micro-none">—</span> Sin muestreo</li>
+              </ul>
+            } @else {
+              <div class="ov-chart-empty">
+                <i class="pi pi-table"></i>
+                <p>Sin datos de microbiología para los filtros seleccionados.</p>
+              </div>
+            }
+          </section>
+
+          <!-- 4. Reservado: pendiente de datos del API -->
+          <section class="ov-chart-card ov-chart-card--wide ov-chart-card--placeholder">
+            <div class="ov-chart-empty">
+              <i class="pi pi-clock"></i>
+              <p>Gráfica pendiente de ajuste del API.</p>
+            </div>
+          </section>
+        </div>
+      } @else {
+        <p>Selecciona un tanque para ver las gráficas.</p>
+      }
     </main>
   </div>
 

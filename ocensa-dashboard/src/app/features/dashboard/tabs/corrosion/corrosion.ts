@@ -244,7 +244,11 @@ export class Corrosion {
           displayColors: true,
           callbacks: {
             title: (context: any) => {
-              return context[0].label;
+              // El eje X colapsa la fecha a "Mes Año", así que varias visitas del mismo mes
+              // salen con el mismo texto. En el tooltip mostramos la fecha completa con día
+              // para poder cruzarla contra la base de datos.
+              const iso = this.allDates()[context[0]?.dataIndex ?? 0];
+              return iso ? this.formatDateLong(iso) : context[0].label;
             },
             label: (context: any) => {
               const label = context.dataset.label || '';
@@ -287,10 +291,30 @@ export class Corrosion {
 
 
   // --- HELPERS ---
-  formatDate(d: string): string {
-    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  private static readonly MESES =
+    ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  // Extrae [año, mes(1-12), día] de una fecha ISO ('2025-08-05' o '2025-08-05T00:00:00')
+  // leyendo el string directamente: new Date('2025-08-05') se interpreta como UTC y en
+  // Colombia (UTC-5) devolvería el día anterior con getDate().
+  private dateParts(d: string): [number, number, number] {
+    const parts = (d ?? '').slice(0, 10).split('-').map(Number);
+    if (parts.length === 3 && parts.every(Number.isFinite)) {
+      return [parts[0], parts[1], parts[2]];
+    }
     const dt = new Date(d);
-    return `${meses[dt.getMonth()]} ${dt.getFullYear()}`;
+    return [dt.getFullYear(), dt.getMonth() + 1, dt.getDate()];
+  }
+
+  formatDate(d: string): string {
+    const [y, m] = this.dateParts(d);
+    return `${Corrosion.MESES[m - 1]} ${y}`;
+  }
+
+  // Fecha completa con día, para el tooltip.
+  formatDateLong(d: string): string {
+    const [y, m, day] = this.dateParts(d);
+    return `${day} ${Corrosion.MESES[m - 1]} ${y}`;
   }
 
   onSliderChange(newPosition: number): void {

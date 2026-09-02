@@ -563,13 +563,13 @@
   opacity: 1;
 }
 
-.micro-bache-residual-label {
+/* .micro-bache-residual-label {
   text-align: center;
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-muted);
   min-height: 1.1rem;
-}
+} */
 
 .micro-bache-residual-label.is-ok {
   color: var(--color-green);
