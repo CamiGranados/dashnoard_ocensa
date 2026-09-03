@@ -5,6 +5,8 @@
 
 :root {
   --app-sidebar-width: 15rem;
+  /* Respiro exterior del área de contenido (entre sidebar/bordes y las tarjetas) */
+  --app-shell-gutter: 1rem;
   /* --app-brand-color: #1c4463;
   --app-brand-color-light: #e6eef6; */
 

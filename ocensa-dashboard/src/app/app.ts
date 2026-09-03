@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Spinner } from './shared/components/spinner/spinner';
-import { LoadingState } from './core/services/loading-state';
+import { LoadingState } from './core/services/loading-state.service';
 
 @Component({
   selector: 'app-root',

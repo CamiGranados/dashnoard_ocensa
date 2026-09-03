@@ -8,10 +8,9 @@ import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { Message } from 'primeng/message';
 import * as XLSX from 'xlsx';
-import { Api } from '../../../core/services/api';
 import { FilesStore } from '../../../core/services/file-store.service';
 import { ProcessedDataStore } from '../../../core/services/processed-data-store.service';
-import { ProcesarArchivosError } from '../../../core/models/procesar-archivos.model';
+import { FileProcessingError } from '../../../core/models/file-processing.model';
 import { Spinner } from '../../../shared/components/spinner/spinner';
 
 interface PreviewColumn {
@@ -63,7 +62,6 @@ function datasetId(file: File): string {
 export class DataUpload {
   private readonly filesStore = inject(FilesStore);
   private readonly router = inject(Router);
-  private readonly api = inject(Api);
   private readonly processedDataStore = inject(ProcessedDataStore);
 
   readonly files = this.filesStore.validFiles;
@@ -71,7 +69,7 @@ export class DataUpload {
   readonly parsing = signal(false);
   readonly processing = signal(false);
   readonly processErrorModalVisible = signal(false);
-  readonly processError = signal<ProcesarArchivosError | null>(null);
+  readonly processError = signal<FileProcessingError | null>(null);
 
   readonly rowsOptions: RowsOption[] = [
     { label: '10', value: 10 },
@@ -205,7 +203,7 @@ export class DataUpload {
           console.log(err)
           // Capturar el error del backend
           const httpError = err as HttpErrorResponse;
-          const body = httpError.error as ProcesarArchivosError | undefined;
+          const body = httpError.error as FileProcessingError | undefined;
 
           this.processError.set({
             exito: false,

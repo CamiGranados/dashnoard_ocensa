@@ -8,8 +8,4 @@ import { TopbarFilters } from '../topbar-filters/topbar-filters';
   templateUrl: './dashboard-shell.html',
   styleUrl: './dashboard-shell.css',
 })
-export class DashboardShell {
-  readonly activeTank = 'TK-001';
-  readonly lastUpdate = '10 Jul 2026 · 09:35 AM';
-  readonly overallStatus = 'Normal';
-}
+export class DashboardShell {}

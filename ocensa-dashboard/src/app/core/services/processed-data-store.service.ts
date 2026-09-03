@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { FinalTable, ProcesarArchivosResultado } from '../models/procesar-archivos.model';
+import { FinalTable, FileProcessingResult } from '../models/file-processing.model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -13,7 +13,7 @@ export class ProcessedDataStore {
 
   // constructor(private http: HttpClient) {}
 
-  private readonly _result = signal<ProcesarArchivosResultado | null>(null);
+  private readonly _result = signal<FileProcessingResult | null>(null);
   readonly result = this._result.asReadonly();
 
   fileProcessor(files: File[]): Observable<FinalTable> {

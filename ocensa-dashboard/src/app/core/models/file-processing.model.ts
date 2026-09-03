@@ -1,10 +1,10 @@
-export interface ArchivoResumen {
+export interface FileSummary {
   nombreArchivo: string;
   filas: number;
   filasOmitidas: number;
 }
 
-export interface ErrorArchivo {
+export interface FileError {
   archivo: string;
   fila: number | null;
   columna: string | null;
@@ -12,24 +12,24 @@ export interface ErrorArchivo {
   valorEncontrado: string | null;
 }
 
-export interface ProcesarArchivosResultado {
+export interface FileProcessingResult {
   exito: true;
   mensaje?: string;
   totalFilas: number;
   columnas: string[];
   datos: Record<string, string>[];
-  archivos: ArchivoResumen[];
-  errores: ErrorArchivo[];
+  archivos: FileSummary[];
+  errores: FileError[];
 }
 
-export interface ProcesarArchivosError {
+export interface FileProcessingError {
   exito: false;
   mensaje?: string;
-  errores: ErrorArchivo[];
+  errores: FileError[];
 }
 
 export interface FileTable {
-  [columna: string]: any; // filas dinámicas
+  [columna: string]: any; // dynamic rows
 }
 
 export interface FinalTable {
