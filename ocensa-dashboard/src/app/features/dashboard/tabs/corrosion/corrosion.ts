@@ -6,7 +6,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { finalize } from 'rxjs';
 import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
-import { Spinner } from '../../../../core/shared/components/spinner/spinner';
+import { Spinner } from '../../../../shared/components/spinner/spinner';
 
 export interface Measurement {
   variable: string;

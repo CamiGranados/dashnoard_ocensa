@@ -7,7 +7,7 @@ import Lara from '@primeng/themes/lara';
 
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { loadingInterceptor } from './core/shared/interceptors/loading.interceptor';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 
 // const MiTema = definePreset(Lara, {
 //   semantic: {

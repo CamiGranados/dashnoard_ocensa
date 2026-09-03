@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Spinner } from './core/shared/components/spinner/spinner';
+import { Spinner } from './shared/components/spinner/spinner';
 import { LoadingState } from './core/services/loading-state';
 
 @Component({

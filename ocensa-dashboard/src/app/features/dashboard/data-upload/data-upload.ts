@@ -12,7 +12,7 @@ import { Api } from '../../../core/services/api';
 import { FilesStore } from '../../../core/services/file-store.service';
 import { ProcessedDataStore } from '../../../core/services/processed-data-store.service';
 import { ProcesarArchivosError } from '../../../core/models/procesar-archivos.model';
-import { Spinner } from '../../../core/shared/components/spinner/spinner';
+import { Spinner } from '../../../shared/components/spinner/spinner';
 
 interface PreviewColumn {
   field: string;

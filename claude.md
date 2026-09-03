@@ -17,8 +17,8 @@ Colores principales y estilos incluirlos en styles.css y llamarlos en cada compo
 
 - `core/services` — llamadas HTTP y estado compartido (signals). Mezcla de sufijo `.service.ts` y sin sufijo (`file-store.service.ts`, `loading-state.ts`) — inconsistente, no asumir un patrón único al crear archivos nuevos.
 - `core/models` — DTOs que deben coincidir exactamente con las clases C# del backend (`overview.model.ts`, `procesar-archivos.model.ts`).
-- `core/shared/components` — componentes reutilizables (p.ej. `spinner`).
-- `core/shared/interceptors` — interceptores HTTP (`loading.interceptor.ts`).
+- `core/interceptors` — interceptores HTTP (`loading.interceptor.ts`).
+- `shared/components` — componentes reutilizables sin estado, fuera de `core/` (p.ej. `spinner`).
 - `layout/` — `shell`, `sidebar`, `topbar-filters` (chrome de la app, filtros globales de tanque/año/mes).
 - `features/dashboard/` — `overview` (vista ejecutiva), `data-upload` (carga y preview de Excel), `resultados`, y `tabs/` (`corrosion`, `gaps`, `microbiology`, `physicochemistry`, `thps-tolerance`).
 - Rutas en `app.routes.ts`, todas con `loadComponent` (lazy).
