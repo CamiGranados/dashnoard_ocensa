@@ -8,6 +8,11 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { PhysicochemistryService } from '../../../../core/services/physicochemistry.service';
 import { PhysicalChemistryRecord } from '../../../../core/models/physicochemistry.model';
 import { limitLinesPlugin } from './physicochemistry-limit-line.plugin';
+import { MESES } from '../../../../shared/charts/chart-dates';
+import { chartToken } from '../../../../shared/charts/chart-tokens';
+import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
+import { createWindowState } from '../../../../shared/charts/window-state';
+import { createSeriesToggles, CHART_TYPE_OPTIONS } from '../../../../shared/charts/series-toggles';
 
 type SeriesKey =
   | 'generalCorrosionRate'
@@ -15,6 +20,7 @@ type SeriesKey =
   | 'maximumStingSpeed'
   | 'maximumStingMean';
 
+// `color` / `fill` guardan el NOMBRE del token (chart-tokens.css); se resuelven con chartToken().
 const SERIES_CONFIG: Record<SeriesKey, {
   label: string;
   axis: 'y' | 'y1';
@@ -27,10 +33,10 @@ const SERIES_CONFIG: Record<SeriesKey, {
    */
   fill?: string;
 }> = {
-  generalCorrosionRate: { label: 'Tasa de corrosión general', axis: 'y', defaultType: 'line', color: '#2f80d7' },
-  corrosionRateMean: { label: 'Media tasa de corrosión', axis: 'y', defaultType: 'line', color: '#2f80d7', fill: 'rgba(47, 128, 215, 0.14)' },
-  maximumStingSpeed: { label: 'Velocidad máxima de picadura', axis: 'y1', defaultType: 'line', color: '#f3a12b' },
-  maximumStingMean: { label: 'Media velocidad de picadura', axis: 'y1', defaultType: 'line', color: '#e0850b', fill: 'rgba(243, 161, 43, 0.16)' },
+  generalCorrosionRate: { label: 'Tasa de corrosión general', axis: 'y', defaultType: 'line', color: '--chart-fq-corrosion-rate' },
+  corrosionRateMean: { label: 'Media tasa de corrosión', axis: 'y', defaultType: 'line', color: '--chart-fq-corrosion-rate', fill: '--chart-fq-corrosion-rate-fill' },
+  maximumStingSpeed: { label: 'Velocidad máxima de picadura', axis: 'y1', defaultType: 'line', color: '--chart-fq-pitting-speed' },
+  maximumStingMean: { label: 'Media velocidad de picadura', axis: 'y1', defaultType: 'line', color: '--chart-fq-pitting-speed-mean', fill: '--chart-fq-pitting-speed-fill' },
 };
 
 type MiniSeriesKey = 'temperatureC' | 'h2S' | 'ph' | 'conductivity' | 'alkalinity' | 'calcium';
@@ -41,12 +47,12 @@ const MINI_SERIES_CONFIG: Record<MiniSeriesKey, {
   color: string;
   limits: { min: number; max: number };
 }> = {
-  temperatureC: { label: 'Temperatura (°C)', color: '#2f80d7', limits: { min: 24, max: 32 } },
-  h2S: { label: 'H2S', color: '#e8590c', limits: { min: 0, max: 5 } },
-  ph: { label: 'pH', color: '#239a59', limits: { min: 0, max: 8.5 } },
-  conductivity: { label: 'Conductividad', color: '#458ccc', limits: { min: 0, max: 3600 } },
-  alkalinity: { label: 'Alcalinidad', color: '#f3a12b', limits: { min: 45, max: 1200 } },
-  calcium: { label: 'Calcio', color: '#43474f', limits: { min: 0, max: 700 } },
+  temperatureC: { label: 'Temperatura (°C)', color: '--chart-fq-temperatura', limits: { min: 24, max: 32 } },
+  h2S: { label: 'H2S', color: '--chart-fq-h2s', limits: { min: 0, max: 5 } },
+  ph: { label: 'pH', color: '--chart-fq-ph', limits: { min: 0, max: 8.5 } },
+  conductivity: { label: 'Conductividad', color: '--chart-fq-conductividad', limits: { min: 0, max: 3600 } },
+  alkalinity: { label: 'Alcalinidad', color: '--chart-fq-alcalinidad', limits: { min: 45, max: 1200 } },
+  calcium: { label: 'Calcio', color: '--chart-fq-calcio', limits: { min: 0, max: 700 } },
 };
 
 interface MiniChartCard {
@@ -64,8 +70,6 @@ interface YearPage {
   start: number;
   end: number;
 }
-
-const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 @Component({
   selector: 'app-physicochemistry',
@@ -87,60 +91,35 @@ export class Physicochemistry {
 
   // ----------------------------- Gráfica: tasa de corrosión / velocidad de picadura -----------------------------
   Math = Math;
-  windowSize = 60;
-  visibleRange = signal<[number, number]>([0, 0]);
-  sliderPosition = signal(0);
 
-  chartTypeOptions = [
-    { label: 'Barras', value: 'bar' },
-    { label: 'Línea', value: 'line' },
-  ];
+  // Resuelve tokens de color en el template (swatch de la leyenda de series).
+  protected readonly chartToken = chartToken;
 
-  seriesTypes = signal<Record<SeriesKey, 'line' | 'bar'>>(
-    (Object.keys(SERIES_CONFIG) as SeriesKey[]).reduce((acc, key) => {
-      acc[key] = SERIES_CONFIG[key].defaultType;
-      return acc;
-    }, {} as Record<SeriesKey, 'line' | 'bar'>),
+  // Maquinaria A — ventana visible (slider) de la grilla de mini-variables + toggles de serie:
+  // estado compartido en shared/charts. La gráfica PRINCIPAL usa su propia paginación por año
+  // (maquinaria B: mainPages / mainPageIndex, más abajo).
+  protected readonly window = createWindowState(computed(() => this.sortedRecords().length));
+  protected readonly toggles = createSeriesToggles<SeriesKey>(
+    Object.fromEntries(
+      (Object.keys(SERIES_CONFIG) as SeriesKey[]).map((key) => [key, SERIES_CONFIG[key].defaultType]),
+    ) as Record<SeriesKey, 'line' | 'bar'>,
   );
-
-  visibleSeries = signal<Record<SeriesKey, boolean>>(
-    (Object.keys(SERIES_CONFIG) as SeriesKey[]).reduce((acc, key) => {
-      acc[key] = true;
-      return acc;
-    }, {} as Record<SeriesKey, boolean>),
-  );
+  protected readonly chartTypeOptions = CHART_TYPE_OPTIONS;
 
   constructor() {
-    // DEBUG: respuesta cruda del servicio de fisicoquímica — quitar cuando ya no se necesite.
-    effect(() => {
-      if (this.review.status() !== 'resolved') return;
-      const res = this.review.value();
-      console.log(res?.data.map((r) => ({ date: r.date, corrosionRateMean: r.corrosionRateMean, maximumStingMean: r.maximumStingMean })));
-    });
+    applyChartDefaults();
 
-    // al llegar datos nuevos (cambio de filtros), reencuadra ambas ventanas visibles (gráfica
-    // principal y grilla de variables restantes) en los últimos puntos
+    // Maquinaria B: al llegar datos nuevos, la gráfica principal salta a la última página de año.
     effect(() => {
       const total = this.sortedRecords().length;
-      if (total === 0) {
-        this.visibleRange.set([0, 0]);
-        this.sliderPosition.set(0);
-        this.mainPageIndex.set(0);
-        return;
-      }
-
-      const startIdx = Math.max(0, total - this.windowSize);
-      this.sliderPosition.set(startIdx);
-      this.visibleRange.set([startIdx, total - 1]);
-
-      this.mainPageIndex.set(Math.max(0, this.mainPages().length - 1));
+      this.mainPageIndex.set(total === 0 ? 0 : Math.max(0, this.mainPages().length - 1));
     });
   }
 
   // Ventana visible de la grilla de variables restantes (la gráfica principal ya no se recorta).
   readonly windowRecords = computed(() => {
     const records = this.sortedRecords();
-    const [start, end] = this.visibleRange();
+    const [start, end] = this.window.range();
     return records.slice(start, end + 1);
   });
 
@@ -210,8 +189,8 @@ export class Physicochemistry {
 
   readonly chartData = computed(() => {
     const records = this.sortedRecords();
-    const visible = this.visibleSeries();
-    const types = this.seriesTypes();
+    const visible = this.toggles.visible();
+    const types = this.toggles.types();
 
     if (!records.length) return { datasets: [] };
 
@@ -223,13 +202,14 @@ export class Physicochemistry {
         const isBar = currentType === 'bar';
         // Serie "media": área rellena + marcadores de círculo hueco (ver SERIES_CONFIG.fill).
         const isMean = !isBar && !!cfg.fill;
+        const color = chartToken(cfg.color);
 
         return {
           type: currentType,
           label: cfg.label,
           yAxisID: cfg.axis,
-          borderColor: cfg.color,
-          backgroundColor: isMean ? cfg.fill : cfg.color,
+          borderColor: color,
+          backgroundColor: isMean ? chartToken(cfg.fill ?? cfg.color) : color,
           fill: isMean ? 'origin' : false,
           order: isBar ? 999 : isMean ? 1 : 0,
           borderWidth: isBar ? 0 : 2.5,
@@ -237,8 +217,8 @@ export class Physicochemistry {
           pointStyle: 'circle',
           pointRadius: isBar ? undefined : isMean ? 3.5 : 1,
           pointHoverRadius: isBar ? undefined : isMean ? 5 : 3,
-          pointBackgroundColor: isMean ? '#ffffff' : cfg.color,
-          pointBorderColor: cfg.color,
+          pointBackgroundColor: isMean ? chartToken('--color-white') : color,
+          pointBorderColor: color,
           pointBorderWidth: isMean ? 2 : 1,
           tension: 0.3,
           spanGaps: true,
@@ -258,8 +238,8 @@ export class Physicochemistry {
 
     return {
       responsive: true,
-      maintainAspectRatio: false,
       animation: false as const,
+      // Cromo (tooltip color, grid, ejes, maintainAspectRatio) -> Chart.defaults (chart-defaults.ts).
       // Interacción unificada: hover y tooltip resuelven SIEMPRE el mismo conjunto de puntos
       // (los del índice más cercano en X). Sin esto, el hover (modo `nearest` por defecto) y el
       // tooltip (`index`) apuntan a elementos distintos y aparecen dos cajas parpadeando.
@@ -274,13 +254,6 @@ export class Physicochemistry {
           // Ancla la caja al punto más cercano en vez del promedio de puntos repartidos en los
           // dos ejes Y (que hacía "saltar" el tooltip y trababa la gráfica).
           position: 'nearest' as const,
-          backgroundColor: '#1f3a52',
-          padding: 12,
-          titleColor: '#ffffff',
-          bodyColor: '#ffffff',
-          borderColor: '#2a4f6b',
-          borderWidth: 1,
-          cornerRadius: 6,
           titleFont: { size: 14, weight: 'bold' },
           bodyFont: { size: 13 },
           displayColors: true,
@@ -301,7 +274,6 @@ export class Physicochemistry {
             maxRotation: 0,
             autoSkip: true,
           },
-          grid: { color: '#eef2f7' },
         },
         y: {
           type: 'linear' as const,
@@ -329,6 +301,7 @@ export class Physicochemistry {
 
     return (Object.keys(MINI_SERIES_CONFIG) as MiniSeriesKey[]).map((key) => {
       const cfg = MINI_SERIES_CONFIG[key];
+      const color = chartToken(cfg.color);
       const values = records.map((r) => r[key]);
       const hasAlert = values.some((v) => v != null && (v < cfg.limits.min || v > cfg.limits.max));
 
@@ -341,8 +314,8 @@ export class Physicochemistry {
           datasets: [
             {
               label: cfg.label,
-              borderColor: cfg.color,
-              backgroundColor: cfg.color,
+              borderColor: color,
+              backgroundColor: color,
               borderWidth: 2,
               pointHoverRadius: 3,
               pointRadius: 1,
@@ -361,19 +334,13 @@ export class Physicochemistry {
   private buildMiniOptions(limits: { min: number; max: number }): Record<string, unknown> {
     return {
       responsive: true,
-      maintainAspectRatio: false,
+      // Cromo -> Chart.defaults. Overrides: tooltip compacto (padding/fuentes) para las mini.
       plugins: {
         legend: { display: false },
         tooltip: {
           mode: 'index' as const,
           intersect: false,
-          backgroundColor: '#1f3a52',
           padding: 10,
-          titleColor: '#ffffff',
-          bodyColor: '#ffffff',
-          borderColor: '#2a4f6b',
-          borderWidth: 1,
-          cornerRadius: 6,
           titleFont: { size: 12, weight: 'bold' },
           bodyFont: { size: 12 },
         },
@@ -384,27 +351,6 @@ export class Physicochemistry {
         y: { ticks: { font: { size: 10 } } },
       },
     };
-  }
-
-  toggleSeriesType(key: SeriesKey, newType: 'line' | 'bar'): void {
-    this.seriesTypes.set({ ...this.seriesTypes(), [key]: newType });
-  }
-
-  toggleSeriesVisibility(key: SeriesKey): void {
-    const current = this.visibleSeries();
-    this.visibleSeries.set({ ...current, [key]: !current[key] });
-  }
-
-  onSliderChange(newPosition: number): void {
-    const end = Math.min(newPosition + this.windowSize, this.sortedRecords().length - 1);
-    this.visibleRange.set([newPosition, end]);
-  }
-
-  resetZoom(): void {
-    const total = this.sortedRecords().length;
-    const startIdx = Math.max(0, total - this.windowSize);
-    this.sliderPosition.set(startIdx);
-    this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
   }
 
   resetMainView(): void {
@@ -419,15 +365,17 @@ export class Physicochemistry {
     return Object.keys(SERIES_CONFIG) as SeriesKey[];
   }
 
+  // Reciben string ISO del backend o timestamp (callbacks de ticks). El swap a
+  // dateParts/isoToLocalTimestamp está pendiente de confirmar el formato de `date`.
   formatDate(d: string | number): string {
     const dt = new Date(d);
     const yy = String(dt.getFullYear()).slice(-2);
-    return `${MESES_CORTOS[dt.getMonth()]} ${dt.getDate()} ${yy}`;
+    return `${MESES[dt.getMonth()]} ${dt.getDate()} ${yy}`;
   }
 
   formatMonthYear(d: string | number): string {
     const dt = new Date(d);
     const yy = String(dt.getFullYear()).slice(-2);
-    return `${MESES_CORTOS[dt.getMonth()]} ${yy}`;
+    return `${MESES[dt.getMonth()]} ${yy}`;
   }
 }

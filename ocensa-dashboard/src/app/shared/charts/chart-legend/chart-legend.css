@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chart-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.chart-legend__swatch {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  background: var(--swatch-color);
+}
+
+.chart-legend__swatch.shape-circle {
+  border-radius: 50%;
+}
+
+.chart-legend__swatch.shape-rect {
+  border-radius: 2px;
+}
+
+.chart-legend__swatch.shape-rectRot {
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+/* Triángulo dibujado con bordes: sin caja, el color va en el borde inferior. */
+.chart-legend__swatch.shape-triangle {
+  width: 0;
+  height: 0;
+  background: transparent;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid var(--swatch-color);
+}
+
+.chart-legend__swatch.shape-line {
+  height: 0;
+  border-top: 2px solid var(--swatch-color);
+}

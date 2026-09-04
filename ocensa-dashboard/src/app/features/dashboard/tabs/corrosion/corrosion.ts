@@ -1,4 +1,4 @@
-import { Component,computed, effect, inject, signal} from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
@@ -7,6 +7,12 @@ import { finalize } from 'rxjs';
 import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
 import { Spinner } from '../../../../shared/components/spinner/spinner';
+import { formatFullDate, formatMonthYear } from '../../../../shared/charts/chart-dates';
+import { chartToken, FWV_TOKEN } from '../../../../shared/charts/chart-tokens';
+import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
+import { createWindowState } from '../../../../shared/charts/window-state';
+import { createSeriesToggles, CHART_TYPE_OPTIONS } from '../../../../shared/charts/series-toggles';
+import { lineOrBarDataset } from '../../../../shared/charts/chart-datasets';
 
 export interface Measurement {
   variable: string;
@@ -14,6 +20,8 @@ export interface Measurement {
   date: string;
 }
 
+// `color` / `border` guardan el NOMBRE del token (chart-tokens.css); se resuelven
+// con chartToken() al armar los datasets y en el swatch de la leyenda.
 const SERIES_CONFIG: Record<string, {
   label: string;
   axis: 'y' | 'y1';
@@ -22,11 +30,11 @@ const SERIES_CONFIG: Record<string, {
   border: string;
   dashed?: boolean;
 }> = {
-  'FWV reportada':        { label: 'FWV Reportada',     axis: 'y',  defaultType: 'line', color: '#2f80d7', border:'#2f80d7', dashed: false },
-  'FWV estimada':         { label: 'FWV Estimada',      axis: 'y',  defaultType: 'line', color: '#4da7e9', border:'#4da7e9', dashed: true },  // ← punteada
-  'FWV calculada':        { label: 'FWV Calculada',      axis: 'y',  defaultType: 'line', color: '#22ba76', border:'#22ba76', dashed: false },
-  'FWV incrementada':     { label: 'FWV Incrementada', axis: 'y', defaultType: 'line',  color: '#f3a12b', border:'#f3a12b', dashed: false },
-  'gsv(bls)':             { label: 'GSV',  axis: 'y1', defaultType: 'bar',  color: '#d8dbde', border:'#d8dbde', dashed: false },
+  'FWV reportada':    { label: 'FWV Reportada',    axis: 'y',  defaultType: 'line', color: FWV_TOKEN.reportada,    border: FWV_TOKEN.reportada,    dashed: false },
+  'FWV estimada':     { label: 'FWV Estimada',     axis: 'y',  defaultType: 'line', color: FWV_TOKEN.estimada,     border: FWV_TOKEN.estimada,     dashed: true },  // ← punteada
+  'FWV calculada':    { label: 'FWV Calculada',    axis: 'y',  defaultType: 'line', color: FWV_TOKEN.calculada,    border: FWV_TOKEN.calculada,    dashed: false },
+  'FWV incrementada': { label: 'FWV Incrementada', axis: 'y',  defaultType: 'line', color: FWV_TOKEN.incrementada, border: FWV_TOKEN.incrementada, dashed: false },
+  'gsv(bls)':         { label: 'GSV',              axis: 'y1', defaultType: 'bar',  color: '--chart-gsv-fill',     border: '--chart-gsv',         dashed: false },
 };
 
 
@@ -41,39 +49,32 @@ export class Corrosion {
   private filtersState = inject(FiltersStateService);
   private dataService = inject(FiltersService);
 
+  // Resuelve tokens de color en el template (swatch de la leyenda de series).
+  protected readonly chartToken = chartToken;
+
   measurements = signal<Measurement[]>([]);
-  visibleRange = signal<[number, number]>([0, 0]);
   noData = signal(false);
   loadingMeasurements = signal(false);
-  windowSize = 60;
-  sliderPosition = signal(0);
   Math = Math;
 
   allDates = computed(() =>
     [...new Set(this.measurements().map(m => m.date))].sort()
   );
-  chartTypeOptions = [
-    { label: 'Barras', value: 'bar' },
-    { label: 'Línea', value: 'line' }
-  ];
-  // Control de visualización por serie (line/bar)
-  seriesTypes = signal<Record<string, 'line' | 'bar'>>(
-    Object.entries(SERIES_CONFIG).reduce((acc, [key, cfg]) => {
-      acc[key] = cfg.defaultType;
-      return acc;
-    }, {} as Record<string, 'line' | 'bar'>)
-  );
 
-  // Control de visibilidad de cada serie
-  visibleSeries = signal<Record<string, boolean>>(
-    Object.keys(SERIES_CONFIG).reduce((acc, key) => {
-      acc[key] = true;
-      return acc;
-    }, {} as Record<string, boolean>)
-  );
+  private readonly total = computed(() => this.allDates().length);
 
+  // Ventana visible (scroll horizontal) y toggles de serie: estado compartido en shared/charts.
+  protected readonly window = createWindowState(this.total);
+  protected readonly toggles = createSeriesToggles<string>(
+    Object.fromEntries(
+      Object.entries(SERIES_CONFIG).map(([key, cfg]) => [key, cfg.defaultType]),
+    ) as Record<string, 'line' | 'bar'>,
+  );
+  protected readonly chartTypeOptions = CHART_TYPE_OPTIONS;
 
   constructor() {
+    applyChartDefaults();
+
     // se re-ejecuta automáticamente cada vez que cambian los filtros (tanque, años, meses)
     effect((onCleanup) => {
       const f = this.filtersState.filters();
@@ -88,16 +89,11 @@ export class Corrosion {
             if (!data || data.length === 0) {
               this.noData.set(true);
               this.measurements.set([]);
-              this.visibleRange.set([0, 0]);
               return;
             }
             this.noData.set(false);
+            // `window` reencuadra solo al cambiar `total` (effect en createWindowState).
             this.measurements.set(data);
-            const total = new Set(data.map(m => m.date)).size;
-
-            const startIdx = Math.max(0, total - this.windowSize);
-            this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
-            this.sliderPosition.set(startIdx);
           },
           error: (err) => console.error('Error mediciones', err),
         });
@@ -115,8 +111,8 @@ export class Corrosion {
   chartData = computed(() => {
     const data = this.measurements();
     const dates = this.allDates();
-    const visible = this.visibleSeries();
-    const types = this.seriesTypes();
+    const visible = this.toggles.visible();
+    const types = this.toggles.types();
 
     if (!dates.length) return { labels: [], datasets: [] };
 
@@ -124,31 +120,22 @@ export class Corrosion {
       .filter(([key]) => visible[key])
       .map(([variable, cfg]) => {
         const currentType = types[variable];
-        const isBar = currentType === 'bar';
-
-        return {
-          type: currentType,
+        return lineOrBarDataset({
           label: cfg.label,
+          type: currentType,
+          stroke: chartToken(cfg.border),
+          fill: chartToken(cfg.color),
           yAxisID: cfg.axis,
-          borderColor: cfg.border,
-          borderDash: cfg.dashed && currentType === 'line' ? [5, 5] : [],
-          backgroundColor: cfg.color,
-          order: isBar ? 999 : 0,
-          borderRadius: isBar ? 0 : undefined,
-          borderSkipped: isBar ? false : undefined,
-          borderWidth: isBar ? 0 : 2.3,
-          pointHoverRadius: isBar ? undefined : 3,
-          pointRadius: isBar ? undefined : 1,
-          tension: 0.3,
-          spanGaps: true,
+          dashed: cfg.dashed,
+          order: currentType === 'bar' ? 999 : 0,
           data: dates.map(d => {
             const punto = data.find(m => m.variable === variable && m.date === d);
             return punto ? punto.numericValue : null;
           }),
-        };
+        });
       });
 
-    return { labels: dates.map(d => this.formatDate(d)), datasets };
+    return { labels: dates.map(d => this.formatMonthYear(d)), datasets };
   });
 
   // "Colchón" permitido más allá del rango central p10–p90 antes de considerar un valor outlier
@@ -219,26 +206,19 @@ export class Corrosion {
 
   // ----------------------------- Graph --------------------
   chartOptions = computed(() => {
-    const [start, end] = this.visibleRange();
+    const [start, end] = this.window.range();
     const yDomain = this.yDomain();
     const y1Domain = this.y1Domain();
 
     return {
       responsive: true,
-      maintainAspectRatio: false,
+      // Cromo (tooltip color, grid, ejes, maintainAspectRatio) -> Chart.defaults (chart-defaults.ts).
       animation: false as const,
       plugins: {
         legend: { position: 'top' as const },
         tooltip: {
           mode: 'index' as const,
           intersect: false,
-          backgroundColor: '#1f3a52',
-          padding: 12,
-          titleColor: '#ffffff',
-          bodyColor: '#ffffff',
-          borderColor: '#2a4f6b',
-          borderWidth: 1,
-          cornerRadius: 6,
           titleFont: { size: 14, weight: 'bold' },
           bodyFont: { size: 13 },
           displayColors: true,
@@ -248,7 +228,7 @@ export class Corrosion {
               // salen con el mismo texto. En el tooltip mostramos la fecha completa con día
               // para poder cruzarla contra la base de datos.
               const iso = this.allDates()[context[0]?.dataIndex ?? 0];
-              return iso ? this.formatDateLong(iso) : context[0].label;
+              return iso ? formatFullDate(iso) : context[0].label;
             },
             label: (context: any) => {
               const label = context.dataset.label || '';
@@ -264,7 +244,6 @@ export class Corrosion {
           min: start,
           max: end,
           ticks: { maxRotation: 0, autoSkip: true },
-          grid: { color: '#eef2f7' },
         },
         y:  { type: 'linear', position: 'left',  min: yDomain.min, max: yDomain.max,
               title: { display: true, text: 'Agua (BBL)' } },
@@ -279,56 +258,10 @@ export class Corrosion {
     };
   });
 
-  toggleSeriesType(variable: string, newType: 'line' | 'bar'): void {
-    const current = this.seriesTypes();
-    this.seriesTypes.set({ ...current, [variable]: newType });
-  }
-
-  toggleSeriesVisibility(variable: string): void {
-    const current = this.visibleSeries();
-    this.visibleSeries.set({ ...current, [variable]: !current[variable] });
-  }
-
-
   // --- HELPERS ---
-  private static readonly MESES =
-    ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-  // Extrae [año, mes(1-12), día] de una fecha ISO ('2025-08-05' o '2025-08-05T00:00:00')
-  // leyendo el string directamente: new Date('2025-08-05') se interpreta como UTC y en
-  // Colombia (UTC-5) devolvería el día anterior con getDate().
-  private dateParts(d: string): [number, number, number] {
-    const parts = (d ?? '').slice(0, 10).split('-').map(Number);
-    if (parts.length === 3 && parts.every(Number.isFinite)) {
-      return [parts[0], parts[1], parts[2]];
-    }
-    const dt = new Date(d);
-    return [dt.getFullYear(), dt.getMonth() + 1, dt.getDate()];
-  }
-
-  formatDate(d: string): string {
-    const [y, m] = this.dateParts(d);
-    return `${Corrosion.MESES[m - 1]} ${y}`;
-  }
-
-  // Fecha completa con día, para el tooltip.
-  formatDateLong(d: string): string {
-    const [y, m, day] = this.dateParts(d);
-    return `${day} ${Corrosion.MESES[m - 1]} ${y}`;
-  }
-
-  onSliderChange(newPosition: number): void {
-    const end = Math.min(newPosition + this.windowSize, this.allDates().length - 1);
-    this.visibleRange.set([newPosition, end]);
-  }
-
-  resetZoom(): void {
-    const total = this.allDates().length;
-    const windowSize = 60;
-    const startIdx = Math.max(0, total - windowSize);
-    this.sliderPosition.set(startIdx);
-    this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
-  }
+  // Formateo de fechas centralizado en shared/charts/chart-dates: dateParts hace
+  // slice del string ISO para no perder el día por el desfase UTC en Colombia.
+  protected readonly formatMonthYear = formatMonthYear;
 
   getSeriesConfig() {
     return SERIES_CONFIG;

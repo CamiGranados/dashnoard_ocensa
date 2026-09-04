@@ -103,10 +103,23 @@
   background: var(--color-accent-light);
 }
 
+/* Cada estado define sólo su par de tokens (fondo suave / color fuerte); la celda y el chip
+   de la leyenda los consumen con var(--st-*). El color de cada estado vive en un único sitio. */
+.status-ok      { --st-bg: var(--color-green-light);   --st-fg: var(--color-green); }
+.status-warn    { --st-bg: var(--color-warn-light);    --st-fg: var(--color-warn); }
+.status-bad     { --st-bg: var(--color-danger-light);  --st-fg: var(--color-danger); }
+.status-none    { --st-bg: var(--color-background);    --st-fg: var(--color-faint); }
+.status-current { --st-bg: var(--color-primary-brand); --st-fg: var(--color-primary); }
+
 .micro-compliance-cell {
   position: relative;
   font-weight: 600;
-  color: var(--color-text);
+  background: var(--st-bg);
+  color: var(--st-fg, var(--color-text));
+}
+
+.micro-compliance-cell.status-current {
+  font-weight: 700;
 }
 
 /* Al pasar el cursor la celda sube por encima de la cabecera fija y de las celdas vecinas
@@ -115,38 +128,31 @@
   z-index: 10;
 }
 
-.micro-compliance-cell.status-ok {
-  background: var(--color-green-light);
-  color: var(--color-green);
+/* Base común de los dos tooltips oscuros (celda de cumplimiento y barra residual): anclado y
+   centrado sobre el elemento, tema oscuro y aparición por opacidad en hover. Cada regla propia
+   añade solo lo que difiere (posición vertical, padding, tipografía). */
+.micro-compliance-tooltip,
+.micro-bache-residual-tooltip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f3a52;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
 }
 
-.micro-compliance-cell.status-warn {
-  background: var(--color-warn-light);
-  color: var(--color-warn);
-}
-
-.micro-compliance-cell.status-bad {
-  background: var(--color-danger-light);
-  color: var(--color-danger);
-}
-
-.micro-compliance-cell.status-none {
-  background: var(--color-background);
-  color: var(--color-faint);
-}
-
-.micro-compliance-cell.status-current {
-  background: var(--color-primary-brand);
-  color: var(--color-primary);
+.micro-compliance-tooltip strong,
+.micro-bache-residual-tooltip strong {
   font-weight: 700;
 }
 
 /* --- Tooltip de celda --- */
 .micro-compliance-tooltip {
-  position: absolute;
-  left: 50%;
   bottom: calc(100% + 5px);
-  transform: translateX(-50%);
   z-index: 5;
   display: flex;
   flex-direction: column;
@@ -155,16 +161,9 @@
   max-width: 15rem;
   padding: 6px 9px;
   border-radius: 6px;
-  background: #1f3a52;
-  color: #fff;
   font-size: 0.68rem;
-  font-weight: 500;
   line-height: 1.4;
   text-align: left;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.12s ease;
 }
 
 /* La primera fila no tiene sitio arriba: su tooltip cae hacia abajo. */
@@ -179,10 +178,6 @@
 
 .micro-compliance-tooltip-head {
   margin-bottom: 2px;
-  font-weight: 700;
-}
-
-.micro-compliance-tooltip strong {
   font-weight: 700;
 }
 
@@ -211,32 +206,8 @@
   height: 14px;
   flex-shrink: 0;
   border-radius: 3px;
-  border: 1.5px solid var(--color-faint);
-}
-
-.micro-compliance-swatch.status-ok {
-  background: var(--color-green-light);
-  border-color: var(--color-green);
-}
-
-.micro-compliance-swatch.status-warn {
-  background: var(--color-warn-light);
-  border-color: var(--color-warn);
-}
-
-.micro-compliance-swatch.status-bad {
-  background: var(--color-danger-light);
-  border-color: var(--color-danger);
-}
-
-.micro-compliance-swatch.status-none {
-  background: var(--color-background);
-  border-color: var(--color-faint);
-}
-
-.micro-compliance-swatch.status-current {
-  background: var(--color-primary-brand);
-  border-color: var(--color-primary-sub);
+  background: var(--st-bg);
+  border: 1.5px solid var(--st-fg, var(--color-faint));
 }
 
 /* Mismo tema/estructura que usa corrosion para su bloque de gráfica */
@@ -262,47 +233,20 @@
   overflow: hidden;
 }
 
-.micro-bache-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  padding-bottom: 0.75rem;
+/* La leyenda de baches vive en <app-chart-legend> (shared/charts). Aquí sólo su
+   sitio en la columna flex del panel. */
+app-chart-legend {
   flex-shrink: 0;
+  padding-bottom: 0.75rem;
 }
 
+/* Usado por la leyenda de la tabla de cumplimiento (abajo). */
 .micro-legend-item {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.8rem;
   color: var(--color-muted);
-}
-
-.micro-legend-swatch {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-}
-
-.micro-legend-swatch.shape-circle {
-  border-radius: 50%;
-}
-
-.micro-legend-swatch.shape-rect {
-  border-radius: 2px;
-}
-
-.micro-legend-swatch.shape-rectRot {
-  border-radius: 2px;
-  transform: rotate(45deg);
-}
-
-.micro-legend-swatch.shape-triangle {
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 9px solid;
 }
 
 .micro-bache-scroll {
@@ -472,15 +416,15 @@
 }
 
 .micro-bache-residual-bar.is-ok {
-  --bar-bg: #d0f1e0;
-  --bar-bg-hover: #7ae29d;
-  --bar-bg-border: #188a56;
+  --bar-bg: var(--chart-residual-ok);
+  --bar-bg-hover: var(--chart-residual-ok-hover);
+  --bar-bg-border: var(--chart-residual-ok-border);
 }
 
 .micro-bache-residual-bar.is-bad {
-  --bar-bg: #f8c57c;
-  --bar-bg-hover: #fcb450;
-  --bar-bg-border: #f3a12b;
+  --bar-bg: var(--chart-residual-bad);
+  --bar-bg-hover: var(--chart-residual-bad-hover);
+  --bar-bg-border: var(--chart-residual-bad-border);
 }
 
 .micro-bache-residual-slot:hover .micro-bache-residual-bar {
@@ -528,28 +472,15 @@
   opacity: 0;
 }
 
+/* --- Tooltip de la barra residual --- */
 .micro-bache-residual-tooltip {
-  position: absolute;
-  left: 50%;
   bottom: 100%;
-  transform: translateX(-50%);
   margin-bottom: 4px;
   padding: 3px 7px;
   border-radius: 4px;
-  background: #1f3a52;
-  color: #fff;
   font-size: 0.6rem;
-  font-weight: 500;
   line-height: 1.35;
-  white-space: nowrap;
   text-align: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.12s ease;
-}
-
-.micro-bache-residual-tooltip strong {
-  font-weight: 700;
 }
 
 .micro-bache-residual-bar.is-negative .micro-bache-residual-tooltip {
@@ -561,22 +492,6 @@
 
 .micro-bache-residual-slot:hover .micro-bache-residual-tooltip {
   opacity: 1;
-}
-
-/* .micro-bache-residual-label {
-  text-align: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-muted);
-  min-height: 1.1rem;
-} */
-
-.micro-bache-residual-label.is-ok {
-  color: var(--color-green);
-}
-
-.micro-bache-residual-label.is-bad {
-  color: var(--color-orange-dark);
 }
 
 .micro-chart-empty {

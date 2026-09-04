@@ -2,29 +2,29 @@
   <div class="corrosion_controls">
     @for (variable of getSeriesKeys(); track variable) {
       @let config = getSeriesConfig()[variable];
-      @let isVisible = visibleSeries()[variable];
+      @let isVisible = toggles.visible()[variable];
 
       <div class="corrosion_card">
         <div class="corrosion_series-card">
           <input
           type="checkbox"
           [checked]="isVisible"
-          (change)="toggleSeriesVisibility(variable)"
+          (change)="toggles.toggle(variable)"
           class="corrosion_checkbox"
           [id]="'series-' + variable"
           />
           <label [for]="'series-' + variable" class="corrosion_series-name">
-            <span class="corrosion_series-dot" [style.backgroundColor]="config.border"></span>
+            <span class="corrosion_series-dot" [style.backgroundColor]="chartToken(config.border)"></span>
             {{ config.label }}
           </label>
 
           <div class="corrosion__type-buttons">
             <p-selectButton
-              [ngModel]="seriesTypes()[variable]"
+              [ngModel]="toggles.types()[variable]"
               [options]="chartTypeOptions"
               optionLabel="label"
               optionValue="value"
-              (onChange)="toggleSeriesType(variable, $event.value)"
+              (onChange)="toggles.setType(variable, $event.value)"
             >
             </p-selectButton>
           </div>
@@ -68,21 +68,21 @@
       <div class="corrosion__window-info">
         <span class="corrosion__window-title">Ventana visible · gráfica completa</span>
         <span class="corrosion__window-range">
-          {{ formatDate(allDates()[visibleRange()[0]]) }}
+          {{ formatMonthYear(allDates()[window.range()[0]]) }}
           →
-          {{ formatDate(allDates()[visibleRange()[1]]) }}
+          {{ formatMonthYear(allDates()[window.range()[1]]) }}
         </span>
       </div>
 
       <p-slider
         [min]="0"
-        [max]="Math.max(0, allDates().length - windowSize)"
-        [(ngModel)]="sliderPosition"
-        (ngModelChange)="onSliderChange($event)"
+        [max]="Math.max(0, allDates().length - window.size)"
+        [(ngModel)]="window.position"
+        (ngModelChange)="window.move($event)"
         class="corrosion__slider"
       />
 
-      <button class="corrosion__reset" (click)="resetZoom()">
+      <button class="corrosion__reset" (click)="window.reset()">
         Restablecer zoom
       </button>
     </div>

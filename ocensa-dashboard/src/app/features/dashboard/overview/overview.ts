@@ -4,8 +4,9 @@ import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { OverviewService } from '../../../core/services/overview.service';
 import { MicrobiologyKey } from '../../../core/models/overview.model';
-
-const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+import { MESES } from '../../../shared/charts/chart-dates';
+import { chartToken } from '../../../shared/charts/chart-tokens';
+import { applyChartDefaults } from '../../../shared/charts/chart-defaults';
 
 // Etiqueta corta + descripción para las filas del grid de microbiología.
 const MICRO_LABELS: Record<MicrobiologyKey, { short: string; long: string }> = {
@@ -29,6 +30,10 @@ export class Overview {
   private readonly overviewService = inject(OverviewService);
 
   readonly summary = this.overviewService.summary;
+
+  constructor() {
+    applyChartDefaults();
+  }
 
   readonly metrics = computed(() => {
     const data = this.summary.value();
@@ -80,7 +85,7 @@ export class Overview {
       datasets: [
         {
           label: `Dentro de ±${FWV_TOLERANCE_BBL} BBL`,
-          backgroundColor: '#2f80d7',
+          backgroundColor: chartToken('--chart-fwv-en-tolerancia'),
           borderWidth: 0,
           data: months.map((m) =>
             Math.abs(m.deviation) <= FWV_TOLERANCE_BBL ? m.deviation : null,
@@ -88,7 +93,7 @@ export class Overview {
         },
         {
           label: 'Excede tolerancia',
-          backgroundColor: '#d94a4a',
+          backgroundColor: chartToken('--chart-fwv-fuera-tolerancia'),
           borderWidth: 0,
           data: months.map((m) =>
             Math.abs(m.deviation) > FWV_TOLERANCE_BBL ? m.deviation : null,
@@ -107,14 +112,15 @@ export class Overview {
       labels: months.map((m) => `${MESES[m.month - 1]} ${m.year}`),
       datasets: [
         {
+          // Unificado con thps-tolerance: mismo color para la misma variable de dominio.
           label: 'Programada',
-          backgroundColor: '#b9c2cc',
+          backgroundColor: chartToken('--chart-dosis-programada'),
           borderWidth: 0,
           data: months.map((m) => m.scheduledMean),
         },
         {
           label: 'Inyectada',
-          backgroundColor: '#2f80d7',
+          backgroundColor: chartToken('--chart-dosis-real'),
           borderWidth: 0,
           data: months.map((m) => m.injectedMean),
         },
@@ -203,24 +209,17 @@ export class Overview {
     return `${MESES[month].toLowerCase()}/${String(year).slice(-2)}`;
   }
 
-  // Opciones compartidas para las gráficas de barras (mismo tema que corrosion/physicochemistry).
+  // Opciones compartidas para las gráficas de barras. El cromo (tooltip, grid, ejes,
+  // maintainAspectRatio) vive en Chart.defaults (chart-defaults.ts).
   private buildBarOptions(yTitle: string, stacked: boolean) {
     return {
       responsive: true,
-      maintainAspectRatio: false,
       animation: false as const,
       plugins: {
         legend: { position: 'top' as const, labels: { boxWidth: 12, usePointStyle: true } },
         tooltip: {
           mode: 'index' as const,
           intersect: false,
-          backgroundColor: '#1f3a52',
-          padding: 12,
-          titleColor: '#ffffff',
-          bodyColor: '#ffffff',
-          borderColor: '#2a4f6b',
-          borderWidth: 1,
-          cornerRadius: 6,
           titleFont: { size: 13, weight: 'bold' },
           bodyFont: { size: 12 },
         },
@@ -228,12 +227,10 @@ export class Overview {
       scales: {
         x: {
           stacked,
-          grid: { color: '#eef2f7' },
           ticks: { maxRotation: 0, autoSkip: true },
         },
         y: {
           stacked,
-          grid: { color: '#eef2f7' },
           title: { display: true, text: yTitle },
         },
       },

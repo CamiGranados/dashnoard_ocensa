@@ -14,28 +14,28 @@
     <div class="pq-controls">
       @for (key of getSeriesKeys(); track key) {
         @let config = getSeriesConfig()[key];
-        @let isVisible = visibleSeries()[key];
+        @let isVisible = toggles.visible()[key];
 
         <div class="pq-series-card">
           <input
             type="checkbox"
             [checked]="isVisible"
-            (change)="toggleSeriesVisibility(key)"
+            (change)="toggles.toggle(key)"
             class="pq-checkbox"
             [id]="'pq-series-' + key"
           />
           <label [for]="'pq-series-' + key" class="pq-series-name">
-            <span class="pq-series-dot" [style.backgroundColor]="config.color"></span>
+            <span class="pq-series-dot" [style.backgroundColor]="chartToken(config.color)"></span>
             {{ config.label }}
           </label>
 
           <div class="pq-type-buttons">
             <p-selectButton
-              [ngModel]="seriesTypes()[key]"
+              [ngModel]="toggles.types()[key]"
               [options]="chartTypeOptions"
               optionLabel="label"
               optionValue="value"
-              (onChange)="toggleSeriesType(key, $event.value)"
+              (onChange)="toggles.setType(key, $event.value)"
             >
             </p-selectButton>
           </div>
@@ -82,21 +82,21 @@
           <div class="pq-window-info">
             <span class="pq-window-title">Ventana visible</span>
             <span class="pq-window-range">
-              {{ formatDate(sortedRecords()[visibleRange()[0]].date) }}
+              {{ formatDate(sortedRecords()[window.range()[0]].date) }}
               →
-              {{ formatDate(sortedRecords()[visibleRange()[1]].date) }}
+              {{ formatDate(sortedRecords()[window.range()[1]].date) }}
             </span>
           </div>
 
           <p-slider
             [min]="0"
-            [max]="Math.max(0, sortedRecords().length - windowSize)"
-            [(ngModel)]="sliderPosition"
-            (ngModelChange)="onSliderChange($event)"
+            [max]="Math.max(0, sortedRecords().length - window.size)"
+            [(ngModel)]="window.position"
+            (ngModelChange)="window.move($event)"
             class="pq-slider"
           />
 
-          <button class="pq-reset" (click)="resetZoom()">Restablecer zoom</button>
+          <button class="pq-reset" (click)="window.reset()">Restablecer zoom</button>
         </div>
       }
 

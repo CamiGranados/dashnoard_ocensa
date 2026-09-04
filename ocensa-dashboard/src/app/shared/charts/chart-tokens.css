@@ -1,0 +1,74 @@
+/*
+ * Tokens de color de las GRÁFICAS, por variable de dominio (no por gráfica).
+ * Regla de oro: misma variable de dominio -> mismo color en todo el proyecto.
+ *
+ * p-chart pinta sobre <canvas>, así que estos tokens no los aplica el CSS: los
+ * lee `chartToken()` (chart-tokens.ts) y entran en la config JS de Chart.js.
+ * Se importan desde src/styles.css para que vivan en :root junto al resto de la
+ * paleta del proyecto.
+ *
+ * Las series de barra llevan par trazo/relleno (`-fill`).
+ */
+:root {
+  /* — Microbiología (planctónicas) — */
+  --chart-bsr: #2e81d4;
+  --chart-bpa: #e8590c;
+  --chart-bht: #239a59;
+  --chart-bant: #43474f;
+
+  /* — FWV (serie) — */
+  --chart-fwv-reportada: #2f80d7;
+  --chart-fwv-estimada: #4da7e9;
+  --chart-fwv-calculada: #22ba76;
+  --chart-fwv-incrementada: #f3a12b;
+
+  /* — FWV (estado de tolerancia, sólo vista ejecutiva) — */
+  --chart-fwv-en-tolerancia: #2f80d7;
+  --chart-fwv-fuera-tolerancia: #d94a4a;
+
+  /* — Dosis y volumen (barras: par trazo/relleno) — */
+  --chart-dosis-real: #83b2e3;
+  --chart-dosis-real-fill: #b8d3ef;
+  --chart-dosis-programada: #c57300;
+  --chart-dosis-programada-fill: #f8c57c;
+  --chart-gsv: #d8dbde;
+  --chart-gsv-fill: #d8dbde;
+
+  /* — Residual: serie (thps) vs estado ok/deficiente (microbiology). Usos
+       distintos, NO unificar. El naranja de "deficiente" comparte valor con
+       dosis-programada-fill / fwv-incrementada a propósito (familia de alerta). — */
+  --chart-residual: #447da2;
+  --chart-residual-ok: #d0f1e0;
+  --chart-residual-ok-border: #188a56;
+  --chart-residual-ok-hover: #7ae29d;
+  --chart-residual-bad: #f8c57c;
+  --chart-residual-bad-border: #f3a12b;
+  --chart-residual-bad-hover: #fcb450;
+
+  /* — Fisicoquímica: tasa de corrosión / velocidad de picadura + variables de
+       proceso. Comparten hue con otras series por diseño (p. ej. #2f80d7 con FWV
+       reportada): son variables de dominio independientes, no deriva accidental. — */
+  --chart-fq-corrosion-rate: #2f80d7;
+  --chart-fq-corrosion-rate-fill: rgba(47, 128, 215, 0.14);
+  --chart-fq-pitting-speed: #f3a12b;
+  --chart-fq-pitting-speed-mean: #e0850b;
+  --chart-fq-pitting-speed-fill: rgba(243, 161, 43, 0.16);
+  --chart-fq-temperatura: #2f80d7;
+  --chart-fq-h2s: #e8590c;
+  --chart-fq-ph: #239a59;
+  --chart-fq-conductividad: #458ccc;
+  --chart-fq-alcalinidad: #f3a12b;
+  --chart-fq-calcio: #43474f;
+
+  /* — Umbrales — */
+  --chart-limite-control: #07a771; /* 10^2 UFC/mL en log10 */
+  --chart-limite-residual: var(--color-orange-dark); /* 20 % contractual */
+
+  /* — Cromo -> pasa a Chart.defaults en chart-defaults.ts — */
+  --chart-grid: #eef2f7;
+  --chart-axis-text: #6b7a99;
+  --chart-axis-title: #1c4463;
+  --chart-tooltip-bg: #1f3a52;
+  --chart-tooltip-border: #2a4f6b;
+  --chart-tooltip-text: #ffffff;
+}

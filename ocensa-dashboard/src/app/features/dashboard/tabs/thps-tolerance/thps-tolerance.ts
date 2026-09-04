@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -10,6 +10,12 @@ import { ThpsReviewService } from '../../../../core/services/thps-review.service
 import { ThpsReviewRecord } from '../../../../core/models/thps-review.model';
 import { ThpsChartRow, ThpsReviewMetricCard } from '../../../../core/models/thps-review.model';
 import { crosshairSyncPlugin, referenceLinePlugin } from './thps-band-chart.plugins';
+import { MESES } from '../../../../shared/charts/chart-dates';
+import { chartToken, FWV_TOKEN, PLANCTONICA_TOKEN } from '../../../../shared/charts/chart-tokens';
+import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
+import { createWindowState } from '../../../../shared/charts/window-state';
+import { createSeriesToggles, CHART_TYPE_OPTIONS } from '../../../../shared/charts/series-toggles';
+import { lineOrBarDataset } from '../../../../shared/charts/chart-datasets';
 
 
 function toChartRow(r: ThpsReviewRecord): ThpsChartRow {
@@ -33,6 +39,8 @@ type ChartSeriesKey = Exclude<keyof ThpsChartRow, 'timestamp'>;
 interface BandSeriesConfig {
   key: ChartSeriesKey;
   label: string;
+  /** Nombres de token (chart-tokens.css); se resuelven con chartToken(). Para líneas
+   *  trazo === relleno; para barras `color` es el relleno claro y `border` el contorno. */
   color: string;
   border: string;
   /** Eje Y al que se ancla la serie. Por defecto 'y'; 'y1' para el eje secundario (Residual). */
@@ -42,33 +50,33 @@ interface BandSeriesConfig {
 // TODO(usuario): título de eje Y y etiquetas de serie reales — unidades pendientes de confirmar.
 const BAND1_Y_TITLE = 'Dosis(ppm)';
 const BAND1_SERIES: BandSeriesConfig[] = [
-  { key: 'dosisReal', label: 'Dosis Real', color: '#b8d3ef', border:'#83b2e3' },
-  { key: 'dosisProgramada', label: 'Dosis Programada', color: '#f8c57c', border:'#c57300' },
+  { key: 'dosisReal', label: 'Dosis Real', color: '--chart-dosis-real-fill', border: '--chart-dosis-real' },
+  { key: 'dosisProgramada', label: 'Dosis Programada', color: '--chart-dosis-programada-fill', border: '--chart-dosis-programada' },
 ];
 
 // Banda FWV: incluye Residual en un eje Y secundario (y1, %) — antes era una banda propia.
 const BAND3_Y_TITLE = 'FWV (ppm)'; // TODO
 const BAND3_Y1_TITLE = 'Residual (%)';
 const BAND3_SERIES: BandSeriesConfig[] = [
-  { key: 'fwvReportada', label: 'FWV Reportada', color: '#1c4463', border: '#1c4463' },
-  { key: 'fwvEstimada', label: 'FWV Estimada', color: '#458ccc', border: '#458ccc' },
-  { key: 'fwvCalculada', label: 'FWV Calculada', color: '#239a59', border: '#239a59' },
-  { key: 'residualPct', label: 'Residual', color: '#447da2', border: '#447da2', yAxisID: 'y1' },
+  { key: 'fwvReportada', label: 'FWV Reportada', color: FWV_TOKEN.reportada, border: FWV_TOKEN.reportada },
+  { key: 'fwvEstimada', label: 'FWV Estimada', color: FWV_TOKEN.estimada, border: FWV_TOKEN.estimada },
+  { key: 'fwvCalculada', label: 'FWV Calculada', color: FWV_TOKEN.calculada, border: FWV_TOKEN.calculada },
+  { key: 'residualPct', label: 'Residual', color: '--chart-residual', border: '--chart-residual', yAxisID: 'y1' },
 ];
 
 const BAND4_Y_TITLE = 'log₁₀(Bac/mL)';
 const BAND4_SERIES: BandSeriesConfig[] = [
-  { key: 'bant', label: 'BAnT', color: '#43474f', border: '#43474f' },
-  { key: 'bht', label: 'BHT', color: '#239a59', border: '#239a59' },
-  { key: 'bpa', label: 'BPA', color: '#e8590c', border: '#e8590c' },
-  { key: 'bsr', label: 'BSR', color: '#1c4463', border: '#1c4463' },
+  { key: 'bant', label: 'BAnT', color: PLANCTONICA_TOKEN.bant, border: PLANCTONICA_TOKEN.bant },
+  { key: 'bht', label: 'BHT', color: PLANCTONICA_TOKEN.bht, border: PLANCTONICA_TOKEN.bht },
+  { key: 'bpa', label: 'BPA', color: PLANCTONICA_TOKEN.bpa, border: PLANCTONICA_TOKEN.bpa },
+  { key: 'bsr', label: 'BSR', color: PLANCTONICA_TOKEN.bsr, border: PLANCTONICA_TOKEN.bsr },
 ];
 
-const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-
+// Recibe un timestamp local (ver toChartRow). El swap a isoToLocalTimestamp está
+// pendiente de confirmar el formato del campo `date` del backend.
 function formatBandDate(timestamp: number): string {
   const d = new Date(timestamp);
-  return `${d.getDate()} ${MESES_CORTOS[d.getMonth()]} ${d.getFullYear()}`;
+  return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 const ALL_SERIES: BandSeriesConfig[] = [
@@ -89,11 +97,6 @@ const DEFAULT_SERIES_TYPE: Record<ChartSeriesKey, 'line' | 'bar'> = {
   bpa: 'line',
   bsr: 'line',
 };
-
-const CHART_TYPE_OPTIONS = [
-  { label: 'Barras', value: 'bar' },
-  { label: 'Línea', value: 'line' },
-];
 
 // Ancho FIJO de cada barra, en px. Con eje de tiempo lineal e intervalos irregulares (rachas de
 // registros muy juntos y luego huecos largos), el dimensionado por porcentaje deja las barras
@@ -124,25 +127,19 @@ function yDomainOf(
 }
 
 function buildLinearDataset(rows: ThpsChartRow[], cfg: BandSeriesConfig, type: 'line' | 'bar') {
-  const isBar = type === 'bar';
-  return {
-    type,
+  // Barras: relleno claro (color) + contorno más oscuro (border) en los 4 lados.
+  // Líneas: el trazo usa el color de borde (para líneas border === color).
+  return lineOrBarDataset({
     label: cfg.label,
-    // Barras: relleno claro (color) + contorno más oscuro (border) en los 4 lados.
-    // Líneas: el trazo usa el color de borde (para líneas border === color).
-    borderColor: cfg.border,
-    backgroundColor: cfg.color,
-    borderWidth: isBar ? 1.5 : 2,
-    borderSkipped: isBar ? false : undefined,
-    borderRadius: isBar ? 2 : undefined,
-    pointRadius: isBar ? undefined : 2,
-    pointHoverRadius: isBar ? undefined : 4,
-    barThickness: isBar ? BAR_THICKNESS : undefined,
-    tension: 0.25,
-    spanGaps: true,
+    type,
+    stroke: chartToken(cfg.border),
+    fill: chartToken(cfg.color),
     yAxisID: cfg.yAxisID ?? 'y',
+    barThickness: BAR_THICKNESS,
+    barBorderWidth: 1.5,
+    barBorderRadius: 2,
     data: rows.map((r) => ({ x: r.timestamp, y: r[cfg.key] })),
-  };
+  });
 }
 
 // Escala log10: 0 real (bacteria no detectada) no es graficable (log(0) indefinido). Se sustituye SOLO
@@ -167,10 +164,9 @@ function buildXScale(domain: { min: number; max: number }, showTicks: boolean) {
     // cercano. Ese "nice rounding" varía según cuántos ticks caben por banda y desalinea el
     // chartArea.right entre bandas aunque min/max y chartArea.left ya coincidan.
     bounds: 'data' as const,
+    // Color y tamaño de tick -> Chart.defaults (chart-defaults.ts).
     ticks: {
       display: showTicks,
-      color: '#6b7a99',
-      font: { size: 11 },
       maxRotation: 0,
       autoSkip: true,
       callback: (value: number | string) => formatBandDate(Number(value)),
@@ -193,15 +189,16 @@ function buildYScale(opts: {
     position,
     min: opts.min,
     max: opts.max,
+    // El título de eje va en azul oscuro (más contraste que el gris de los ticks, que hereda
+    // Chart.defaults). Color y tamaño de tick + color de grid -> Chart.defaults.
     title: {
       display: !!opts.title,
       text: opts.title,
-      color: opts.color ?? '#1c4463',
+      color: opts.color ?? chartToken('--chart-axis-title'),
       font: { size: 12, weight: 700 as const },
     },
-    ticks: { color: '#6b7a99', font: { size: 11 } },
     // El eje derecho (y1) no pinta su grid para no duplicar líneas sobre el del eje izquierdo.
-    grid: { color: '#eef2f7', drawOnChartArea: position !== 'right' },
+    grid: { drawOnChartArea: position !== 'right' },
     afterFit: (scale: { width: number }) => {
       scale.width = 64;
     },
@@ -240,7 +237,12 @@ function buildBandOptions(
     plugins: {
       legend: {
         position: 'top' as const,
-        labels: { boxWidth: 10, boxHeight: 10, color: '#43474f', font: { size: 11 } },
+        labels: {
+          boxWidth: 10,
+          boxHeight: 10,
+          color: chartToken('--color-gray-dark'),
+          font: { size: 11 },
+        },
       },
       tooltip: { enabled: false },
       crosshairSync: { groupId: 'thps-bands', onHover },
@@ -250,6 +252,32 @@ function buildBandOptions(
     // para mantener alineado el chartArea entre bandas.
     scales: { x: xScale, y: yScale, y1: y1Scale ?? buildSpacerYScale() },
   };
+}
+
+// Las 3 bandas comparten estructura (cabecera + controles de serie + <p-chart> con crosshair
+// sincronizado); sólo cambian estas piezas. No hay band2: la antigua banda Residual se fusionó
+// en band3 como eje y1 (ver comentario junto a BAND3_SERIES).
+interface ThpsBandDef {
+  id: 'band1' | 'band3' | 'band4';
+  heading: string;
+  chartType: 'line' | 'bar';
+  series: BandSeriesConfig[];
+  /** band4: escala logarítmica y sustitución de 0 por el piso de detección. */
+  log: boolean;
+}
+
+const BAND_DEFS: ThpsBandDef[] = [
+  { id: 'band1', heading: 'Aplicación de Dosis Biocida', chartType: 'bar', series: BAND1_SERIES, log: false },
+  { id: 'band3', heading: 'FWV y Residual', chartType: 'line', series: BAND3_SERIES, log: false },
+  { id: 'band4', heading: 'Respuesta microbiológica', chartType: 'line', series: BAND4_SERIES, log: true },
+];
+
+interface ThpsBand extends ThpsBandDef {
+  empty: boolean;
+  data: { datasets: unknown[] };
+  options: ReturnType<typeof buildBandOptions>;
+  plugins: unknown[];
+  last: boolean;
 }
 
 @Component({
@@ -263,14 +291,9 @@ export class ThpsTolerance {
 
   readonly review = this.thpsReviewService.review;
 
-  protected readonly band1Series = BAND1_SERIES;
-  protected readonly band3Series = BAND3_SERIES;
-  protected readonly band4Series = BAND4_SERIES;
-  protected readonly band1Plugins = [crosshairSyncPlugin];
-  protected readonly band3Plugins = [crosshairSyncPlugin, referenceLinePlugin];
-  protected readonly band4Plugins = [crosshairSyncPlugin];
+  // Todas las series (band1 + band3 + band4) para el tooltip HTML del crosshair.
+  protected readonly allSeries = ALL_SERIES;
   protected readonly formatBandDate = formatBandDate;
-  protected readonly chartTypeOptions = CHART_TYPE_OPTIONS;
 
   private readonly logZeroFloor = 1; // piso acordado: 0 real de bacterias se grafica en y=1 (log10=0)
 
@@ -279,42 +302,17 @@ export class ThpsTolerance {
   // dibujado (scales.x.min/max), común a las 3. Los ejes Y tienen dominio fijo, así no se
   // reescalan al desplazar la ventana. Mismo criterio que la gráfica principal de physicochemistry.
   Math = Math;
-  windowSize = 60;
-  readonly sliderPosition = signal(0);
-  readonly visibleRange = signal<[number, number]>([0, 0]);
+
+  // Ventana visible y toggles de serie (tipo + visibilidad): estado compartido en shared/charts.
+  // Los toggles son ÚNICOS para las 3 bandas (ALL_SERIES cubre band1 + band3 + band4).
+  protected readonly window = createWindowState(computed(() => this.sortedRows().length));
+  protected readonly toggles = createSeriesToggles<ChartSeriesKey>(DEFAULT_SERIES_TYPE);
+  protected readonly chartTypeOptions = CHART_TYPE_OPTIONS;
+  // Resuelve tokens de color en el template (swatches de series y del tooltip de crosshair).
+  protected readonly chartToken = chartToken;
 
   constructor() {
-    // Al llegar datos nuevos (cambio de filtros) reencuadra la ventana en los últimos puntos.
-    effect(() => {
-      const total = this.sortedRows().length;
-      if (total === 0) {
-        this.visibleRange.set([0, 0]);
-        this.sliderPosition.set(0);
-        return;
-      }
-      const startIdx = Math.max(0, total - this.windowSize);
-      this.sliderPosition.set(startIdx);
-      this.visibleRange.set([startIdx, total - 1]);
-    });
-  }
-
-  // Control de tipo de gráfica (línea/barra) y visibilidad por serie, igual que en corrosion
-  readonly seriesTypes = signal<Record<ChartSeriesKey, 'line' | 'bar'>>({ ...DEFAULT_SERIES_TYPE });
-
-  readonly visibleSeries = signal<Record<ChartSeriesKey, boolean>>(
-    ALL_SERIES.reduce((acc, cfg) => {
-      acc[cfg.key] = true;
-      return acc;
-    }, {} as Record<ChartSeriesKey, boolean>),
-  );
-
-  toggleSeriesType(key: ChartSeriesKey, newType: 'line' | 'bar'): void {
-    this.seriesTypes.set({ ...this.seriesTypes(), [key]: newType });
-  }
-
-  toggleSeriesVisibility(key: ChartSeriesKey): void {
-    const current = this.visibleSeries();
-    this.visibleSeries.set({ ...current, [key]: !current[key] });
+    applyChartDefaults();
   }
 
   readonly metrics = computed<ThpsReviewMetricCard[]>(() => {
@@ -370,47 +368,10 @@ export class ThpsTolerance {
     const rows = this.sortedRows();
     if (!rows.length) return { min: 0, max: 0 };
     const lastIdx = rows.length - 1;
-    const [start, end] = this.visibleRange();
+    const [start, end] = this.window.range();
     const s = Math.min(Math.max(start, 0), lastIdx);
     const e = Math.min(Math.max(end, s), lastIdx);
     return { min: rows[s].timestamp, max: rows[e].timestamp };
-  });
-
-  readonly band1Empty = computed(() => BAND1_SERIES.every((cfg) => !seriesHasData(this.sortedRows(), cfg)));
-  readonly band3Empty = computed(() => BAND3_SERIES.every((cfg) => !seriesHasData(this.sortedRows(), cfg)));
-  readonly band4Empty = computed(() => BAND4_SERIES.every((cfg) => !seriesHasData(this.sortedRows(), cfg)));
-
-  readonly band1Data = computed(() => {
-    const rows = this.sortedRows();
-    const visible = this.visibleSeries();
-    const types = this.seriesTypes();
-    return {
-      datasets: BAND1_SERIES.filter((cfg) => visible[cfg.key] && seriesHasData(rows, cfg)).map((cfg) =>
-        buildLinearDataset(rows, cfg, types[cfg.key]),
-      ),
-    };
-  });
-
-  readonly band3Data = computed(() => {
-    const rows = this.sortedRows();
-    const visible = this.visibleSeries();
-    const types = this.seriesTypes();
-    return {
-      datasets: BAND3_SERIES.filter((cfg) => visible[cfg.key] && seriesHasData(rows, cfg)).map((cfg) =>
-        buildLinearDataset(rows, cfg, types[cfg.key]),
-      ),
-    };
-  });
-
-  readonly band4Data = computed(() => {
-    const rows = this.sortedRows();
-    const visible = this.visibleSeries();
-    const types = this.seriesTypes();
-    return {
-      datasets: BAND4_SERIES.filter((cfg) => visible[cfg.key] && seriesHasData(rows, cfg)).map((cfg) =>
-        buildLogDataset(rows, cfg, this.logZeroFloor, types[cfg.key]),
-      ),
-    };
   });
 
   // Tope del eje y1 (Residual, %) de la banda FWV: al menos 20 (límite contractual) + holgura.
@@ -451,48 +412,82 @@ export class ThpsTolerance {
     const rows = this.sortedRows();
     if (!rows.length) return '';
     const lastIdx = rows.length - 1;
-    const [start, end] = this.visibleRange();
+    const [start, end] = this.window.range();
     const s = Math.min(Math.max(start, 0), lastIdx);
     const e = Math.min(Math.max(end, 0), lastIdx);
     return `${formatBandDate(rows[s].timestamp)} → ${formatBandDate(rows[e].timestamp)}`;
   });
 
-  readonly band1Options = computed(() =>
-    buildBandOptions(
-      buildXScale(this.xDomain(), false),
-      buildYScale({ title: BAND1_Y_TITLE, ...this.band1YDomain() }),
-      (ts, x, y) => this.onBandHover(ts, x, y),
-    ),
-  );
+  // Las 3 bandas en un solo computed: misma estructura, recorrida con @for en el template.
+  // Cada banda conserva su dominio Y propio (band1/band3 padding proporcional, band4 log10) y
+  // band3 su eje y1 (Residual) + línea de referencia del 20%.
+  readonly bands = computed<ThpsBand[]>(() => {
+    const rows = this.sortedRows();
+    const visible = this.toggles.visible();
+    const types = this.toggles.types();
+    const xDomain = this.xDomain();
+    const onHover = (ts: number | null, x: number, y: number) => this.onBandHover(ts, x, y);
 
-  readonly band3Options = computed(() =>
-    buildBandOptions(
-      buildXScale(this.xDomain(), false),
-      buildYScale({ title: BAND3_Y_TITLE, ...this.band3YDomain() }),
-      (ts, x, y) => this.onBandHover(ts, x, y),
-      { referenceLine: { value: 20, label: '20% (límite Residual)', scaleId: 'y1' } },
-      buildYScale({
-        title: BAND3_Y1_TITLE,
-        position: 'right',
-        min: 0,
-        max: this.band3Y1Max(),
-        color: '#447da2',
-      }),
-    ),
-  );
+    return BAND_DEFS.map((def) => {
+      const datasets = def.series
+        .filter((cfg) => visible[cfg.key] && seriesHasData(rows, cfg))
+        .map((cfg) =>
+          def.log
+            ? buildLogDataset(rows, cfg, this.logZeroFloor, types[cfg.key])
+            : buildLinearDataset(rows, cfg, types[cfg.key]),
+        );
 
-  readonly band4Options = computed(() =>
-    buildBandOptions(
-      buildXScale(this.xDomain(), true),
-      buildYScale({
-        title: BAND4_Y_TITLE,
-        type: 'logarithmic',
-        min: this.logZeroFloor,
-        max: this.band4YMax(),
-      }),
-      (ts, x, y) => this.onBandHover(ts, x, y),
-    ),
-  );
+      // Sólo band4 (la última) pinta los ticks del eje X; las demás alinean su chartArea con ella.
+      // Un xScale nuevo por banda: Chart.js muta la config de escala por instancia.
+      const xScale = buildXScale(xDomain, def.id === 'band4');
+
+      let options: ReturnType<typeof buildBandOptions>;
+      if (def.id === 'band1') {
+        options = buildBandOptions(
+          xScale,
+          buildYScale({ title: BAND1_Y_TITLE, ...this.band1YDomain() }),
+          onHover,
+        );
+      } else if (def.id === 'band3') {
+        options = buildBandOptions(
+          xScale,
+          buildYScale({ title: BAND3_Y_TITLE, ...this.band3YDomain() }),
+          onHover,
+          { referenceLine: { value: 20, label: '20% (límite Residual)', scaleId: 'y1' } },
+          buildYScale({
+            title: BAND3_Y1_TITLE,
+            position: 'right',
+            min: 0,
+            max: this.band3Y1Max(),
+            color: chartToken('--chart-residual'),
+          }),
+        );
+      } else {
+        options = buildBandOptions(
+          xScale,
+          buildYScale({
+            title: BAND4_Y_TITLE,
+            type: 'logarithmic',
+            min: this.logZeroFloor,
+            max: this.band4YMax(),
+          }),
+          onHover,
+        );
+      }
+
+      return {
+        ...def,
+        last: def.id === 'band4',
+        empty: def.series.every((cfg) => !seriesHasData(rows, cfg)),
+        data: { datasets },
+        options,
+        plugins:
+          def.id === 'band3'
+            ? [crosshairSyncPlugin, referenceLinePlugin]
+            : [crosshairSyncPlugin],
+      };
+    });
+  });
 
   readonly hoveredTimestamp = signal<number | null>(null);
   readonly hoveredPixel = signal<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -509,18 +504,5 @@ export class ThpsTolerance {
   onBandHover(timestamp: number | null, x: number, y: number): void {
     this.hoveredTimestamp.set(timestamp);
     this.hoveredPixel.set({ x, y });
-  }
-
-  onSliderChange(newPosition: number): void {
-    const lastIdx = Math.max(0, this.sortedRows().length - 1);
-    const end = Math.min(newPosition + this.windowSize, lastIdx);
-    this.visibleRange.set([newPosition, end]);
-  }
-
-  resetZoom(): void {
-    const total = this.sortedRows().length;
-    const startIdx = Math.max(0, total - this.windowSize);
-    this.sliderPosition.set(startIdx);
-    this.visibleRange.set([startIdx, Math.max(0, total - 1)]);
   }
 }

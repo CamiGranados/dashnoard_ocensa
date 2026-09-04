@@ -13,18 +13,7 @@
   } @else if (records().length) {
     <div class="micro-chart-panel micro-bache-panel">
       @if (bacheCharts().length) {
-        <div class="micro-bache-legend">
-          @for (item of legendItems; track item.label) {
-            <span class="micro-legend-item">
-              <i
-                class="micro-legend-swatch shape-{{ item.shape }}"
-                [style.background]="item.shape !== 'triangle' ? item.color : null"
-                [style.borderBottomColor]="item.shape === 'triangle' ? item.color : null"
-              ></i>
-              {{ item.label }}
-            </span>
-          }
-        </div>
+        <app-chart-legend [items]="legendItems()" />
 
         <div class="micro-bache-scroll">
           @for (chart of bacheCharts(); track $index; let first = $first) {
@@ -96,20 +85,6 @@
                   </div>
                 </div>
               </div>
-
-              <!-- <div
-                class="micro-bache-residual-label"
-                [class.is-ok]="sectionResidualOk(chart.column) === true"
-                [class.is-bad]="sectionResidualOk(chart.column) === false"
-              >
-                {{
-                  sectionResidualOk(chart.column) == null
-                    ? 'Sin dato'
-                    : sectionResidualOk(chart.column)
-                      ? 'Cumple'
-                      : 'Deficiente'
-                }}
-              </div> -->
             </div>
           }
         </div>

@@ -1,7 +1,6 @@
 import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
-import { provideLottieOptions } from 'ngx-lottie';
 // import Aura from '@primeng/themes/aura';
 import Lara from '@primeng/themes/lara';
 
