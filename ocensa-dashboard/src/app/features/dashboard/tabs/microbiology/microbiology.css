@@ -54,23 +54,24 @@
   width: 100%;
   table-layout: fixed;
   border-collapse: separate;
-  border-spacing: 0;
+  /* Separa las celdas: deja el hueco para redondearlas y darles relieve (efecto chip). */
+  border-spacing: 4px;
   font-size: 0.78rem;
 }
 
 .micro-compliance-table th,
 .micro-compliance-table td {
-  border-bottom: 1px solid var(--color-border);
-  border-right: 1px solid var(--color-border);
   padding: 0.4rem 0.55rem;
   text-align: center;
   white-space: nowrap;
+  border-radius: 8px;
 }
 
 .micro-compliance-table thead th {
   background: var(--color-accent-light);
   color: var(--color-muted);
   font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--color-border);
 }
 
 /* Con table-layout: fixed las columnas de mes (sin width propio) se reparten el sobrante en
@@ -116,16 +117,23 @@
   font-weight: 600;
   background: var(--st-bg);
   color: var(--st-fg, var(--color-text));
+  border-radius: 4px;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .micro-compliance-cell.status-current {
   font-weight: 700;
 }
 
-/* Al pasar el cursor la celda sube por encima de la cabecera fija y de las celdas vecinas
-   para que el tooltip no quede tapado. */
+/* Al pasar el cursor la celda se eleva (y sube en z-index) por encima de la cabecera fija y
+   de las celdas vecinas para que el tooltip no quede tapado. */
 .micro-compliance-cell:hover {
   z-index: 10;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--st-fg, var(--color-faint)) 55%, transparent),
+    0 4px 12px rgba(15, 27, 46, 0.16);
 }
 
 /* Base común de los dos tooltips oscuros (celda de cumplimiento y barra residual): anclado y

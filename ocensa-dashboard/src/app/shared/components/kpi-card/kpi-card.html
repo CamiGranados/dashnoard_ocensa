@@ -1,0 +1,26 @@
+<article class="kpi-card" [attr.data-accent]="accent()">
+  <div class="kpi-card__body">
+    <p class="kpi-card__label">{{ label() }}</p>
+
+    <p class="kpi-card__value">
+      @if (isEmpty()) {
+        —
+      } @else if (isNumeric()) {
+        {{ value() | number: '1.0-2' }}
+      } @else {
+        {{ value() }}
+      }
+      @if (unit()) {
+        <span class="kpi-card__unit">{{ unit() }}</span>
+      }
+    </p>
+
+    @if (caption()) {
+      <p class="kpi-card__caption">{{ caption() }}</p>
+    }
+  </div>
+
+  <span class="kpi-card__icon">
+    <i [class]="icon()" aria-hidden="true" class="icon"></i>
+  </span>
+</article>

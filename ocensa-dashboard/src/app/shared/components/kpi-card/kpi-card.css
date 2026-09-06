@@ -1,0 +1,103 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.kpi-card {
+  /* Acento por defecto (accent="info"); los demás se sobreescriben abajo. */
+  --kpi-accent: var(--color-primary-sub);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 100%;
+  padding: 18px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0px 10px 20px rgba(2, 20, 36, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0px 16px 32px rgba(2, 20, 36, 0.16);
+  /* Sutil tinte del acento en el borde al pasar el cursor. */
+  border-color: color-mix(in srgb, var(--kpi-accent) 35%, var(--color-border));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi-card {
+    transition: none;
+  }
+
+  .kpi-card:hover {
+    transform: none;
+  }
+}
+
+.kpi-card[data-accent='success'] {
+  --kpi-accent: var(--color-green);
+}
+
+.kpi-card[data-accent='warning'] {
+  --kpi-accent: var(--color-orange);
+}
+
+.kpi-card[data-accent='danger'] {
+  --kpi-accent: var(--color-yellow);
+}
+
+.kpi-card__body {
+  min-width: 0;
+}
+
+.kpi-card__label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.kpi-card__value {
+  margin: 6px 0 0;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--kpi-accent);
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.15))
+}
+
+.kpi-card__unit {
+  margin-left: 4px;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.kpi-card__caption {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.kpi-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  /* Tinte del acento al ~12% sobre el blanco de la tarjeta. */
+  background: color-mix(in srgb, var(--kpi-accent) 12%, transparent);
+  color: var(--kpi-accent);
+  /* font-size: 80px; */
+  .icon {
+    font-size: 25px;
+    filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.15));
+  }
+}

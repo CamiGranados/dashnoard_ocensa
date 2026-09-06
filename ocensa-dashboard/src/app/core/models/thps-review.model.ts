@@ -45,6 +45,8 @@ export interface ThpsReviewMetricCard {
   title: string;
   value: number | null;
   unit: string;
+  /** Texto secundario bajo el valor (caption de la tarjeta). */
+  subtitle: string;
   icon: string;
   color: 'info' | 'success' | 'warning' | 'danger';
 }

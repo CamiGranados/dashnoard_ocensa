@@ -13,22 +13,14 @@
   } @else if (metrics().length) {
     <div class="metrics-grid">
       @for (metric of metrics(); track metric.title) {
-        <div class="metric-card-wrapper">
-          <div [class]="['metric-card', 'metric-' + metric.color]">
-            <div class="metric-header">
-              <h3 class="metric-title">{{ metric.title }}</h3>
-              <i [class]="metric.icon + ' metric-icon'"></i>
-            </div>
-            <div class="metric-value">
-              @if (metric.value === null || metric.value === undefined) {
-                —
-              } @else {
-                {{ metric.value | number: '1.0-2' }}
-              }
-              <span class="metric-unit">{{ metric.unit }}</span>
-            </div>
-          </div>
-        </div>
+        <app-kpi-card
+          [label]="metric.title"
+          [value]="metric.value"
+          [unit]="metric.unit"
+          [caption]="metric.subtitle"
+          [icon]="metric.icon"
+          [accent]="metric.color"
+        />
       }
     </div>
 

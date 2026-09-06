@@ -30,18 +30,14 @@
   } @else if (metrics().length) {
     <div class="metrics-grid">
       @for (metric of metrics(); track metric.title) {
-        <div class="metric-card-wrapper">
-          <div [class]="['metric-card', 'metric-' + metric.color]">
-            <div class="metric-header">
-              <h3 class="metric-title">{{ metric.title }}</h3>
-              <i [class]="metric.icon + ' metric-icon'"></i>
-            </div>
-            <div class="metric-value">
-              {{ metric.value }}<span class="metric-unit">{{ metric.unit }}</span>
-            </div>
-            <p class="metric-subtitle">{{ metric.subtitle }}</p>
-          </div>
-        </div>
+        <app-kpi-card
+          [label]="metric.title"
+          [value]="metric.value"
+          [unit]="metric.unit"
+          [caption]="metric.subtitle"
+          [icon]="metric.icon"
+          [accent]="metric.color"
+        />
       }
     </div>
   } @else {
@@ -113,7 +109,12 @@
             <h3 class="ov-chart-title">Desviación entre FWV reportada y calculada</h3>
             <div class="ov-chart-body">
               @if (fwvChart().labels.length) {
-                <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions" />
+                <p-chart
+                  type="bar"
+                  [data]="fwvChart()"
+                  [options]="fwvOptions"
+                  [plugins]="fwvPlugins"
+                />
               } @else {
                 <div class="ov-chart-empty">
                   <i class="pi pi-chart-bar"></i>
@@ -121,6 +122,9 @@
                 </div>
               }
             </div>
+            @if (fwvChart().labels.length) {
+              <app-chart-legend [items]="fwvLegend" />
+            }
           </section>
 
           <!-- 2. Dosificación programada vs. inyectada -->
@@ -136,6 +140,9 @@
                 </div>
               }
             </div>
+            @if (doseChart().labels.length) {
+              <app-chart-legend [items]="doseLegend" />
+            }
           </section>
 
           <!-- 3. Resumen de control microbiológico -->

@@ -9,6 +9,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { ThpsReviewService } from '../../../../core/services/thps-review.service';
 import { ThpsReviewRecord } from '../../../../core/models/thps-review.model';
 import { ThpsChartRow, ThpsReviewMetricCard } from '../../../../core/models/thps-review.model';
+import { KpiCard } from '../../../../shared/components/kpi-card/kpi-card';
 import { crosshairSyncPlugin, referenceLinePlugin } from './thps-band-chart.plugins';
 import { MESES } from '../../../../shared/charts/chart-dates';
 import { chartToken, FWV_TOKEN, PLANCTONICA_TOKEN } from '../../../../shared/charts/chart-tokens';
@@ -282,7 +283,7 @@ interface ThpsBand extends ThpsBandDef {
 
 @Component({
   selector: 'app-thps-tolerance',
-  imports: [CommonModule, FormsModule, CardModule, TableModule, ChartModule, SliderModule, SelectButtonModule],
+  imports: [CommonModule, FormsModule, CardModule, TableModule, ChartModule, SliderModule, SelectButtonModule, KpiCard],
   templateUrl: './thps-tolerance.html',
   styleUrl: './thps-tolerance.css',
 })
@@ -322,29 +323,33 @@ export class ThpsTolerance {
       {
         title: 'THPS residual (mediana)',
         value: summary.residualMedian,
-        unit: ' ppm',
-        icon: 'pi pi-shield',
+        unit: 'ppm',
+        subtitle: 'Mediana del periodo filtrado',
+        icon: 'fa-solid fa-jar',
         color: 'info',
       },
       {
         title: 'Dosis efectiva (mediana)',
         value: summary.effectiveDoseMedian,
-        unit: ' ppm',
-        icon: 'pi pi-syringe',
+        unit: 'ppm',
+        subtitle: 'Mediana del periodo filtrado',
+        icon: 'fa-solid fa-syringe',
         color: 'success',
       },
       {
         title: 'Retención (mediana)',
         value: summary.retentionMedian,
-        unit: ' %',
-        icon: 'pi pi-percentage',
+        unit: '%',
+        subtitle: 'Referencia contractual: ≥ 20 %',
+        icon: 'fa-solid fa-chart-line',
         color: 'warning',
       },
       {
         title: 'Eventos con dosis real',
         value: summary.eventsWithRealDoseCount,
-        unit: ` / ${summary.totalRecords}`,
-        icon: 'pi pi-check-circle',
+        unit: `/ ${summary.totalRecords}`,
+        subtitle: 'Registros con dosis inyectada medida',
+        icon: 'fa-regular fa-calendar-check',
         color: 'danger',
       },
     ];

@@ -25,6 +25,7 @@
   /* — FWV (estado de tolerancia, sólo vista ejecutiva) — */
   --chart-fwv-en-tolerancia: #2f80d7;
   --chart-fwv-fuera-tolerancia: #d94a4a;
+  --chart-fwv-fuera-tolerancia-fill: #fdecec;
 
   /* — Dosis y volumen (barras: par trazo/relleno) — */
   --chart-dosis-real: #83b2e3;

@@ -34,77 +34,7 @@
   margin-bottom: 32px;
 }
 
-.metric-card {
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  border-left: 4px solid var(--color-primary-muted);
-  height: 100%;
-}
-
-.metric-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.metric-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0;
-  flex: 1;
-  line-height: 1.4;
-}
-
-.metric-icon {
-  font-size: 22px;
-  margin-left: 8px;
-  flex-shrink: 0;
-  color: var(--color-primary-muted);
-}
-
-.metric-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--color-primary);
-  line-height: 1;
-}
-
-.metric-unit {
-  font-size: 16px;
-  margin-left: 4px;
-  color: var(--color-muted);
-}
-
-.metric-success .metric-icon {
-  color: var(--color-green);
-}
-
-.metric-success {
-  border-left-color: var(--color-green);
-}
-
-.metric-warning .metric-icon {
-  color: var(--color-orange);
-}
-
-.metric-warning {
-  border-left-color: var(--color-orange);
-}
-
-.metric-danger .metric-icon {
-  color: var(--color-orange-dark);
-}
-
-.metric-danger {
-  border-left-color: var(--color-orange-dark);
-}
+/* Las tarjetas de métrica ahora las pinta <app-kpi-card> (shared/components/kpi-card). */
 
 /* Tabla de registros */
 .thps-table-panel {
