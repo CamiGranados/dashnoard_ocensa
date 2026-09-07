@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+
+.cht {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cht__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.cht__btn i {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.cht__btn:hover:not(:disabled) {
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+}
+
+.cht__btn:focus-visible {
+  outline: 2px solid var(--color-primary-sub);
+  outline-offset: 1px;
+}
+
+/* Estado activo: fondo redondeado claro + icono en tono más oscuro (como la mano en la imagen). */
+.cht__btn--active,
+.cht__btn--active:hover:not(:disabled) {
+  background: var(--color-primary-brand);
+  color: var(--color-primary);
+}
+
+.cht__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

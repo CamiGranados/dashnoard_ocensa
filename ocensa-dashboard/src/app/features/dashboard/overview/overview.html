@@ -2,10 +2,10 @@
   <!-- Header -->
   <div class="dashboard-header">
     <div class="header-left">
-      <h1 class="dashboard-title">Vista ejecutiva</h1>
+      <h1 class="dashboard-title">Vista Ejecutiva</h1>
+      <span class="header-subtitle">Consolidado general de la información más relevante: cumplimiento de indicadores y límites de tolerancia..</span>
     </div>
     <div class="header-right">
-      <!-- <span class="registros-info">{{ registrosVisibles | number }} registros visibles</span> -->
       <button pButton
               type="button"
               label="Exportar CSV"
@@ -105,45 +105,49 @@
       } @else if (summary.value()) {
         <div class="ov-charts-grid">
           <!-- 1. Desviación FWV reportada vs. calculada -->
-          <section class="ov-chart-card">
-            <h3 class="ov-chart-title">Desviación entre FWV reportada y calculada</h3>
-            <div class="ov-chart-body">
-              @if (fwvChart().labels.length) {
-                <p-chart
-                  type="bar"
-                  [data]="fwvChart()"
-                  [options]="fwvOptions"
-                  [plugins]="fwvPlugins"
-                />
-              } @else {
+          @if (fwvChart().labels.length) {
+            <app-chart-frame
+              title="Desviación entre FWV reportada y calculada"
+              [subtitle]="fwvSubtitle()"
+              [hasRefLines]="true"
+              exportName="desviacion-fwv"
+            >
+              <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions" [plugins]="fwvPlugins" />
+              <app-chart-legend [items]="fwvLegend" />
+            </app-chart-frame>
+          } @else {
+            <section class="ov-chart-card">
+              <h3 class="ov-chart-title">Desviación entre FWV reportada y calculada</h3>
+              <div class="ov-chart-body">
                 <div class="ov-chart-empty">
                   <i class="pi pi-chart-bar"></i>
                   <p>Sin datos de FWV para los filtros seleccionados.</p>
                 </div>
-              }
-            </div>
-            @if (fwvChart().labels.length) {
-              <app-chart-legend [items]="fwvLegend" />
-            }
-          </section>
+              </div>
+            </section>
+          }
 
           <!-- 2. Dosificación programada vs. inyectada -->
-          <section class="ov-chart-card">
-            <h3 class="ov-chart-title">Dosificación programada vs. inyectada</h3>
-            <div class="ov-chart-body">
-              @if (doseChart().labels.length) {
-                <p-chart type="bar" [data]="doseChart()" [options]="doseOptions" />
-              } @else {
+          @if (doseChart().labels.length) {
+            <app-chart-frame
+              title="Dosificación programada vs. inyectada"
+              [subtitle]="doseSubtitle()"
+              exportName="dosificacion"
+            >
+              <p-chart type="bar" [data]="doseChart()" [options]="doseOptions" />
+              <app-chart-legend [items]="doseLegend" />
+            </app-chart-frame>
+          } @else {
+            <section class="ov-chart-card">
+              <h3 class="ov-chart-title">Dosificación programada vs. inyectada</h3>
+              <div class="ov-chart-body">
                 <div class="ov-chart-empty">
                   <i class="pi pi-chart-bar"></i>
                   <p>Sin datos de dosificación para los filtros seleccionados.</p>
                 </div>
-              }
-            </div>
-            @if (doseChart().labels.length) {
-              <app-chart-legend [items]="doseLegend" />
-            }
-          </section>
+              </div>
+            </section>
+          }
 
           <!-- 3. Resumen de control microbiológico -->
           <section class="ov-chart-card ov-chart-card--wide">

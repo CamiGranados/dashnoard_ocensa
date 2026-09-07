@@ -7,6 +7,7 @@ import { finalize } from 'rxjs';
 import { FiltersService } from '../../../../core/services/filters.service';
 import { FiltersStateService } from '../../../../core/services/filters-state.service';
 import { Spinner } from '../../../../shared/components/spinner/spinner';
+import { ChartFrame } from '../../../../shared/charts/chart-frame/chart-frame';
 import { formatFullDate, formatMonthYear } from '../../../../shared/charts/chart-dates';
 import { chartToken, FWV_TOKEN } from '../../../../shared/charts/chart-tokens';
 import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
@@ -40,7 +41,7 @@ const SERIES_CONFIG: Record<string, {
 
 @Component({
   selector: 'app-corrosion',
-  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule, Spinner],
+  imports: [ChartModule, SliderModule, FormsModule, SelectButtonModule, Spinner, ChartFrame],
   templateUrl: './corrosion.html',
   styleUrl: './corrosion.css',
 })
@@ -60,6 +61,13 @@ export class Corrosion {
   allDates = computed(() =>
     [...new Set(this.measurements().map(m => m.date))].sort()
   );
+
+  // Subtítulo de la cabecera de la gráfica (patrón del contenedor común): rango de fechas del histórico.
+  protected readonly chartSubtitle = computed(() => {
+    const dates = this.allDates();
+    if (dates.length < 2) return 'Evolución de FWV y GSV por visita';
+    return `Evolución por visita · ${this.formatMonthYear(dates[0])} – ${this.formatMonthYear(dates[dates.length - 1])}`;
+  });
 
   private readonly total = computed(() => this.allDates().length);
 

@@ -24,7 +24,42 @@
       }
     </div>
 
-    <div class="page thps-bands">
+    @if (expanded()) {
+      <div class="thps-bands__backdrop" (click)="expanded.set(false)" aria-hidden="true"></div>
+    }
+
+    <div
+      class="page thps-bands"
+      [class.thps-bands--expanded]="expanded()"
+      [attr.role]="expanded() ? 'dialog' : null"
+      [attr.aria-modal]="expanded() ? 'true' : null"
+    >
+      <div class="thps-bands__head">
+        <div class="thps-bands__titles">
+          <h3 class="thps-bands__title">Series sincronizadas</h3>
+          <p class="thps-bands__subtitle">{{ bandsSubtitle() }}</p>
+        </div>
+        <app-chart-toolbar
+          [mode]="bandMode()"
+          [canZoomIn]="canZoomIn()"
+          [canZoomOut]="canZoomOut()"
+          [hasRefLines]="true"
+          [refLinesVisible]="refLinesVisible()"
+          [expanded]="expanded()"
+          (zoomIn)="onZoomBands('in')"
+          (zoomOut)="onZoomBands('out')"
+          (modeChange)="onBandModeChange($event)"
+          (resetView)="onResetBands()"
+          (download)="onDownloadBands($event)"
+          (expandToggle)="onExpandToggle()"
+          (toggleRefLines)="onToggleRefLines()"
+          (showData)="onShowData()"
+          (copyImage)="onCopyImage()"
+        />
+      </div>
+
+      <hr class="thps-bands__sep" />
+
       @for (band of bands(); track band.id) {
         <div class="thps-band" [class.thps-band--last]="band.last">
           <h3 class="thps-band__heading">{{ band.heading }}</h3>
@@ -99,12 +134,10 @@
           (ngModelChange)="window.move($event)"
           class="thps-slider"
         />
-
-        <button class="thps-reset" (click)="window.reset()">Restablecer zoom</button>
       </div>
     }
 
-    <div class="thps-table-panel">
+    <div class="thps-table-panel" #tablePanel>
       <h3 class="thps-table-title">Registros históricos</h3>
       <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="thps-table">
         <ng-template pTemplate="header">

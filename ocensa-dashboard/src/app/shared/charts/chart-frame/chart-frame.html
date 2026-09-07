@@ -1,0 +1,88 @@
+@if (view.expanded()) {
+  <div class="chart-frame__backdrop" (click)="view.expanded.set(false)" aria-hidden="true"></div>
+}
+
+<div
+  class="chart-frame__card"
+  [class.chart-frame__card--bare]="bare() && !view.expanded()"
+  [class.chart-frame__card--expanded]="view.expanded()"
+  [attr.role]="view.expanded() ? 'dialog' : null"
+  [attr.aria-modal]="view.expanded() ? 'true' : null"
+  [attr.aria-label]="view.expanded() ? title() : null"
+>
+  <div class="chart-frame__head">
+    <div class="chart-frame__titles">
+      <h3 class="chart-frame__title">{{ title() }}</h3>
+      @if (subtitle()) {
+        <p class="chart-frame__subtitle">{{ subtitle() }}</p>
+      }
+    </div>
+
+    <app-chart-toolbar
+      [tools]="tools()"
+      [mode]="view.mode()"
+      [canZoomIn]="view.canZoomIn()"
+      [canZoomOut]="view.canZoomOut()"
+      [hasRefLines]="hasRefLines()"
+      [refLinesVisible]="view.refLinesVisible()"
+      [expanded]="view.expanded()"
+      [dense]="dense()"
+      (zoomIn)="onZoom('in')"
+      (zoomOut)="onZoom('out')"
+      (modeChange)="onModeChange($event)"
+      (resetView)="handleReset()"
+      (download)="onDownload($event)"
+      (expandToggle)="onExpandToggle()"
+      (toggleRefLines)="onToggleRefLines()"
+      (showData)="onShowData()"
+      (copyImage)="onCopyImage()"
+    />
+  </div>
+
+  <hr class="chart-frame__sep" />
+
+  <div class="chart-frame__body" [style.height]="view.expanded() ? null : bodyHeight()">
+    <ng-content select="p-chart" />
+  </div>
+
+  <ng-content />
+
+  @if (copyFeedback(); as fb) {
+    <p class="chart-frame__toast" [class.is-error]="fb === 'error'" role="status">
+      {{ fb === 'ok' ? 'Imagen copiada al portapapeles' : 'No se pudo copiar la imagen' }}
+    </p>
+  }
+</div>
+
+<p-dialog
+  [header]="title()"
+  [visible]="dataDialogOpen()"
+  (visibleChange)="dataDialogOpen.set($event)"
+  [modal]="true"
+  [dismissableMask]="true"
+  [baseZIndex]="2000"
+  [style]="{ width: 'min(680px, 92vw)' }"
+>
+  @if (dataTable(); as t) {
+    <div class="chart-frame__table-wrap">
+      <table class="chart-frame__table">
+        <thead>
+          <tr>
+            @for (h of t.headers; track $index) {
+              <th>{{ h }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of t.rows; track $index) {
+            <tr>
+              @for (cell of row; track $index) {
+                <td>{{ cell === null || cell === undefined ? '—' : cell }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</p-dialog>

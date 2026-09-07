@@ -382,13 +382,6 @@
   flex-wrap: wrap;
 }
 
-.dashboard-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #1e3a5f;
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
 
 .registros-info {
   font-size: 14px;

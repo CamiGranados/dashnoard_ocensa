@@ -58,6 +58,57 @@
   gap: 1.25rem;
 }
 
+/* Cabecera común de las 3 bandas: título + subtítulo + barra de herramientas única. */
+.thps-bands__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.thps-bands__titles {
+  min-width: 0;
+}
+
+.thps-bands__title {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.thps-bands__subtitle {
+  margin: 0.15rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.thps-bands__sep {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-border);
+}
+
+/* Expandir: overlay sobre el mismo nodo (no se recrean las gráficas ⇒ crosshair y estado
+   intactos). z-index por encima del drawer del sidebar (1102). */
+.thps-bands__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1189;
+  background: rgba(13, 27, 46, 0.45);
+}
+
+.thps-bands--expanded {
+  position: fixed;
+  inset: 3vh 3vw;
+  z-index: 1190;
+  margin: 0;
+  overflow: auto;
+  box-shadow: var(--shadow-lg);
+}
+
 .thps-band {
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 1rem;
@@ -218,24 +269,6 @@
 
 .thps-slider {
   flex: 1;
-}
-
-.thps-reset {
-  flex-shrink: 0;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-primary);
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.thps-reset:hover {
-  background: var(--color-background);
-  border-color: var(--color-primary-muted);
 }
 
 :host ::ng-deep .thps-slider .p-slider-range {

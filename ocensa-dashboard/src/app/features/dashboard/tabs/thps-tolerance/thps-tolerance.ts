@@ -1,11 +1,23 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  afterEveryRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+  viewChildren,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
-import { ChartModule } from 'primeng/chart';
+import { ChartModule, UIChart } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import type { Chart } from 'chart.js';
 import { ThpsReviewService } from '../../../../core/services/thps-review.service';
 import { ThpsReviewRecord } from '../../../../core/models/thps-review.model';
 import { ThpsChartRow, ThpsReviewMetricCard } from '../../../../core/models/thps-review.model';
@@ -17,6 +29,18 @@ import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
 import { createWindowState } from '../../../../shared/charts/window-state';
 import { createSeriesToggles, CHART_TYPE_OPTIONS } from '../../../../shared/charts/series-toggles';
 import { lineOrBarDataset } from '../../../../shared/charts/chart-datasets';
+import { ChartToolbar } from '../../../../shared/charts/chart-toolbar/chart-toolbar';
+import { ChartInteractionMode } from '../../../../shared/charts/chart-view-state';
+import { buildZoomOptions, stepZoom } from '../../../../shared/charts/chart-zoom';
+import { setRefLinesHidden } from '../../../../shared/charts/chart-reference-lines';
+import {
+  buildChartFileName,
+  copyPngToClipboard,
+  downloadDataUrl,
+  downloadText,
+  matrixToCsv,
+  stackChartsToPng,
+} from '../../../../shared/charts/chart-export';
 
 
 function toChartRow(r: ThpsReviewRecord): ThpsChartRow {
@@ -283,9 +307,12 @@ interface ThpsBand extends ThpsBandDef {
 
 @Component({
   selector: 'app-thps-tolerance',
-  imports: [CommonModule, FormsModule, CardModule, TableModule, ChartModule, SliderModule, SelectButtonModule, KpiCard],
+  imports: [CommonModule, FormsModule, CardModule, TableModule, ChartModule, SliderModule, SelectButtonModule, KpiCard, ChartToolbar],
   templateUrl: './thps-tolerance.html',
   styleUrl: './thps-tolerance.css',
+  host: {
+    '(document:keydown.escape)': 'onEscape()',
+  },
 })
 export class ThpsTolerance {
   private readonly thpsReviewService = inject(ThpsReviewService);
@@ -312,8 +339,168 @@ export class ThpsTolerance {
   // Resuelve tokens de color en el template (swatches de series y del tooltip de crosshair).
   protected readonly chartToken = chartToken;
 
+  // ----------------------------- Barra de herramientas (una sola para las 3 bandas) -----------------------------
+  // Las 3 bandas comparten crosshair + slider de ventana + toggles, así que una barra por banda
+  // rompería la sincronización: una sola barra sobre las 3. El zoom/pan del plugin actúa sobre
+  // el eje X de las 3 a la vez (comparten dominio temporal); el slider sigue siendo la
+  // navegación "gruesa" del histórico.
+  protected readonly bandCharts = viewChildren(UIChart);
+  private readonly tablePanel = viewChild<ElementRef<HTMLElement>>('tablePanel');
+  protected readonly expanded = signal(false);
+  protected readonly refLinesVisible = signal(true);
+  protected readonly copyFeedback = signal<'ok' | 'error' | null>(null);
+
+  // Modo de interacción (pan/selección) y estado de zoom, común a las 3 bandas.
+  protected readonly bandMode = signal<ChartInteractionMode>('pan');
+  protected readonly bandZoomLevel = signal(1);
+  protected readonly canZoomIn = computed(() => this.bandZoomLevel() < 10);
+  protected readonly canZoomOut = computed(() => this.bandZoomLevel() > 1.01);
+  private readonly bandZoomBounds = signal<readonly [number, number] | null>(null);
+  private readonly configuredBands = new WeakMap<Chart, ChartInteractionMode>();
+  private syncingZoom = false;
+
+  protected readonly bandsSubtitle = computed(() => {
+    const rows = this.sortedRows();
+    if (rows.length < 2) return 'Dosis, FWV/residual y respuesta microbiológica';
+    return `Dosis, FWV/residual y microbiología · ${formatBandDate(rows[0].timestamp)} – ${formatBandDate(rows[rows.length - 1].timestamp)}`;
+  });
+
   constructor() {
     applyChartDefaults();
+
+    // Inyecta la config de zoom en cada banda viva (imperativo, no vía `options` nuevas, para
+    // no reinicializar los `<p-chart>` al cambiar de modo). Re-aplica el rango de zoom
+    // persistido cuando `bands()` recrea una gráfica (mover slider, toggles, datos nuevos).
+    afterEveryRender(() => {
+      const mode = this.bandMode();
+      const bounds = this.bandZoomBounds();
+      for (const c of this.liveCharts()) {
+        if (this.configuredBands.get(c) === mode) continue;
+        this.configuredBands.set(c, mode);
+        (c.options.plugins ??= {}).zoom = buildZoomOptions({
+          mode,
+          axisMode: 'x',
+          onZoomComplete: (src) => this.syncBandZoom(src),
+          onPanComplete: (src) => this.syncBandZoom(src),
+        });
+        if (bounds) c.zoomScale('x', { min: bounds[0], max: bounds[1] }, 'none');
+        c.update('none');
+      }
+    });
+
+    // Mover el slider de ventana = navegar el histórico ⇒ el zoom fino se descarta.
+    effect(() => {
+      this.window.range();
+      untracked(() => {
+        if (this.bandZoomBounds() !== null) this.bandZoomBounds.set(null);
+        if (this.bandZoomLevel() !== 1) this.bandZoomLevel.set(1);
+      });
+    });
+  }
+
+  /** Instancias Chart.js de las 3 bandas (las pintadas). */
+  private liveCharts(): Chart[] {
+    return this.bandCharts()
+      .map((ui) => ui.chart as (Chart & { ctx?: unknown }) | undefined)
+      .filter((c): c is Chart => !!c?.ctx);
+  }
+
+  /** Al hacer zoom/pan en una banda, aplica el mismo rango X a las otras dos. */
+  private syncBandZoom(source: Chart): void {
+    if (this.syncingZoom) return;
+    this.syncingZoom = true;
+    const x = source.getZoomedScaleBounds()['x'];
+    this.bandZoomBounds.set(x ? [x.min, x.max] : null);
+    this.bandZoomLevel.set(source.getZoomLevel());
+    for (const c of this.liveCharts()) {
+      if (c === source) continue;
+      if (x) c.zoomScale('x', { min: x.min, max: x.max }, 'none');
+      else c.resetZoom('none');
+    }
+    this.syncingZoom = false;
+  }
+
+  protected onZoomBands(direction: 'in' | 'out'): void {
+    const [first] = this.liveCharts();
+    if (!first) return;
+    stepZoom(first, direction);
+    // `onZoomComplete` no se dispara para el zoom programático (sólo rueda/arrastre) → sincronizar a mano.
+    this.syncBandZoom(first);
+  }
+
+  protected onBandModeChange(mode: ChartInteractionMode): void {
+    this.bandMode.set(mode);
+  }
+
+  protected onResetBands(): void {
+    this.bandMode.set('pan');
+    this.bandZoomBounds.set(null);
+    this.bandZoomLevel.set(1);
+    this.syncingZoom = true;
+    for (const c of this.liveCharts()) c.resetZoom('none');
+    this.syncingZoom = false;
+    this.window.reset();
+  }
+
+  protected onDownloadBands(kind: 'png' | 'csv'): void {
+    const charts = this.liveCharts();
+    const base = charts.length
+      ? buildChartFileName('thps-series', charts[0])
+      : 'thps-series';
+    if (kind === 'csv') {
+      downloadText(this.buildCsv(), `${base}.csv`);
+      return;
+    }
+    if (!charts.length) return;
+    downloadDataUrl(stackChartsToPng(charts, this.pngHeader()), `${base}.png`);
+  }
+
+  protected onExpandToggle(): void {
+    this.expanded.update((v) => !v);
+    requestAnimationFrame(() => this.liveCharts().forEach((c) => c.resize()));
+  }
+
+  protected onEscape(): void {
+    if (this.expanded()) this.expanded.set(false);
+  }
+
+  protected onToggleRefLines(): void {
+    this.refLinesVisible.update((v) => !v);
+    const hidden = !this.refLinesVisible();
+    for (const c of this.liveCharts()) {
+      setRefLinesHidden(c, hidden);
+      c.update('none');
+    }
+  }
+
+  protected onShowData(): void {
+    this.tablePanel()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  protected async onCopyImage(): Promise<void> {
+    const charts = this.liveCharts();
+    if (!charts.length) return;
+    try {
+      await copyPngToClipboard(stackChartsToPng(charts, this.pngHeader()));
+      this.copyFeedback.set('ok');
+    } catch {
+      this.copyFeedback.set('error');
+    }
+    setTimeout(() => this.copyFeedback.set(null), 2500);
+  }
+
+  private pngHeader(): { title: string; subtitle?: string } {
+    return { title: 'Tolerancia THPS · series sincronizadas', subtitle: this.bandsSubtitle() };
+  }
+
+  /** CSV combinado de las 3 bandas: una fila por registro con todas las series. */
+  private buildCsv(): string {
+    const headers = ['Fecha', ...ALL_SERIES.map((s) => s.label)];
+    const rows = this.sortedRows().map((r) => [
+      new Date(r.timestamp).toISOString().slice(0, 10),
+      ...ALL_SERIES.map((s) => r[s.key] ?? null),
+    ]);
+    return matrixToCsv([headers, ...rows]);
   }
 
   readonly metrics = computed<ThpsReviewMetricCard[]>(() => {

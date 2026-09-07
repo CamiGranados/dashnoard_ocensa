@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+/* La tarjeta (mismo aspecto que las tarjetas de gráfica actuales del proyecto). */
+.chart-frame__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+/* La gráfica ya vive dentro de un panel del consumidor: sin tarjeta propia. */
+.chart-frame__card--bare {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* --- Cabecera: título + subtítulo a la izquierda, barra de herramientas a la derecha --- */
+.chart-frame__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.chart-frame__titles {
+  min-width: 0;
+}
+
+.chart-frame__title {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.chart-frame__subtitle {
+  margin: 0.15rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chart-frame__sep {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--color-border);
+}
+
+.chart-frame__body {
+  min-height: 0;
+}
+
+/* La gráfica se proyecta desde el componente consumidor (otra encapsulación de vista), por eso
+   ::ng-deep — mismo recurso que corrosion.css / thps-tolerance.css. Sin alto explícito, `<p-chart>`
+   colapsa al alto intrínseco del `<canvas>` (150 px). */
+.chart-frame__body ::ng-deep p-chart {
+  display: block;
+  height: 100%;
+}
+
+/* --- Expandir: overlay a pantalla casi completa sobre el mismo nodo (no se recrea la gráfica,
+   así el zoom/estado se conserva íntegro). z-index por encima del drawer del sidebar (1102). --- */
+.chart-frame__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1189;
+  background: rgba(13, 27, 46, 0.45);
+}
+
+/* Reserva algo de espacio en la rejilla mientras la tarjeta está "sacada" al overlay. */
+:host(.chart-frame--expanded) {
+  min-height: 340px;
+}
+
+.chart-frame__card--expanded {
+  position: fixed;
+  inset: 3vh 3vw;
+  z-index: 1190;
+  margin: 0;
+  overflow: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.chart-frame__card--expanded .chart-frame__body {
+  flex: 1;
+}
+
+/* --- Aviso efímero de "copiar imagen" --- */
+.chart-frame__toast {
+  margin: 0;
+  align-self: flex-end;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-brand);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.chart-frame__toast.is-error {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+/* --- Diálogo "ver datos en tabla" --- */
+.chart-frame__table-wrap {
+  overflow-x: auto;
+  max-height: 60vh;
+}
+
+.chart-frame__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.chart-frame__table th,
+.chart-frame__table td {
+  padding: 0.4rem 0.7rem;
+  text-align: right;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.chart-frame__table th:first-child,
+.chart-frame__table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: var(--color-white);
+}
+
+.chart-frame__table thead th {
+  color: var(--color-muted);
+  font-weight: 600;
+  border-bottom-width: 2px;
+}

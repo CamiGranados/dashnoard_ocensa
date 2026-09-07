@@ -6,6 +6,7 @@ import { OverviewService } from '../../../core/services/overview.service';
 import { MicrobiologyKey } from '../../../core/models/overview.model';
 import { KpiCard, KpiAccent } from '../../../shared/components/kpi-card/kpi-card';
 import { ChartLegend, ChartLegendItem } from '../../../shared/charts/chart-legend/chart-legend';
+import { ChartFrame } from '../../../shared/charts/chart-frame/chart-frame';
 import { MESES } from '../../../shared/charts/chart-dates';
 import { chartToken } from '../../../shared/charts/chart-tokens';
 import { applyChartDefaults } from '../../../shared/charts/chart-defaults';
@@ -34,7 +35,7 @@ const FWV_TOLERANCE_BBL = 300;
 
 @Component({
   selector: 'app-overview',
-  imports: [CommonModule, ButtonModule, ChartModule, KpiCard, ChartLegend],
+  imports: [CommonModule, ButtonModule, ChartModule, KpiCard, ChartLegend, ChartFrame],
   templateUrl: './overview.html',
   styleUrl: './overview.css',
 })
@@ -119,6 +120,14 @@ export class Overview {
     };
   });
 
+  // Subtítulo de la cabecera de la gráfica (patrón de la imagen de referencia): descripción
+  // + rango de meses de los datos.
+  readonly fwvSubtitle = computed(() => {
+    const labels = this.fwvChart().labels;
+    const range = labels.length ? ` · ${labels[0]} – ${labels[labels.length - 1]}` : '';
+    return `Diferencia absoluta mensual (BBL)${range}`;
+  });
+
   readonly fwvOptions = this.buildBarOptions('Desviación (BBL)', {
     suggestedMax: FWV_TOLERANCE_BBL * 1.2,
     plugins: {
@@ -175,6 +184,12 @@ export class Overview {
         },
       ],
     };
+  });
+
+  readonly doseSubtitle = computed(() => {
+    const labels = this.doseChart().labels;
+    const range = labels.length ? ` · ${labels[0]} – ${labels[labels.length - 1]}` : '';
+    return `Media mensual${range}`;
   });
 
   readonly doseOptions = this.buildBarOptions('Dosis');

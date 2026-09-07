@@ -1,4 +1,5 @@
 import type { Chart, Plugin } from 'chart.js';
+import { refLinesHidden } from '../../../../shared/charts/chart-reference-lines';
 
 export interface CrosshairSyncOptions {
   groupId: string;
@@ -95,7 +96,7 @@ export const referenceLinePlugin: Plugin<'line' | 'bar'> = {
   id: 'referenceLine',
 
   afterDatasetsDraw(chart, _args, options: ReferenceLineOptions) {
-    if (!options) return;
+    if (!options || refLinesHidden(chart)) return;
     const yScale = chart.scales[options.scaleId ?? 'y'];
     if (!yScale) return;
 

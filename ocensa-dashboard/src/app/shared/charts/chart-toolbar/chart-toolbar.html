@@ -1,0 +1,115 @@
+<div class="cht" role="toolbar" aria-label="Herramientas de la gráfica">
+  @if (visible('zoom-in')) {
+    <button
+      type="button"
+      class="cht__btn"
+      [disabled]="!canZoomIn()"
+      (click)="zoomIn.emit()"
+      aria-label="Acercar"
+      pTooltip="Acercar"
+      tooltipPosition="bottom"
+    >
+      <i class="pi pi-search-plus" aria-hidden="true"></i>
+    </button>
+  }
+
+  @if (visible('zoom-out')) {
+    <button
+      type="button"
+      class="cht__btn"
+      [disabled]="!canZoomOut()"
+      (click)="zoomOut.emit()"
+      aria-label="Alejar"
+      pTooltip="Alejar"
+      tooltipPosition="bottom"
+    >
+      <i class="pi pi-search-minus" aria-hidden="true"></i>
+    </button>
+  }
+
+  @if (visible('select')) {
+    <button
+      type="button"
+      class="cht__btn"
+      [class.cht__btn--active]="mode() === 'select'"
+      [attr.aria-pressed]="mode() === 'select'"
+      (click)="modeChange.emit('select')"
+      aria-label="Selección de área"
+      pTooltip="Seleccionar un área para ampliar"
+      tooltipPosition="bottom"
+    >
+      <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
+    </button>
+  }
+
+  @if (visible('pan')) {
+    <button
+      type="button"
+      class="cht__btn"
+      [class.cht__btn--active]="mode() === 'pan'"
+      [attr.aria-pressed]="mode() === 'pan'"
+      (click)="modeChange.emit('pan')"
+      aria-label="Desplazar"
+      pTooltip="Desplazar la gráfica"
+      tooltipPosition="bottom"
+    >
+      <i class="fa-solid fa-hand" aria-hidden="true"></i>
+    </button>
+  }
+
+  @if (visible('reset')) {
+    <button
+      type="button"
+      class="cht__btn"
+      (click)="resetView.emit()"
+      aria-label="Restablecer vista"
+      pTooltip="Restablecer vista"
+      tooltipPosition="bottom"
+    >
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+    </button>
+  }
+
+  @if (visible('download')) {
+    <button
+      type="button"
+      class="cht__btn"
+      (click)="downloadMenu.toggle($event)"
+      aria-label="Descargar"
+      aria-haspopup="true"
+      pTooltip="Descargar"
+      tooltipPosition="bottom"
+    >
+      <i class="pi pi-download" aria-hidden="true"></i>
+    </button>
+    <p-menu #downloadMenu [model]="downloadItems()" [popup]="true" appendTo="body" [baseZIndex]="2000" />
+  }
+
+  @if (visible('expand')) {
+    <button
+      type="button"
+      class="cht__btn"
+      (click)="expandToggle.emit()"
+      [attr.aria-label]="expanded() ? 'Contraer' : 'Expandir'"
+      [pTooltip]="expanded() ? 'Contraer' : 'Expandir'"
+      tooltipPosition="bottom"
+    >
+      <i class="pi pi-window-maximize" aria-hidden="true"></i>
+    </button>
+  }
+
+  @if (has('more')) {
+    <button
+      type="button"
+      class="cht__btn"
+      (click)="moreMenu.toggle($event)"
+      aria-label="Más opciones"
+      aria-haspopup="true"
+      pTooltip="Más opciones"
+      tooltipPosition="bottom"
+    >
+      <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+    </button>
+    <p-menu #moreMenu [model]="moreItems()" [popup]="true" appendTo="body" [baseZIndex]="2000" />
+  }
+</div>

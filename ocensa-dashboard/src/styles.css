@@ -43,6 +43,7 @@
   --color-muted:          #6b7a99;
   --color-faint:          #a8b4cc;
   --color-yellow:         #ea911a;
+  --color-accent:         #003466;
   --color-white:           #ffffff;
 
 
@@ -55,6 +56,7 @@
   --shadow-img: 0 2px 8px rgba(0, 52, 102, 0.06);
 
   /* Radios */
+  --radius-sm: 8px;
   --radius-md: 14px;
 }
 
@@ -100,6 +102,36 @@ body {
   padding: 1.5rem;
 }
 
+/* ------------------ Titulos de las vistas Genericos ------------------ */
+.dashboard-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-accent);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  font-family: 'sora', sans-serif;
+}
+
+.dashboard-title::before{
+  content: '';
+  width: 15px;
+  height: 2px;
+  background-color: var(--color-primary);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.header-subtitle{
+  /* font-family: 'sora', sans-serif; */
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-muted);
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.04))
+}
 /* ------------------ Botones genéricos para modales ------------------ */
 button.btn-outline,
 button.btn-solid {
@@ -136,4 +168,19 @@ button.btn-solid {
 
 button.btn-solid:hover {
   background: var(--color-green-dark) !important;
+}
+
+/* Boton de exportar documentos */
+button.p-button-secondary{
+  background: var(--color-white) !important;
+  border: 1.8px solid var(--color-primary) !important;
+  box-shadow: var(--shadow-sm) !important;
+  font-size: 14px;
+  color: var(--color-primary) !important;
+  font-weight: 800 !important;
+  font-family: 'sora', sans-serif !important;
+}
+
+.button.p-button-secondary:hover{
+  box-shadow: var(--shadow-lg) !important;
 }

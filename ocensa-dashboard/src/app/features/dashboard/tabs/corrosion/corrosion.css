@@ -77,15 +77,12 @@
   justify-content: center;
 }
 
-/* --- Slider de ventana --- */
+/* --- Slider de ventana (va en el pie de <app-chart-frame>) --- */
 .corrosion__window {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  padding: 1rem 1.25rem;
-  background: #ffffff;
-  border: 1px solid #e7eaee;
-  border-radius: 0.75rem;
+  padding: 0.5rem 0 0;
 }
 
 .corrosion__window-info {
@@ -109,24 +106,6 @@
 
 .corrosion__slider {
   flex: 1;
-}
-
-.corrosion__reset {
-  flex-shrink: 0;
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #475569;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.corrosion__reset:hover {
-  background: #f3f5f7;
-  border-color: #94a3b8;
 }
 
 /* --- Personalizar el p-slider al verde de acento --- */

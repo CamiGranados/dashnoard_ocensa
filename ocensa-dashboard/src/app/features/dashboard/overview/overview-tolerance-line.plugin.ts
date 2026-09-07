@@ -1,4 +1,5 @@
 import type { Plugin } from 'chart.js';
+import { refLinesHidden } from '../../../shared/charts/chart-reference-lines';
 
 export interface ToleranceLineOptions {
   /** Valor sobre el eje `y` donde se dibuja la línea. */
@@ -19,7 +20,7 @@ export const toleranceLinePlugin: Plugin<'bar'> = {
   id: 'toleranceLine',
 
   afterDatasetsDraw(chart, _args, options: ToleranceLineOptions) {
-    if (!options) return;
+    if (!options || refLinesHidden(chart)) return;
     const yScale = chart.scales['y'];
     if (!yScale) return;
 

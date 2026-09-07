@@ -1,4 +1,5 @@
 import Chart from 'chart.js/auto';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { chartToken } from './chart-tokens';
 
 let applied = false;
@@ -19,6 +20,12 @@ let applied = false;
 export function applyChartDefaults(): void {
   if (applied || typeof document === 'undefined') return;
   applied = true;
+
+  // Zoom/pan/selección de área para la barra de herramientas (`<app-chart-toolbar>`). Inerte
+  // hasta que una gráfica define `options.plugins.zoom` (lo hace `ChartFrame`), así que
+  // registrarlo aquí no cambia el comportamiento de ninguna gráfica existente. Vive en este
+  // archivo —el único que importa `chart.js/auto`— para no salir de los chunks lazy.
+  Chart.register(zoomPlugin);
 
   const gridRaw = getComputedStyle(document.documentElement)
     .getPropertyValue('--chart-grid')

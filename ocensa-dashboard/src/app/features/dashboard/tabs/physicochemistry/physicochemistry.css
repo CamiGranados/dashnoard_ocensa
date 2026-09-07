@@ -90,23 +90,17 @@
   margin-left: auto;
 }
 
-/* --- Gráfico principal: tamaño y eje Y siempre fijos. Todo el histórico se le pasa siempre
-   completo; el control "Ventana visible" de abajo solo desplaza el rango de fechas visible
-   (scales.x.min/max), así que el canvas, el eje Y y la leyenda nunca se mueven ni desaparecen. --- */
-.pq-chart {
-  height: 420px;
-  padding: 1rem;
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+/* --- Paginación por año de la gráfica principal: va en el pie de <app-chart-frame>, sin
+   tarjeta propia. Todo el histórico se le pasa siempre completo; el slider solo desplaza el
+   rango de fechas visible (scales.x.min/max), así el canvas, el eje Y y la leyenda no se mueven. --- */
+.pq-main-window {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.5rem 0 0;
 }
 
-.pq-chart p-chart {
-  display: block;
-  height: 100%;
-}
-
-/* --- Slider de ventana visible --- */
+/* --- Slider de la grilla de mini-gráficas --- */
 .pq-window {
   display: flex;
   align-items: center;

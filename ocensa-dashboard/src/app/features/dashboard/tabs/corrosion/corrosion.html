@@ -34,57 +34,51 @@
   </div>
 
 
-  <!-- Cabecera con leyendas de cada eje -->
-  <!-- <div class="corrosion__header">
-    <div class="corrosion__axis-legend">
-      <span class="corrosion__axis-title">Eje izquierdo · agua</span>
-      <span class="corrosion__axis-subtitle">Inventario por visita · bbl</span>
-    </div>
-    <div class="corrosion__axis-legend corrosion__axis-legend--right">
-      <span class="corrosion__axis-title">Eje derecho · biocida</span>
-      <span class="corrosion__axis-subtitle">Aplicaciones individuales por evento · gal</span>
-    </div>
-  </div> -->
-
   <!-- Gráfico -->
-  <div class="corrosion__chart">
-    @if (loadingMeasurements()) {
+  @if (loadingMeasurements()) {
+    <div class="corrosion__chart">
       <div class="corrosion__loading">
         <app-spinner size="80px" />
       </div>
-    } @else if (measurements().length) {
+    </div>
+  } @else if (measurements().length) {
+    <app-chart-frame
+      title="FWV y GSV"
+      [subtitle]="chartSubtitle()"
+      exportName="corrosion-fwv-gsv"
+      bodyHeight="420px"
+      [ownsAxisRange]="false"
+      [resetHook]="window.reset"
+    >
       <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
-    } @else {
+
+      @if (allDates().length > 1) {
+        <div class="corrosion__window">
+          <div class="corrosion__window-info">
+            <span class="corrosion__window-title">Ventana visible · gráfica completa</span>
+            <span class="corrosion__window-range">
+              {{ formatMonthYear(allDates()[window.range()[0]]) }}
+              →
+              {{ formatMonthYear(allDates()[window.range()[1]]) }}
+            </span>
+          </div>
+
+          <p-slider
+            [min]="0"
+            [max]="Math.max(0, allDates().length - window.size)"
+            [(ngModel)]="window.position"
+            (ngModelChange)="window.move($event)"
+            class="corrosion__slider"
+          />
+        </div>
+      }
+    </app-chart-frame>
+  } @else {
+    <div class="corrosion__chart">
       <div class="corrosion__empty">
         <i class="pi pi-chart-bar"></i>
         <p>No hay datos para los filtros seleccionados.</p>
       </div>
-    }
-  </div>
-
-  <!-- Slider de ventana visible -->
-  @if (allDates().length > 1) {
-    <div class="corrosion__window">
-      <div class="corrosion__window-info">
-        <span class="corrosion__window-title">Ventana visible · gráfica completa</span>
-        <span class="corrosion__window-range">
-          {{ formatMonthYear(allDates()[window.range()[0]]) }}
-          →
-          {{ formatMonthYear(allDates()[window.range()[1]]) }}
-        </span>
-      </div>
-
-      <p-slider
-        [min]="0"
-        [max]="Math.max(0, allDates().length - window.size)"
-        [(ngModel)]="window.position"
-        (ngModelChange)="window.move($event)"
-        class="corrosion__slider"
-      />
-
-      <button class="corrosion__reset" (click)="window.reset()">
-        Restablecer zoom
-      </button>
     </div>
   }
 </div>

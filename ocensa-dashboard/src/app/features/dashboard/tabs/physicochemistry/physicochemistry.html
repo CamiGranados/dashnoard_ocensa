@@ -43,36 +43,41 @@
       }
     </div>
 
-    <div class="pq-chart">
+    <app-chart-frame
+      title="Tasa de corrosión y velocidad de picadura"
+      [subtitle]="mainSubtitle()"
+      exportName="fisicoquimica-corrosion-picadura"
+      bodyHeight="420px"
+      [ownsAxisRange]="false"
+      [resetHook]="resetMainView"
+    >
       <p-chart type="bar" [data]="chartData()" [options]="chartOptions()" />
-    </div>
 
-    @if (mainPages().length > 1) {
-      <div class="pq-window">
-        <div class="pq-window-info">
-          <span class="pq-window-title">Ventana visible</span>
-          @if (mainPage(); as page) {
-            <span class="pq-window-range">
-              @if (page.startYear === page.endYear) {
-                {{ page.startYear }}
-              } @else {
-                {{ page.startYear }} - {{ page.endYear }}
-              }
-            </span>
-          }
+      @if (mainPages().length > 1) {
+        <div class="pq-main-window">
+          <div class="pq-window-info">
+            <span class="pq-window-title">Ventana visible</span>
+            @if (mainPage(); as page) {
+              <span class="pq-window-range">
+                @if (page.startYear === page.endYear) {
+                  {{ page.startYear }}
+                } @else {
+                  {{ page.startYear }} - {{ page.endYear }}
+                }
+              </span>
+            }
+          </div>
+
+          <p-slider
+            [min]="0"
+            [max]="mainPages().length - 1"
+            [step]="1"
+            [(ngModel)]="mainPageIndex"
+            class="pq-slider"
+          />
         </div>
-
-        <p-slider
-          [min]="0"
-          [max]="mainPages().length - 1"
-          [step]="1"
-          [(ngModel)]="mainPageIndex"
-          class="pq-slider"
-        />
-
-        <button class="pq-reset" (click)="resetMainView()">Restablecer zoom</button>
-      </div>
-    }
+      }
+    </app-chart-frame>
 
     <div class="pq-mini-section">
       <h2 class="pq-mini-heading">Otras variables fisicoquímicas</h2>

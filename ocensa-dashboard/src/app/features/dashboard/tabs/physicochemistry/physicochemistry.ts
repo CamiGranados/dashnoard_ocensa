@@ -13,6 +13,7 @@ import { chartToken } from '../../../../shared/charts/chart-tokens';
 import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
 import { createWindowState } from '../../../../shared/charts/window-state';
 import { createSeriesToggles, CHART_TYPE_OPTIONS } from '../../../../shared/charts/series-toggles';
+import { ChartFrame } from '../../../../shared/charts/chart-frame/chart-frame';
 
 type SeriesKey =
   | 'generalCorrosionRate'
@@ -73,7 +74,7 @@ interface YearPage {
 
 @Component({
   selector: 'app-physicochemistry',
-  imports: [CommonModule, FormsModule, TableModule, ChartModule, SliderModule, SelectButtonModule],
+  imports: [CommonModule, FormsModule, TableModule, ChartModule, SliderModule, SelectButtonModule, ChartFrame],
   templateUrl: './physicochemistry.html',
   styleUrl: './physicochemistry.css',
 })
@@ -88,6 +89,13 @@ export class Physicochemistry {
   readonly sortedRecords = computed<PhysicalChemistryRecord[]>(() =>
     this.records().slice().sort((a, b) => a.date.localeCompare(b.date)),
   );
+
+  // Subtítulo de la cabecera de la gráfica principal (patrón del contenedor común): rango de fechas.
+  readonly mainSubtitle = computed(() => {
+    const recs = this.sortedRecords();
+    if (recs.length < 2) return 'Media móvil y valores por evento';
+    return `Media móvil y valores por evento · ${this.formatMonthYear(recs[0].date)} – ${this.formatMonthYear(recs[recs.length - 1].date)}`;
+  });
 
   // ----------------------------- Gráfica: tasa de corrosión / velocidad de picadura -----------------------------
   Math = Math;
@@ -353,9 +361,10 @@ export class Physicochemistry {
     };
   }
 
-  resetMainView(): void {
+  // Arrow para poder pasarla como `[resetHook]` a `<app-chart-frame>` (la barra la ejecuta al "Restablecer").
+  readonly resetMainView = (): void => {
     this.mainPageIndex.set(Math.max(0, this.mainPages().length - 1));
-  }
+  };
 
   getSeriesConfig() {
     return SERIES_CONFIG;
