@@ -111,9 +111,44 @@
               [subtitle]="fwvSubtitle()"
               [hasRefLines]="true"
               exportName="desviacion-fwv"
+              [ownsAxisRange]="false"
+              [resetHook]="fwvWindow.reset"
             >
-              <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions" [plugins]="fwvPlugins" />
-              <app-chart-legend [items]="fwvLegend" />
+              <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions()" [plugins]="fwvPlugins" />
+
+              @if (fwvStats().length) {
+                <dl class="ov-stats">
+                  @for (stat of fwvStats(); track stat.label) {
+                    <div class="ov-stat">
+                      <dt class="ov-stat-label">{{ stat.label }}</dt>
+                      <dd class="ov-stat-value">
+                        {{ stat.value == null ? '—' : (stat.value | number: stat.format) }}
+                        @if (stat.unit && stat.value != null) {
+                          <span class="ov-stat-unit">{{ stat.unit }}</span>
+                        }
+                      </dd>
+                    </div>
+                  }
+                </dl>
+              }
+
+              @if (fwvLabels().length > 1) {
+                <div class="ov-window">
+                  <div class="ov-window-info">
+                    <span class="ov-window-title">Ventana visible · gráfica completa</span>
+                    <span class="ov-window-range">
+                      {{ fwvLabels()[fwvWindow.range()[0]] }} → {{ fwvLabels()[fwvWindow.range()[1]] }}
+                    </span>
+                  </div>
+                  <p-slider
+                    [min]="0"
+                    [max]="Math.max(0, fwvLabels().length - fwvWindow.size)"
+                    [(ngModel)]="fwvWindow.position"
+                    (ngModelChange)="fwvWindow.move($event)"
+                    class="ov-slider"
+                  />
+                </div>
+              }
             </app-chart-frame>
           } @else {
             <section class="ov-chart-card">
@@ -133,9 +168,44 @@
               title="Dosificación programada vs. inyectada"
               [subtitle]="doseSubtitle()"
               exportName="dosificacion"
+              [ownsAxisRange]="false"
+              [resetHook]="doseWindow.reset"
             >
-              <p-chart type="bar" [data]="doseChart()" [options]="doseOptions" />
-              <app-chart-legend [items]="doseLegend" />
+              <p-chart type="bar" [data]="doseChart()" [options]="doseOptions()" />
+
+              @if (doseStats().length) {
+                <dl class="ov-stats">
+                  @for (stat of doseStats(); track stat.label) {
+                    <div class="ov-stat">
+                      <dt class="ov-stat-label">{{ stat.label }}</dt>
+                      <dd class="ov-stat-value">
+                        {{ stat.value == null ? '—' : (stat.value | number: stat.format) }}
+                        @if (stat.unit && stat.value != null) {
+                          <span class="ov-stat-unit">{{ stat.unit }}</span>
+                        }
+                      </dd>
+                    </div>
+                  }
+                </dl>
+              }
+
+              @if (doseLabels().length > 1) {
+                <div class="ov-window">
+                  <div class="ov-window-info">
+                    <span class="ov-window-title">Ventana visible · gráfica completa</span>
+                    <span class="ov-window-range">
+                      {{ doseLabels()[doseWindow.range()[0]] }} → {{ doseLabels()[doseWindow.range()[1]] }}
+                    </span>
+                  </div>
+                  <p-slider
+                    [min]="0"
+                    [max]="Math.max(0, doseLabels().length - doseWindow.size)"
+                    [(ngModel)]="doseWindow.position"
+                    (ngModelChange)="doseWindow.move($event)"
+                    class="ov-slider"
+                  />
+                </div>
+              }
             </app-chart-frame>
           } @else {
             <section class="ov-chart-card">
@@ -155,6 +225,7 @@
               <h3 class="ov-chart-title">Resumen de control microbiológico</h3>
               @if (microGrid(); as g) {
                 <span class="ov-micro-kpi">
+                  <span class="ov-micro-kpi-dot"></span>
                   {{ g.controlPercent != null ? (g.controlPercent | number: '1.0-0') : '—' }}% del
                   periodo en control ({{ g.inControl }} de {{ g.total }})
                 </span>
@@ -163,7 +234,7 @@
 
             @if (microGrid(); as g) {
               <p class="ov-micro-sub">
-                Cada punto es una medición del mes. Verde: dentro de 10² Bact/mL.
+                Cada celda: mediciones dentro de 10² Bact/mL sobre el total del mes.
               </p>
 
               <div class="ov-micro-scroll">
@@ -192,27 +263,27 @@
                         @for (cell of row.cells; track $index) {
                           <td>
                             @if (cell.sampled) {
-                              <span class="ov-micro-dots">
-                                @for (ok of dots(cell.ok, cell.total); track $index) {
-                                  <span
-                                    class="ov-micro-dot"
-                                    [class.is-ok]="ok"
-                                    [class.is-bad]="!ok"
-                                  ></span>
-                                }
-                              </span>
                               <span class="ov-micro-count">{{ cell.ok }}/{{ cell.total }}</span>
                             } @else {
                               <span class="ov-micro-none">—</span>
                             }
                           </td>
                         }
-                        <td [ngClass]="['ov-micro-pct', pctClass(row.controlPercent)]">
-                          {{
-                            row.controlPercent != null
-                              ? (row.controlPercent | number: '1.0-0') + '%'
-                              : '—'
-                          }}
+                        <td class="ov-micro-total-cell">
+                          @if (row.controlPercent != null) {
+                            <span class="ov-micro-bar">
+                              <span
+                                class="ov-micro-bar-fill"
+                                [ngClass]="pctClass(row.controlPercent)"
+                                [style.width.%]="row.controlPercent"
+                              ></span>
+                            </span>
+                            <span [ngClass]="['ov-micro-pct', pctClass(row.controlPercent)]">
+                              {{ row.controlPercent | number: '1.0-0' }}%
+                            </span>
+                          } @else {
+                            <span class="ov-micro-none">—</span>
+                          }
                         </td>
                       </tr>
                     }
@@ -232,12 +303,21 @@
                           }
                         </td>
                       }
-                      <td [ngClass]="['ov-micro-pct', pctClass(g.controlPercent)]">
-                        {{
-                          g.controlPercent != null
-                            ? (g.controlPercent | number: '1.0-0') + '%'
-                            : '—'
-                        }}
+                      <td class="ov-micro-total-cell">
+                        @if (g.controlPercent != null) {
+                          <span class="ov-micro-bar">
+                            <span
+                              class="ov-micro-bar-fill"
+                              [ngClass]="pctClass(g.controlPercent)"
+                              [style.width.%]="g.controlPercent"
+                            ></span>
+                          </span>
+                          <span [ngClass]="['ov-micro-pct', pctClass(g.controlPercent)]">
+                            {{ g.controlPercent | number: '1.0-0' }}%
+                          </span>
+                        } @else {
+                          <span class="ov-micro-none">—</span>
+                        }
                       </td>
                     </tr>
                   </tbody>
@@ -245,8 +325,7 @@
               </div>
 
               <ul class="ov-micro-legend">
-                <li><span class="ov-micro-dot is-ok"></span> Dentro de límite</li>
-                <li><span class="ov-micro-dot is-bad"></span> Fuera de límite</li>
+                <li>Cada celda: mediciones dentro de límite / total del mes.</li>
                 <li><span class="ov-micro-none">—</span> Sin muestreo</li>
               </ul>
             } @else {

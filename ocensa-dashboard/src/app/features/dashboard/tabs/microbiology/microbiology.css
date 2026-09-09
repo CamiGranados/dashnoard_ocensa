@@ -118,8 +118,33 @@
   background: var(--st-bg);
   color: var(--st-fg, var(--color-text));
   border-radius: 4px;
-  box-shadow: var(--shadow-md);
+  /* Efecto "botón satinado": brillo interior arriba + sombra interior abajo, sin cambiar el
+     color de fondo del estado. El barniz superior lo pinta ::before. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -8px 12px -8px rgba(15, 27, 46, 0.22);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* Barniz: degradado blanco translúcido sobre la mitad superior de la celda. pointer-events:
+   none para no robar el hover; el tooltip (absolute, fuera de la celda) no se ve afectado. */
+.micro-compliance-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 55% 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.05)
+  );
+  pointer-events: none;
+}
+
+/* El valor por encima del barniz. */
+.micro-compliance-cell-value {
+  position: relative;
+  z-index: 1;
 }
 
 .micro-compliance-cell.status-current {
@@ -132,6 +157,8 @@
   z-index: 10;
   transform: translateY(-1px);
   box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -8px 12px -8px rgba(15, 27, 46, 0.22),
     inset 0 0 0 1px color-mix(in srgb, var(--st-fg, var(--color-faint)) 55%, transparent),
     0 4px 12px rgba(15, 27, 46, 0.16);
 }

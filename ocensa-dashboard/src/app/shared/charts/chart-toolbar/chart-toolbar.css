@@ -25,17 +25,20 @@
 }
 
 .cht__btn i {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
+  font-weight: 500;
 }
 
 .cht__btn:hover:not(:disabled) {
-  background: var(--color-accent-light);
-  color: var(--color-primary);
+  background: var(--color-accent-sub);
+  color: var(--color-accent-dark);
+  box-shadow: 2px 2px 5px #c8cdd2, -2px -2px 5px #ffffff;
+  font-weight: 500;
 }
 
 .cht__btn:focus-visible {
-  outline: 2px solid var(--color-primary-sub);
+  outline: 2px solid var(--color-accent-dark);
   outline-offset: 1px;
 }
 
@@ -43,7 +46,7 @@
 .cht__btn--active,
 .cht__btn--active:hover:not(:disabled) {
   background: var(--color-primary-brand);
-  color: var(--color-primary);
+  color: var(--color-accent-dark);
 }
 
 .cht__btn:disabled {

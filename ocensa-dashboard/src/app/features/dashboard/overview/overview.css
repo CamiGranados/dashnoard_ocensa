@@ -28,6 +28,25 @@
   .ov-charts-grid { grid-template-columns: 1fr; }
 }
 
+/* --- Alineación entre las dos gráficas superiores (FWV / dosificación) ---
+   Cada <app-chart-frame> ocupa toda la altura de su celda del grid y su tarjeta interna
+   se estira; así el separador, el cuerpo de la gráfica, el cuadro-resumen y el slider
+   quedan a la misma altura en ambas columnas. */
+.ov-charts-grid app-chart-frame {
+  display: flex;
+  min-width: 0;
+}
+
+.ov-charts-grid app-chart-frame ::ng-deep .chart-frame__card {
+  flex: 1;
+}
+
+/* El subtítulo reserva 2 líneas siempre (el de FWV envuelve, el de dosificación no):
+   el separador y la gráfica arrancan a la misma Y en ambas. */
+.ov-charts-grid app-chart-frame ::ng-deep .chart-frame__subtitle {
+  min-height: 2.16rem; /* 2 líneas a 0.8rem × line-height 1.35 */
+}
+
 .ov-chart-card {
   display: flex;
   flex-direction: column;
@@ -96,9 +115,23 @@
 }
 
 .ov-micro-kpi {
-  color: var(--color-warn);
-  font-size: 1.05rem;
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ov-micro-kpi-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-green-mid);
 }
 
 .ov-micro-sub {
@@ -165,36 +198,11 @@
   font-size: 0.72rem;
 }
 
-.ov-micro-dots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  justify-content: center;
-  max-width: 120px;
-  margin: 0 auto;
-}
-
-.ov-micro-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: var(--color-faint);
-}
-
-.ov-micro-dot.is-ok {
-  background: var(--color-green-mid);
-}
-
-.ov-micro-dot.is-bad {
-  background: var(--color-danger);
-}
-
 .ov-micro-count {
   display: block;
-  margin-top: 3px;
   color: var(--color-muted);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .ov-micro-none {
@@ -216,6 +224,46 @@
 
 .ov-micro-pct.is-bad {
   color: var(--color-danger);
+}
+
+/* Columna "Total periodo": barra de progreso + porcentaje */
+.ov-micro-total-cell {
+  white-space: nowrap;
+}
+
+.ov-micro-total-cell .ov-micro-pct {
+  font-size: 0.82rem;
+  vertical-align: middle;
+}
+
+.ov-micro-bar {
+  display: inline-block;
+  width: 72px;
+  height: 6px;
+  margin-right: 0.5rem;
+  border-radius: 999px;
+  background: var(--color-faint);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.ov-micro-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-muted);
+}
+
+.ov-micro-bar-fill.is-ok {
+  background: var(--color-green-mid);
+}
+
+.ov-micro-bar-fill.is-warn {
+  background: var(--color-yellow);
+}
+
+.ov-micro-bar-fill.is-bad {
+  background: var(--color-danger);
 }
 
 .ov-micro-total-row th,
@@ -425,3 +473,92 @@
 }
 
 /* Las tarjetas de métrica ahora las pinta <app-kpi-card> (shared/components/kpi-card). */
+
+/* --- Cuadro-resumen al pie de las gráficas de FWV y dosificación --- */
+.ov-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin: 0.85rem 0 0;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ov-stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.3rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--color-accent-light);
+}
+
+.ov-stat-label {
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: var(--color-muted);
+  /* Reserva 2 líneas: las etiquetas largas envuelven y aun así los valores quedan alineados. */
+  min-height: 2.5em;
+}
+
+.ov-stat-value {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.ov-stat-unit {
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+@media (max-width: 1200px) {
+  .ov-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* --- Ventana visible / scroll horizontal al pie de las gráficas (mismo patrón que corrosion) --- */
+.ov-window {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.5rem 0 0;
+  /* Ancla el slider al fondo de la tarjeta: alineado entre las dos gráficas. */
+  margin-top: auto;
+}
+
+.ov-window-info {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-width: 180px;
+}
+
+.ov-window-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-gray-dark);
+}
+
+.ov-window-range {
+  font-size: 0.75rem;
+  color: var(--color-gray-mid);
+  margin-top: 0.15rem;
+}
+
+.ov-slider {
+  flex: 1;
+}
+
+:host ::ng-deep .ov-slider .p-slider-range {
+  background: var(--color-primary);
+}
+
+:host ::ng-deep .ov-slider .p-slider-handle {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}

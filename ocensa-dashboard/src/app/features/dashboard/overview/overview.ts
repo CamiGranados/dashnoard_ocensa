@@ -1,15 +1,17 @@
 import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
+import { SliderModule } from 'primeng/slider';
 import { OverviewService } from '../../../core/services/overview.service';
 import { MicrobiologyKey } from '../../../core/models/overview.model';
 import { KpiCard, KpiAccent } from '../../../shared/components/kpi-card/kpi-card';
-import { ChartLegend, ChartLegendItem } from '../../../shared/charts/chart-legend/chart-legend';
 import { ChartFrame } from '../../../shared/charts/chart-frame/chart-frame';
 import { MESES } from '../../../shared/charts/chart-dates';
 import { chartToken } from '../../../shared/charts/chart-tokens';
 import { applyChartDefaults } from '../../../shared/charts/chart-defaults';
+import { createWindowState } from '../../../shared/charts/window-state';
 import { toleranceLinePlugin } from './overview-tolerance-line.plugin';
 
 interface OverviewMetric {
@@ -19,6 +21,16 @@ interface OverviewMetric {
   subtitle: string;
   icon: string;
   color: KpiAccent;
+}
+
+// Celda del cuadro-resumen que va al pie de las gráficas de FWV y dosificación
+// (mismo lenguaje visual que la tira de estadísticas de la gráfica de corrosión).
+interface ChartStat {
+  label: string;
+  value: number | null;
+  unit: string;
+  /** Formato para el pipe `number` (p. ej. '1.0-1'). */
+  format: string;
 }
 
 // Etiqueta corta + descripción para las filas del grid de microbiología.
@@ -35,7 +47,7 @@ const FWV_TOLERANCE_BBL = 300;
 
 @Component({
   selector: 'app-overview',
-  imports: [CommonModule, ButtonModule, ChartModule, KpiCard, ChartLegend, ChartFrame],
+  imports: [CommonModule, FormsModule, ButtonModule, ChartModule, SliderModule, KpiCard, ChartFrame],
   templateUrl: './overview.html',
   styleUrl: './overview.css',
 })
@@ -44,6 +56,9 @@ export class Overview {
 
   readonly summary = this.overviewService.summary;
 
+  // Expuesto al template para el `[max]` del slider de la ventana visible.
+  protected readonly Math = Math;
+
   constructor() {
     applyChartDefaults();
   }
@@ -51,7 +66,7 @@ export class Overview {
   readonly metrics = computed<OverviewMetric[]>(() => {
     const data = this.summary.value();
     const resume = data?.summary;
-
+    console.log(data)
     if (!resume) return [];
 
     return [
@@ -93,7 +108,7 @@ export class Overview {
   // ----------------------------- Gráfica 1: desviación FWV reportada vs. calculada -----------------------------
   // Estilo de la vista ejecutiva: una barra por mes con la magnitud de la desviación
   // |reportada − calculada| y una línea de tolerancia contractual punteada. Las barras
-  // que la exceden van en rojo (relleno claro + contorno). Leyenda HTML propia.
+  // que la exceden van en rojo (relleno claro + contorno). Leyenda nativa arriba (toggle de series).
   readonly fwvChart = computed(() => {
     const months = this.summary.value()?.freeWater?.months ?? [];
     const values = months.map((m) => Math.abs(m.deviation));
@@ -124,40 +139,86 @@ export class Overview {
   // + rango de meses de los datos.
   readonly fwvSubtitle = computed(() => {
     const labels = this.fwvChart().labels;
-    const range = labels.length ? ` · ${labels[0]} – ${labels[labels.length - 1]}` : '';
-    return `Diferencia absoluta mensual (BBL)${range}`;
+    return `Diferencia absoluta mensual (bls)`;
   });
 
-  readonly fwvOptions = this.buildBarOptions('Desviación (BBL)', {
-    suggestedMax: FWV_TOLERANCE_BBL * 1.2,
-    plugins: {
-      toleranceLine: {
-        value: FWV_TOLERANCE_BBL,
-        label: `Tolerancia ${FWV_TOLERANCE_BBL}`,
-        color: chartToken('--chart-fwv-fuera-tolerancia'),
+  // Ventana visible (scroll horizontal): la gráfica recibe SIEMPRE todos los meses; el slider
+  // solo desplaza el rango de índices dibujado (scales.x.min/max), como en corrosion/physicochemistry.
+  protected readonly fwvLabels = computed(() => this.fwvChart().labels);
+  protected readonly fwvWindow = createWindowState(
+    computed(() => this.fwvLabels().length),
+    12,
+  );
+
+  readonly fwvOptions = computed(() =>
+    this.buildBarOptions('Desviación (bls)', {
+      suggestedMax: FWV_TOLERANCE_BBL * 1.2,
+      xRange: this.fwvWindow.range(),
+      plugins: {
+        toleranceLine: {
+          value: FWV_TOLERANCE_BBL,
+          label: `Tolerancia ${FWV_TOLERANCE_BBL}`,
+          color: chartToken('--chart-fwv-fuera-tolerancia'),
+        },
       },
-    },
-    tooltipLabel: (ctx) => ` Desviación: ${ctx.parsed.y.toFixed(0)} BBL`,
-  });
+      tooltipLabel: (ctx) => ` Desviación: ${ctx.parsed.y.toFixed(0)} bls`,
+      // La serie usa colores por barra (array), así que forzamos el swatch de la leyenda a un
+      // color único y añadimos una entrada informativa (no interactiva) para la línea de tolerancia.
+      legend: {
+        ...this.baseLegend(),
+        labels: {
+          ...this.baseLegend().labels,
+          generateLabels: (chart: any) => [
+            {
+              text: 'Desviación mensual',
+              fillStyle: chartToken('--chart-fwv-en-tolerancia'),
+              strokeStyle: chartToken('--chart-fwv-en-tolerancia'),
+              hidden: chart.getDatasetMeta(0).hidden ?? false,
+              datasetIndex: 0,
+            },
+            {
+              text: `Tolerancia contractual (±${FWV_TOLERANCE_BBL} BBL)`,
+              fillStyle: chartToken('--chart-fwv-fuera-tolerancia'),
+              strokeStyle: chartToken('--chart-fwv-fuera-tolerancia'),
+              lineDash: [4, 3],
+              hidden: false,
+              datasetIndex: -1,
+            },
+          ],
+        },
+        onClick: (_e: any, item: any, legend: any) => {
+          if (item.datasetIndex == null || item.datasetIndex < 0) return;
+          const meta = legend.chart.getDatasetMeta(item.datasetIndex);
+          meta.hidden = meta.hidden === null ? true : !meta.hidden;
+          legend.chart.update();
+        },
+      },
+    }),
+  );
 
   readonly fwvPlugins = [toleranceLinePlugin];
 
-  readonly fwvLegend: ChartLegendItem[] = [
-    {
-      label: 'Desviación mensual',
-      color: chartToken('--chart-fwv-en-tolerancia'),
-      shape: 'circle',
-    },
-    {
-      label: `Tolerancia contractual (±${FWV_TOLERANCE_BBL} BBL)`,
-      color: chartToken('--chart-fwv-fuera-tolerancia'),
-      shape: 'circle',
-    },
-  ];
+  // Cuadro-resumen al pie de la gráfica de FWV: valores agregados del periodo que entrega
+  // el backend en `freeWater` (no derivados en frontend).
+  readonly fwvStats = computed<ChartStat[]>(() => {
+    const fw = this.summary.value()?.freeWater;
+    if (!fw) return [];
+    return [
+      { label: 'Desviación media', value: fw.meanDeviation, unit: 'bls', format: '1.0-1' },
+      { label: 'Desviación estándar', value: fw.stdDeviation, unit: 'bls', format: '1.0-1' },
+      { label: 'Fuera de tolerancia', value: fw.outOfTolerancePercent, unit: '%', format: '1.0-1' },
+      {
+        label: 'Agua incrementada acumulada',
+        value: fw.accumulatedIncreasedWater,
+        unit: 'bls',
+        format: '1.0-0',
+      },
+    ];
+  });
 
   // ----------------------------- Gráfica 2: dosificación programada vs. inyectada -----------------------------
   // Mismo lenguaje visual que la gráfica de FWV: "Programada" (objetivo) en naranja con
-  // relleno claro + contorno; "Inyectada" (medida real) en azul sólido. Leyenda HTML propia.
+  // relleno claro + contorno; "Inyectada" (medida real) en azul sólido. Leyenda nativa arriba (toggle de series).
   readonly doseChart = computed(() => {
     const months = this.summary.value()?.dose?.months ?? [];
     return {
@@ -187,25 +248,36 @@ export class Overview {
   });
 
   readonly doseSubtitle = computed(() => {
-    const labels = this.doseChart().labels;
-    const range = labels.length ? ` · ${labels[0]} – ${labels[labels.length - 1]}` : '';
-    return `Media mensual${range}`;
+    return `Comparativa mensual de dosis (ppm)`;
   });
 
-  readonly doseOptions = this.buildBarOptions('Dosis');
+  protected readonly doseLabels = computed(() => this.doseChart().labels);
+  protected readonly doseWindow = createWindowState(
+    computed(() => this.doseLabels().length),
+    12,
+  );
 
-  readonly doseLegend: ChartLegendItem[] = [
-    {
-      label: 'Programada',
-      color: chartToken('--chart-dosis-programada'),
-      shape: 'circle',
-    },
-    {
-      label: 'Inyectada',
-      color: chartToken('--chart-dosis-real'),
-      shape: 'circle',
-    },
-  ];
+  readonly doseOptions = computed(() =>
+    this.buildBarOptions('Dosis (ppm)', { xRange: this.doseWindow.range() }),
+  );
+
+  // Cuadro-resumen al pie de la gráfica de dosificación. OJO: estas métricas comparan el
+  // VOLUMEN programado vs. real inyectado (en galones), no la dosis media de las barras.
+  readonly doseStats = computed<ChartStat[]>(() => {
+    const d = this.summary.value()?.dose;
+    if (!d) return [];
+    return [
+      { label: 'Cumplimiento global', value: d.globalCompliancePercent, unit: '%', format: '1.0-1' },
+      { label: 'Desviación de volumen', value: d.deviationPercent, unit: '%', format: '1.0-1' },
+      { label: 'Fuera de tolerancia', value: d.outOfToleranceCount, unit: '', format: '1.0-0' },
+      {
+        label: 'Volumen real inyectado acumulado',
+        value: d.accumulatedActualVolume,
+        unit: 'gal',
+        format: '1.0-0',
+      },
+    ];
+  });
 
   // ----------------------------- Gráfica 3: resumen de control microbiológico (grid) -----------------------------
   // Una fila por variable (BSR/BPA/BHT/BAnT) + fila "Todas las variables". Una columna por mes,
@@ -263,11 +335,6 @@ export class Overview {
     };
   });
 
-  // Array de banderas para pintar los puntos de una celda (true = dentro de límite).
-  dots(ok: number, total: number): boolean[] {
-    return Array.from({ length: total }, (_, i) => i < ok);
-  }
-
   // Clase de color para un porcentaje de control.
   pctClass(percent: number | null): string {
     if (percent == null) return '';
@@ -286,9 +353,22 @@ export class Overview {
     return `${MESES[month].toLowerCase()}/${String(year).slice(-2)}`;
   }
 
-  // Opciones compartidas de las barras de la vista ejecutiva: sin leyenda nativa (las dos
-  // gráficas usan <app-chart-legend>), tooltip por índice. El cromo (tooltip, grid, ejes,
-  // maintainAspectRatio) vive en Chart.defaults (chart-defaults.ts).
+  // Leyenda nativa de Chart.js arriba (misma configuración que corrosion/physicochemistry/thps):
+  // muestra las series y permite ocultarlas al hacer clic.
+  private baseLegend() {
+    return {
+      position: 'top' as const,
+      labels: {
+        boxWidth: 10,
+        boxHeight: 10,
+        color: chartToken('--color-gray-dark'),
+        font: { size: 11 },
+      },
+    };
+  }
+
+  // Opciones compartidas de las barras de la vista ejecutiva: leyenda nativa arriba, tooltip por
+  // índice. El cromo (tooltip, grid, ejes, maintainAspectRatio) vive en Chart.defaults (chart-defaults.ts).
   private buildBarOptions(
     yTitle: string,
     opts: {
@@ -298,13 +378,17 @@ export class Overview {
       plugins?: Record<string, unknown>;
       /** Callback `label` del tooltip. */
       tooltipLabel?: (ctx: { parsed: { y: number } }) => string;
+      /** Override de la config de leyenda (p. ej. generateLabels a medida). */
+      legend?: Record<string, unknown>;
+      /** Rango de índices `[inicio, fin]` visible (ventana / scroll horizontal). */
+      xRange?: readonly [number, number];
     } = {},
   ) {
     return {
       responsive: true,
       animation: false as const,
       plugins: {
-        legend: { display: false },
+        legend: opts.legend ?? this.baseLegend(),
         tooltip: {
           mode: 'index' as const,
           intersect: false,
@@ -315,7 +399,11 @@ export class Overview {
         ...(opts.plugins ?? {}),
       },
       scales: {
-        x: { ticks: { maxRotation: 0, autoSkip: true } },
+        x: {
+          type: 'category' as const,
+          ...(opts.xRange ? { min: opts.xRange[0], max: opts.xRange[1] } : {}),
+          ticks: { maxRotation: 0, autoSkip: true },
+        },
         y: {
           beginAtZero: true,
           suggestedMax: opts.suggestedMax,

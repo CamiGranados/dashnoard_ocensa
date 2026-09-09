@@ -20,6 +20,9 @@ export interface Measurement<T = number> {
 export interface FreeWater {
   meanDeviation: number | null;
   stdDeviation: number | null;
+  meanAbsoluteDeviation: number | null;
+  outOfTolerancePercent: number | null;
+  accumulatedIncreasedWater: number | null;
   months: FreeWaterMonth[];
 }
 
@@ -33,8 +36,11 @@ interface FreeWaterMonth {
 
 // --------------------------------------------- DOSE -----------------------
 export interface Dose {
-  meanDeviation: number | null;
-  stdDeviation: number | null;
+  globalCompliancePercent: number | null;
+  deviationPercent: number | null;
+  outOfToleranceCount: number | null;
+  evaluatedCount: number | null;
+  accumulatedActualVolume: number | null;
   months: DoseMonth[];
 }
 
