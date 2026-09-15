@@ -220,7 +220,24 @@
 
           <!-- 3. Condiciones contractuales vs. ejecutado, por año -->
           <section class="ov-chart-card">
-            <div class="ov-annual-head">
+            <div class="last-values__header">
+              <div class="last-values__icon">
+                <i class="fa-solid fa-table-list "></i>
+              </div>
+              <div class="last-values__heading">
+                <h3 class="last-values__title">Condiciones contractuales vs. Ejecutado</h3>
+                @if (annualSummary(); as tk) {
+                  <span class="ov-annual-sub">
+                    {{ tk.tanque }}
+                    @if (tk.capacidadNominalKBbls != null) {
+                      · Capacidad nominal {{ numOrDash(tk.capacidadNominalKBbls) }} KBbls
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+            <hr style="border:0; height: 1px; background: var(--color-gray-mid); width: 100%; margin: 0px 0px 10px 0px; border-radius: 5px; opacity: 0.2" />
+            <!-- <div class="ov-annual-head">
               <h3 class="ov-chart-title">Condiciones contractuales vs. ejecutado</h3>
               @if (annualSummary(); as tk) {
                 <span class="ov-annual-sub">
@@ -230,7 +247,7 @@
                   }
                 </span>
               }
-            </div>
+            </div> -->
 
             @if (annualPeriods().length) {
               <div class="ov-annual-scroll">
@@ -393,7 +410,22 @@
 
           <!-- 5. Resumen de control microbiológico -->
           <section class="ov-chart-card ov-chart-card--wide">
-            <div class="ov-micro-head">
+            <div class="last-values__header">
+              <div class="last-values__icon">
+                <i class="fa-solid fa-microscope "></i>
+              </div>
+              <div class="last-values__heading">
+                <h3 class="last-values__title">Resumen de control microbiológico</h3>
+                @if (microGrid(); as g) {
+                  <span class="ov-micro-kpi">
+                    <span class="ov-micro-kpi-dot"></span>
+                    {{ g.controlPercent != null ? (g.controlPercent | number: '1.0-0') : '—' }}% del
+                    periodo en control ({{ g.inControl }} de {{ g.total }})
+                  </span>
+                }
+              </div>
+            </div>
+            <!-- <div class="ov-micro-head">
               <h3 class="ov-chart-title">Resumen de control microbiológico</h3>
               @if (microGrid(); as g) {
                 <span class="ov-micro-kpi">
@@ -402,7 +434,7 @@
                   periodo en control ({{ g.inControl }} de {{ g.total }})
                 </span>
               }
-            </div>
+            </div> -->
 
             @if (microGrid(); as g) {
               <p class="ov-micro-sub">
