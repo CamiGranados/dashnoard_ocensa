@@ -22,11 +22,6 @@
   --chart-fwv-calculada: #22ba76;
   --chart-fwv-incrementada: #f3a12b;
 
-  /* — FWV (estado de tolerancia, sólo vista ejecutiva) — */
-  --chart-fwv-en-tolerancia: #2f80d7;
-  --chart-fwv-fuera-tolerancia: #d94a4a;
-  --chart-fwv-fuera-tolerancia-fill: #fdecec;
-
   /* — Dosis y volumen (barras: par trazo/relleno) — */
   --chart-dosis-real: #83b2e3;
   --chart-dosis-real-fill: #b8d3ef;
@@ -50,10 +45,10 @@
        proceso. Comparten hue con otras series por diseño (p. ej. #2f80d7 con FWV
        reportada): son variables de dominio independientes, no deriva accidental. — */
   --chart-fq-corrosion-rate: #2f80d7;
-  --chart-fq-corrosion-rate-fill: rgba(47, 128, 215, 0.14);
+  --chart-fq-corrosion-rate-fill: rgba(46, 128, 214, 0.2);
   --chart-fq-pitting-speed: #f3a12b;
   --chart-fq-pitting-speed-mean: #e0850b;
-  --chart-fq-pitting-speed-fill: rgba(243, 161, 43, 0.16);
+  --chart-fq-pitting-speed-fill: rgba(241, 160, 43, 0.16);
   --chart-fq-temperatura: #2f80d7;
   --chart-fq-h2s: #e8590c;
   --chart-fq-ph: #239a59;

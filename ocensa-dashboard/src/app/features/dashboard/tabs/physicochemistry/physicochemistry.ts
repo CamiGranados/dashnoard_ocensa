@@ -34,9 +34,9 @@ const SERIES_CONFIG: Record<SeriesKey, {
    */
   fill?: string;
 }> = {
-  generalCorrosionRate: { label: 'Tasa de corrosión general', axis: 'y', defaultType: 'line', color: '--chart-fq-corrosion-rate' },
+  generalCorrosionRate: { label: 'Tasa de corrosión general', axis: 'y', defaultType: 'bar', color: '--chart-fq-corrosion-rate' },
   corrosionRateMean: { label: 'Media tasa de corrosión', axis: 'y', defaultType: 'line', color: '--chart-fq-corrosion-rate', fill: '--chart-fq-corrosion-rate-fill' },
-  maximumStingSpeed: { label: 'Velocidad máxima de picadura', axis: 'y1', defaultType: 'line', color: '--chart-fq-pitting-speed' },
+  maximumStingSpeed: { label: 'Velocidad máxima de picadura', axis: 'y1', defaultType: 'bar', color: '--chart-fq-pitting-speed' },
   maximumStingMean: { label: 'Media velocidad de picadura', axis: 'y1', defaultType: 'line', color: '--chart-fq-pitting-speed-mean', fill: '--chart-fq-pitting-speed-fill' },
 };
 
@@ -216,12 +216,17 @@ export class Physicochemistry {
           type: currentType,
           label: cfg.label,
           yAxisID: cfg.axis,
-          borderColor: color,
+          // Barras: contorno blanco fino (crea la separación visual entre la barra dodgeada de
+          // al lado, ya que barThickness fijo no deja hueco propio) + esquinas superiores
+          // redondeadas. Líneas: sin cambios (contorno = color de la serie).
+          borderColor: isBar ? chartToken('--color-white') : color,
           backgroundColor: isMean ? chartToken(cfg.fill ?? cfg.color) : color,
           fill: isMean ? 'origin' : false,
           order: isBar ? 999 : isMean ? 1 : 0,
-          borderWidth: isBar ? 0 : 2.5,
-          barThickness: isBar ? 8 : undefined,
+          borderWidth: isBar ? 1.5 : 2.5,
+          borderSkipped: isBar ? false : undefined,
+          borderRadius: isBar ? { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } : undefined,
+          barThickness: isBar ? 14 : undefined,
           pointStyle: 'circle',
           pointRadius: isBar ? undefined : isMean ? 3.5 : 1,
           pointHoverRadius: isBar ? undefined : isMean ? 5 : 3,

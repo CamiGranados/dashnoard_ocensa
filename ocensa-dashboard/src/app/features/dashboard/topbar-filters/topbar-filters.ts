@@ -261,8 +261,8 @@ export class TopbarFilters implements OnInit, OnDestroy {
   // --------------------------------------------------    EJEMPLO DE OPCIONES DE FILTRO
 
   readonly escalaOptions: FilterOption[] = [
-    { label: 'Logarítmica', value: 'log' },
-    { label: 'Lineal', value: 'linear' },
+    { label: 'CIC', value: 'CIC' },
+    { label: 'CHAMPIONX', value: 'CHAMPIONX' },
   ];
 
   readonly periodOptions: FilterOption[] = [

@@ -22,9 +22,8 @@ export class Sidebar {
       icon: 'pi pi-wave-pulse',
       expanded: true,
       items: [
-        { label: 'Tanque', icon: 'pi pi-circle' },
         { label: 'Operación e Inyección', icon: 'pi pi-bolt', routerLink: '/corrosion'},
-        { label: 'Escenarios', icon: 'pi pi-chart-bar' },
+        { label: 'Estadistica', icon: 'pi pi-chart-bar' },
       ],
     },
     {

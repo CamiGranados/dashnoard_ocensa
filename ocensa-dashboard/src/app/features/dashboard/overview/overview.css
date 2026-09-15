@@ -289,6 +289,113 @@
   gap: 0.4rem;
 }
 
+/* Condiciones contractuales vs. ejecutado (AnnualSummary) */
+.ov-annual-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.ov-annual-sub {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.ov-annual-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.ov-annual-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.78rem;
+}
+
+.ov-annual-table th,
+.ov-annual-table td {
+  padding: 0.5rem 0.6rem;
+  text-align: right;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.ov-annual-table thead th {
+  color: var(--color-muted);
+  font-weight: 600;
+  text-align: right;
+}
+
+.ov-annual-toggle-col {
+  width: 2rem;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.ov-annual-year {
+  text-align: left;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.ov-annual-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.ov-annual-toggle:hover {
+  background: var(--color-accent-light);
+  color: var(--color-primary);
+}
+
+.ov-annual-detail-row td {
+  background: var(--color-accent-light);
+  border-bottom: 2px solid var(--color-border);
+  padding: 0.6rem 0.6rem 0.75rem;
+}
+
+.ov-annual-detail-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.74rem;
+}
+
+.ov-annual-detail-table th,
+.ov-annual-detail-table td {
+  padding: 0.35rem 0.6rem;
+  text-align: right;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ov-annual-detail-table thead th {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.ov-annual-detail-month {
+  text-align: left;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.ov-annual-detail-empty {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
 @media (max-width: 768px) {
   .layout { grid-template-columns: 1fr; }
 }

@@ -107,14 +107,13 @@
           <!-- 1. Desviación FWV reportada vs. calculada -->
           @if (fwvChart().labels.length) {
             <app-chart-frame
-              title="Desviación entre FWV reportada y calculada"
+              title="FWV reportada vs. calculada"
               [subtitle]="fwvSubtitle()"
-              [hasRefLines]="true"
               exportName="desviacion-fwv"
               [ownsAxisRange]="false"
               [resetHook]="fwvWindow.reset"
             >
-              <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions()" [plugins]="fwvPlugins" />
+              <p-chart type="bar" [data]="fwvChart()" [options]="fwvOptions()" />
 
               @if (fwvStats().length) {
                 <dl class="ov-stats">
@@ -152,7 +151,7 @@
             </app-chart-frame>
           } @else {
             <section class="ov-chart-card">
-              <h3 class="ov-chart-title">Desviación entre FWV reportada y calculada</h3>
+              <h3 class="ov-chart-title">FWV reportada vs. calculada</h3>
               <div class="ov-chart-body">
                 <div class="ov-chart-empty">
                   <i class="pi pi-chart-bar"></i>
@@ -219,7 +218,115 @@
             </section>
           }
 
-          <!-- 3. Resumen de control microbiológico -->
+          <!-- 3. Condiciones contractuales vs. ejecutado, por año -->
+          <section class="ov-chart-card">
+            <div class="ov-annual-head">
+              <h3 class="ov-chart-title">Condiciones contractuales vs. ejecutado</h3>
+              @if (annualSummary(); as tk) {
+                <span class="ov-annual-sub">
+                  {{ tk.tanque }}
+                  @if (tk.capacidadNominalKBbls != null) {
+                    · Capacidad nominal {{ numOrDash(tk.capacidadNominalKBbls) }} KBbls
+                  }
+                </span>
+              }
+            </div>
+
+            @if (annualPeriods().length) {
+              <div class="ov-annual-scroll">
+                <table class="ov-annual-table">
+                  <thead>
+                    <tr>
+                      <th class="ov-annual-toggle-col"></th>
+                      <th>Año</th>
+                      <th>Agua contractual (bls)</th>
+                      <th>Period. contractual</th>
+                      <th>Dosis oferta (ppm)</th>
+                      <th>Gal. estim. oferta</th>
+                      <th>Agua línea base (bls)</th>
+                      <th>Period. línea base</th>
+                      <th>Dosis línea base (ppm)</th>
+                      <th>Gal. línea base</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (periodo of annualPeriods(); track periodo.anio) {
+                      <tr class="ov-annual-row">
+                        <td class="ov-annual-toggle-col">
+                          <button
+                            type="button"
+                            class="ov-annual-toggle"
+                            [attr.aria-expanded]="isYearExpanded(periodo.anio)"
+                            [attr.aria-label]="(isYearExpanded(periodo.anio) ? 'Contraer' : 'Expandir') + ' ' + periodo.anio"
+                            (click)="toggleYear(periodo.anio)"
+                          >
+                            <i class="pi" [ngClass]="isYearExpanded(periodo.anio) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+                          </button>
+                        </td>
+                        <td class="ov-annual-year">{{ periodo.anio }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.aguaEstimadaContractualBls) }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.periodicidadContractualBachesMes) }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.dosisOfertaEconomicaPpm, '1.0-1') }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.galonesEstimadosOferta) }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.aguaEstimadaLineaBaseBls) }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.periodicidadLineaBase) }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.dosisLineaBase, '1.0-1') }}</td>
+                        <td>{{ numOrDash(periodo.condiciones.galonesEstimadosLineaBase) }}</td>
+                      </tr>
+                      @if (isYearExpanded(periodo.anio)) {
+                        <tr class="ov-annual-detail-row">
+                          <td class="ov-annual-toggle-col"></td>
+                          <td colspan="9">
+                            @if (periodo.ejecutado.length) {
+                              <table class="ov-annual-detail-table">
+                                <thead>
+                                  <tr>
+                                    <th>Mes</th>
+                                    <th>Agua real (bls)</th>
+                                    <th>Periodicidad real</th>
+                                    <th>Dosis real (ppm)</th>
+                                    <th>Galones reales</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (ej of periodo.ejecutado; track ej.mes) {
+                                    <tr>
+                                      <td class="ov-annual-detail-month">{{ mesLabel(ej.mes) }}</td>
+                                      <td>{{ numOrDash(ej.aguaRealBls) }}</td>
+                                      <td>{{ ej.periodicidadReal }}</td>
+                                      <td>{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
+                                      <td>{{ numOrDash(ej.galonesReales) }}</td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            } @else {
+                              <p class="ov-annual-detail-empty">Sin ejecutado mensual para {{ periodo.anio }}.</p>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="ov-chart-empty">
+                <i class="pi pi-table"></i>
+                <p>Sin condiciones contractuales para los filtros seleccionados.</p>
+              </div>
+            }
+          </section>
+
+          <!-- 4. Reservado: pendiente de construir (gráfica que acompaña la tabla anterior) -->
+          <section class="ov-chart-card ov-chart-card--placeholder">
+            <div class="ov-chart-empty">
+              <i class="pi pi-clock"></i>
+              <p>Gráfica pendiente (se construye al final).</p>
+            </div>
+          </section>
+
+          <!-- 5. Resumen de control microbiológico -->
           <section class="ov-chart-card ov-chart-card--wide">
             <div class="ov-micro-head">
               <h3 class="ov-chart-title">Resumen de control microbiológico</h3>
@@ -334,14 +441,6 @@
                 <p>Sin datos de microbiología para los filtros seleccionados.</p>
               </div>
             }
-          </section>
-
-          <!-- 4. Reservado: pendiente de datos del API -->
-          <section class="ov-chart-card ov-chart-card--wide ov-chart-card--placeholder">
-            <div class="ov-chart-empty">
-              <i class="pi pi-clock"></i>
-              <p>Gráfica pendiente de ajuste del API.</p>
-            </div>
           </section>
         </div>
       } @else {

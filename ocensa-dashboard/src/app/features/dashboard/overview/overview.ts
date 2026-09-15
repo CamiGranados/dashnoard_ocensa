@@ -1,18 +1,17 @@
-import { Component, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, LOCALE_ID, signal } from '@angular/core';
+import { CommonModule, formatDate, formatNumber } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
 import { OverviewService } from '../../../core/services/overview.service';
-import { MicrobiologyKey } from '../../../core/models/overview.model';
+import { MicrobiologyKey, TankSummaryPeriod } from '../../../core/models/overview.model';
 import { KpiCard, KpiAccent } from '../../../shared/components/kpi-card/kpi-card';
 import { ChartFrame } from '../../../shared/charts/chart-frame/chart-frame';
 import { MESES } from '../../../shared/charts/chart-dates';
-import { chartToken } from '../../../shared/charts/chart-tokens';
+import { chartToken, FWV_TOKEN } from '../../../shared/charts/chart-tokens';
 import { applyChartDefaults } from '../../../shared/charts/chart-defaults';
 import { createWindowState } from '../../../shared/charts/window-state';
-import { toleranceLinePlugin } from './overview-tolerance-line.plugin';
 
 interface OverviewMetric {
   title: string;
@@ -41,10 +40,6 @@ const MICRO_LABELS: Record<MicrobiologyKey, { short: string; long: string }> = {
   BAnT: { short: 'BAnT', long: 'Anaerobias totales' },
 };
 
-// Tolerancia provisional para la desviación de FWV (mismo criterio que la imagen de referencia).
-// TODO(backend): reemplazar por el valor real cuando el API lo entregue.
-const FWV_TOLERANCE_BBL = 300;
-
 @Component({
   selector: 'app-overview',
   imports: [CommonModule, FormsModule, ButtonModule, ChartModule, SliderModule, KpiCard, ChartFrame],
@@ -53,6 +48,7 @@ const FWV_TOLERANCE_BBL = 300;
 })
 export class Overview {
   private readonly overviewService = inject(OverviewService);
+  private readonly locale = inject(LOCALE_ID);
 
   readonly summary = this.overviewService.summary;
 
@@ -66,80 +62,99 @@ export class Overview {
   readonly metrics = computed<OverviewMetric[]>(() => {
     const data = this.summary.value();
     const resume = data?.summary;
-    console.log(data)
+    console.log(data);
     if (!resume) return [];
+
+    const periodicity = resume.periodicity;
 
     return [
       {
-        title: 'RETENCIÓN MEDIANA DE THPS',
-        value: resume.thpsMedian?.toFixed(2) ?? '—',
+        title: 'Cumplimiento de Periodicidad Contractual ',
+        value: this.formatCompliancePercent(periodicity?.compliancePercent),
         unit: '%',
-        subtitle: 'Referencia contractual: ≥ 20%',
+        subtitle:
+          periodicity?.executed != null && periodicity?.target != null
+            ? `${periodicity.executed} visitas de ${periodicity.target} programadas`
+            : 'Periodicidad contractual vs Periodicidad actual',
+        icon: 'fa-regular fa-calendar-check',
+        color: 'warning',
+      },
+      {
+        title: 'DIFERENCIA DE DOSIS OFERTADA VS INYECTADA',
+        value: resume.dose?.executed != null && resume.dose?.target != null
+            ? `${formatNumber(Math.abs(resume.dose.executed - resume.dose.target), this.locale, '1.0-2')}`
+            : null,
+        unit: 'ppm',
+        subtitle:
+          resume.dose?.executed != null && resume.dose?.target != null
+            ? `${formatNumber(resume.dose.executed, this.locale, '1.0-2')} ejecutados de ${formatNumber(resume.dose.target, this.locale, '1.0-2')} programado`
+            : 'Dosis ofertada vs Dosis inyectada',
+        icon: 'fa-solid fa-eye-dropper',
+        color: 'info',
+      },
+      {
+        title: 'DIFERENCIA DE GALONES ESTIMADOS VS INYECTADOS',
+        value: resume.volume?.executed != null && resume.volume?.target != null
+            ? `${formatNumber(Math.abs(resume.volume.executed - resume.volume.target), this.locale, '1.0-2')}`
+            : null,
+        unit: 'gal',
+        subtitle:
+          resume.volume?.executed != null && resume.volume?.target != null
+            ? `${formatNumber(resume.volume.executed, this.locale, '1.0-2')} inyectados de ${formatNumber(resume.volume.target, this.locale, '1.0-2')} programado`
+            : 'Galones estimados vs Galones inyectados',
         icon: 'fa-solid fa-jar',
         color: 'danger',
       },
       {
-        title: 'EVENTOS MICROBIOLÓGICOS EN CONTROL',
-        value: String(resume.bsrInControlCount),
+        title: 'CUMPLIMIENTO CONTROL MICROBIOLÓGICO',
+        value: data?.microbiology?.controlPercent ?? null,
         unit: '%',
-        subtitle: '685 de 1.238 eventos con dato',
+        subtitle: 'Mediciones < 10² Bact/mL',
         icon: 'fa-solid fa-vial-virus',
         color: 'success',
-      },
-      {
-        title: 'ÚLTIMA CATEGORÍA NACE',
-        value: resume.categoryNace,
-        unit: '',
-        subtitle: 'TQ55000 · 19 de may de 2026',
-        icon: 'fa-regular fa-circle-check',
-        color: 'warning',
-      },
-      {
-        title: 'ÍNDICE CENTINELA MÁS RECIENTE',
-        value: resume.levelAlarm,
-        unit: '',
-        subtitle: 'TQ55000 · 20 de nov de 2024',
-        icon: 'fa-solid fa-droplet',
-        color: 'info',
       },
     ];
   });
 
-  // ----------------------------- Gráfica 1: desviación FWV reportada vs. calculada -----------------------------
-  // Estilo de la vista ejecutiva: una barra por mes con la magnitud de la desviación
-  // |reportada − calculada| y una línea de tolerancia contractual punteada. Las barras
-  // que la exceden van en rojo (relleno claro + contorno). Leyenda nativa arriba (toggle de series).
+  // Regla de negocio: el backend puede devolver cumplimientos > 100% (p. ej. dosis
+  // inyectada muy por encima de la ofertada); se acota visualmente a ">100" y, por
+  // debajo del límite, se deja pasar el valor numérico tal como lo envía el backend.
+  private formatCompliancePercent(percent: number | null | undefined): string | number | null {
+    if (percent == null) return null;
+    return percent > 100 ? '>100' : percent;
+  }
+
+  // ----------------------------- Gráfica 1: FWV reportada vs. calculada -----------------------------
+  // Mismo lenguaje visual que la gráfica de dosificación: una barra por serie y mes.
+  // Colores por token de dominio FWV (mismos que corrosion/thps-tolerance). Leyenda nativa arriba.
   readonly fwvChart = computed(() => {
     const months = this.summary.value()?.freeWater?.months ?? [];
-    const values = months.map((m) => Math.abs(m.deviation));
-    const exceeds = values.map((v) => v > FWV_TOLERANCE_BBL);
-
-    const withinColor = chartToken('--chart-fwv-en-tolerancia');
-    const exceedFill = chartToken('--chart-fwv-fuera-tolerancia-fill');
-    const exceedBorder = chartToken('--chart-fwv-fuera-tolerancia');
-
     return {
       labels: months.map((m) => `${MESES[m.month - 1]} ${m.year}`),
       datasets: [
         {
-          label: 'Desviación mensual',
-          data: values,
-          backgroundColor: exceeds.map((e) => (e ? exceedFill : withinColor)),
-          borderColor: exceeds.map((e) => (e ? exceedBorder : withinColor)),
-          borderWidth: exceeds.map((e) => (e ? 1.5 : 0)),
-          borderSkipped: false,
+          label: 'FWV reportada',
+          backgroundColor: chartToken(FWV_TOKEN.reportada),
+          borderWidth: 0,
           borderRadius: 2,
           maxBarThickness: 46,
+          data: months.map((m) => m.reportedMean),
+        },
+        {
+          label: 'FWV calculada',
+          backgroundColor: chartToken(FWV_TOKEN.calculada),
+          borderWidth: 0,
+          borderRadius: 2,
+          maxBarThickness: 46,
+          data: months.map((m) => m.calculatedMean),
         },
       ],
     };
   });
 
-  // Subtítulo de la cabecera de la gráfica (patrón de la imagen de referencia): descripción
-  // + rango de meses de los datos.
+  // Subtítulo de la cabecera de la gráfica.
   readonly fwvSubtitle = computed(() => {
-    const labels = this.fwvChart().labels;
-    return `Diferencia absoluta mensual (bls)`;
+    return `Comparativa mensual de FWV (bls)`;
   });
 
   // Ventana visible (scroll horizontal): la gráfica recibe SIEMPRE todos los meses; el slider
@@ -151,52 +166,8 @@ export class Overview {
   );
 
   readonly fwvOptions = computed(() =>
-    this.buildBarOptions('Desviación (bls)', {
-      suggestedMax: FWV_TOLERANCE_BBL * 1.2,
-      xRange: this.fwvWindow.range(),
-      plugins: {
-        toleranceLine: {
-          value: FWV_TOLERANCE_BBL,
-          label: `Tolerancia ${FWV_TOLERANCE_BBL}`,
-          color: chartToken('--chart-fwv-fuera-tolerancia'),
-        },
-      },
-      tooltipLabel: (ctx) => ` Desviación: ${ctx.parsed.y.toFixed(0)} bls`,
-      // La serie usa colores por barra (array), así que forzamos el swatch de la leyenda a un
-      // color único y añadimos una entrada informativa (no interactiva) para la línea de tolerancia.
-      legend: {
-        ...this.baseLegend(),
-        labels: {
-          ...this.baseLegend().labels,
-          generateLabels: (chart: any) => [
-            {
-              text: 'Desviación mensual',
-              fillStyle: chartToken('--chart-fwv-en-tolerancia'),
-              strokeStyle: chartToken('--chart-fwv-en-tolerancia'),
-              hidden: chart.getDatasetMeta(0).hidden ?? false,
-              datasetIndex: 0,
-            },
-            {
-              text: `Tolerancia contractual (±${FWV_TOLERANCE_BBL} BBL)`,
-              fillStyle: chartToken('--chart-fwv-fuera-tolerancia'),
-              strokeStyle: chartToken('--chart-fwv-fuera-tolerancia'),
-              lineDash: [4, 3],
-              hidden: false,
-              datasetIndex: -1,
-            },
-          ],
-        },
-        onClick: (_e: any, item: any, legend: any) => {
-          if (item.datasetIndex == null || item.datasetIndex < 0) return;
-          const meta = legend.chart.getDatasetMeta(item.datasetIndex);
-          meta.hidden = meta.hidden === null ? true : !meta.hidden;
-          legend.chart.update();
-        },
-      },
-    }),
+    this.buildBarOptions('FWV (bls)', { xRange: this.fwvWindow.range() }),
   );
-
-  readonly fwvPlugins = [toleranceLinePlugin];
 
   // Cuadro-resumen al pie de la gráfica de FWV: valores agregados del periodo que entrega
   // el backend en `freeWater` (no derivados en frontend).
@@ -204,12 +175,22 @@ export class Overview {
     const fw = this.summary.value()?.freeWater;
     if (!fw) return [];
     return [
-      { label: 'Desviación media', value: fw.meanDeviation, unit: 'bls', format: '1.0-1' },
-      { label: 'Desviación estándar', value: fw.stdDeviation, unit: 'bls', format: '1.0-1' },
-      { label: 'Fuera de tolerancia', value: fw.outOfTolerancePercent, unit: '%', format: '1.0-1' },
       {
-        label: 'Agua incrementada acumulada',
-        value: fw.accumulatedIncreasedWater,
+        label: 'Cumplimiento global',
+        value: fw.globalCompliancePercent,
+        unit: 'Mediciones',
+        format: '1.0-1',
+      },
+      { label: 'Brecha FWV línea base vs FWV Calculado', value: fw.targetWater, unit: 'bls', format: '1.0-1' },
+      {
+        label: 'Brecha FWV Reportado vs. FWV Calculado',
+        value: fw.reportedCalculatedGap,
+        unit: 'bls',
+        format: '1.0-1',
+      },
+      {
+        label: 'FWV calculado acumulado',
+        value: fw.accumulatedCalculatedWater,
         unit: 'bls',
         format: '1.0-0',
       },
@@ -267,9 +248,9 @@ export class Overview {
     const d = this.summary.value()?.dose;
     if (!d) return [];
     return [
-      { label: 'Cumplimiento global', value: d.globalCompliancePercent, unit: '%', format: '1.0-1' },
-      { label: 'Desviación de volumen', value: d.deviationPercent, unit: '%', format: '1.0-1' },
-      { label: 'Fuera de tolerancia', value: d.outOfToleranceCount, unit: '', format: '1.0-0' },
+      { label: 'Cumplimiento global', value: d.globalCompliancePercent, unit: 'Mediciones', format: '1.0-1' },
+      { label: 'Brecha Dosis Linea Base vs Ejecutado', value: d.targetDose, unit: 'ppm', format: '1.0-1' },
+      { label: 'Brecha Volumen Linea Base vs Ejecutado', value: d.targetVolumen, unit: 'gal', format: '1.0-0' },
       {
         label: 'Volumen real inyectado acumulado',
         value: d.accumulatedActualVolume,
@@ -353,6 +334,44 @@ export class Overview {
     return `${MESES[month].toLowerCase()}/${String(year).slice(-2)}`;
   }
 
+  // ----------------------------- Condiciones contractuales vs. ejecutado (AnnualSummary) -----------------------------
+  // Tabla al lado de las gráficas de FWV/dosificación: una fila por año (condiciones pactadas)
+  // que se expande a su detalle mensual ejecutado (`annualSummary.periodos[].ejecutado`).
+  readonly annualSummary = computed(() => this.summary.value()?.annualSummary ?? null);
+
+  readonly annualPeriods = computed<TankSummaryPeriod[]>(() =>
+    [...(this.annualSummary()?.periodos ?? [])].sort((a, b) => a.anio - b.anio),
+  );
+
+  // Años con el detalle mensual desplegado; vacío por defecto (todo colapsado).
+  private readonly expandedYears = signal<ReadonlySet<number>>(new Set());
+
+  isYearExpanded(anio: number): boolean {
+    return this.expandedYears().has(anio);
+  }
+
+  toggleYear(anio: number): void {
+    this.expandedYears.update((years) => {
+      const next = new Set(years);
+      next.has(anio) ? next.delete(anio) : next.add(anio);
+      return next;
+    });
+  }
+
+  // 'yyyy-MM' -> 'Enero'. `mes` no trae día: se construye con día 1 (evita el bug de zona
+  // horaria de parsear fecha-sola con `new Date(string)`, ver chart-dates.ts).
+  mesLabel(mes: string): string {
+    const [year, month] = mes.split('-').map(Number);
+    const label = formatDate(new Date(year, (month || 1) - 1, 1), 'MMMM', this.locale);
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
+  // Formato numérico con '—' para null/undefined; centraliza el manejo de los campos
+  // `decimal?` del backend en esta tabla (bls, ppm, galones, periodicidad).
+  numOrDash(value: number | null | undefined, format = '1.0-0'): string {
+    return value == null ? '—' : formatNumber(value, this.locale, format);
+  }
+
   // Leyenda nativa de Chart.js arriba (misma configuración que corrosion/physicochemistry/thps):
   // muestra las series y permite ocultarlas al hacer clic.
   private baseLegend() {
@@ -372,9 +391,9 @@ export class Overview {
   private buildBarOptions(
     yTitle: string,
     opts: {
-      /** Fuerza el tope del eje Y (p. ej. para que la línea de tolerancia siempre se vea). */
+      /** Fuerza el tope del eje Y (deja margen por encima del valor más alto esperado). */
       suggestedMax?: number;
-      /** Plugins locales con sus opciones (p. ej. toleranceLine). */
+      /** Plugins locales con sus opciones. */
       plugins?: Record<string, unknown>;
       /** Callback `label` del tooltip. */
       tooltipLabel?: (ctx: { parsed: { y: number } }) => string;
