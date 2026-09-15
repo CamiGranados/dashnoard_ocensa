@@ -1,9 +1,9 @@
 <div class="micro-container">
   <div class="micro-header">
-    <h1 class="micro-title">Microbiología</h1>
-    @if (totalRecords()) {
-      <span class="micro-registros-info">{{ totalRecords() | number }} registros</span>
-    }
+    <div class="header-left">
+      <h1 class="dashboard-title">Microbiología</h1>
+      <span class="header-subtitle">Información detallada sobre el control microbiológico.</span>
+    </div>
   </div>
 
   @if (review.isLoading()) {

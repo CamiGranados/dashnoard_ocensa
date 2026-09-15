@@ -23,7 +23,9 @@ export class Sidebar {
       expanded: true,
       items: [
         { label: 'Operación e Inyección', icon: 'pi pi-bolt', routerLink: '/corrosion'},
-        { label: 'Estadistica', icon: 'pi pi-chart-bar' },
+        { label: 'Analítica', icon: 'pi pi-chart-bar',
+          items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
+        },
       ],
     },
     {
@@ -36,15 +38,15 @@ export class Sidebar {
         { label: 'Tratamiento y Residual', icon: 'pi pi-shield', routerLink: '/thps-tolerance' },
       ],
     },
-    {
-      label: 'Información',
-      icon: 'pi pi-book',
-      items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
-    },
-    {
-      label: 'Histórico',
-      icon: 'pi pi-history',
-      items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
-    },
+    // {
+    //   label: 'Información',
+    //   icon: 'pi pi-book',
+    //   items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
+    // },
+    // {
+    //   label: 'Histórico',
+    //   icon: 'pi pi-history',
+    //   items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
+    // },
   ];
 }

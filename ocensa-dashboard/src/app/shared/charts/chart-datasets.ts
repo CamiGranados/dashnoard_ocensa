@@ -14,8 +14,15 @@ export interface LineOrBarDatasetOptions {
   dashed?: boolean;
   /** `order` de Chart.js (mayor = se dibuja detrás y va después en la leyenda). */
   order?: number;
-  /** Ancho fijo de barra en px. */
+  /** Ancho fijo de barra en px. Con varias barras agrupadas en el mismo punto X, este es el
+   *  ancho del "carril" reservado por barra (determina la posición), no necesariamente lo
+   *  que se pinta — ver `maxBarThickness`. */
   barThickness?: number;
+  /** Ancho MÁXIMO pintado de la barra, en px. Con `barThickness` fijo, Chart.js no deja hueco
+   *  propio entre barras agrupadas del mismo punto X (el "carril" se pinta completo); si es
+   *  menor que `barThickness`, la barra queda centrada en su carril y el sobrante se ve como
+   *  separación entre barras contiguas. Opcional: por defecto pinta el carril completo. */
+  maxBarThickness?: number;
   /** Grosor del contorno de la barra (líneas usan un valor fijo). */
   barBorderWidth?: number;
   /** Radio de esquina de la barra. */
@@ -48,6 +55,7 @@ export function lineOrBarDataset(opts: LineOrBarDatasetOptions) {
     pointRadius: isBar ? undefined : 1,
     pointHoverRadius: isBar ? undefined : 3,
     barThickness: isBar ? opts.barThickness : undefined,
+    maxBarThickness: isBar ? opts.maxBarThickness : undefined,
     order: opts.order,
     data: opts.data,
   };

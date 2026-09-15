@@ -172,6 +172,29 @@ export interface TankSummaryEjecutado {
   galonesReales: number | null;
 }
 
+// Detalle de inyección (una fila por fecha de inyección/bache dentro del mes), para el
+// popup que abre la lupa de cada mes en la tabla "Condiciones contractuales vs. ejecutado".
+// Endpoint POST /Tanks/monthly-injections, body MonthlyInjectionsRequestDto (mismo shape
+// que summary/thps-review/physical-chemistry: TankId/Years/Months, un solo año y mes en
+// los arreglos) -> MonthlyInjectionDetail[]. Todos los `decimal` en bls/Gls/ppm se muestran
+// con 2 decimales (ver numOrDash en overview.ts); `bache` es texto crudo.
+export interface MonthlyInjectionDetail {
+  fechaInyeccion: string; // DateOnly ISO: 'yyyy-MM-dd'
+  fwvEstimadoBls: number | null;
+  gsvBls: number | null;
+  fwvReportadoOpsBls: number | null;
+  fwvCalculadoBls: number | null; // calculado por GSV y %BSW (BSW no se muestra en la tabla)
+  fwvIncrementadaBls: number | null;
+  dosisProgramadaPpm: number | null;
+  volumenProgramadoGls: number | null;
+  dosisRealPpm: number | null; // dosis real inyectada de biocida
+  volumenRealGls: number | null; // volumen real inyectado
+  // Prebache/Postbache/Seguimiento del registro (mismo concepto que SamplingCategory en
+  // microbiology-timeline.transform.ts). Valor CRUDO tal cual lo entrega el backend: a
+  // diferencia de microbiology-bache.transform.ts, aquí NO se agrupa por ciclo de bache.
+  bache: string | null;
+}
+
 export interface OverviewResponse {
   summary: Summary;
   freeWater: FreeWater;

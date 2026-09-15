@@ -1,14 +1,18 @@
-import { Component, computed, inject, LOCALE_ID, signal } from '@angular/core';
+import { Component, computed, effect, inject, LOCALE_ID, signal } from '@angular/core';
 import { CommonModule, formatDate, formatNumber } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
+import { DialogModule } from 'primeng/dialog';
 import { OverviewService } from '../../../core/services/overview.service';
-import { MicrobiologyKey, TankSummaryPeriod } from '../../../core/models/overview.model';
+import { FiltersStateService } from '../../../core/services/filters-state.service';
+import { PhysicochemistryService } from '../../../core/services/physicochemistry.service';
+import { MicrobiologyKey, TankSummaryEjecutado, TankSummaryPeriod } from '../../../core/models/overview.model';
+import { PhysicalChemistryRecord } from '../../../core/models/physicochemistry.model';
 import { KpiCard, KpiAccent } from '../../../shared/components/kpi-card/kpi-card';
 import { ChartFrame } from '../../../shared/charts/chart-frame/chart-frame';
-import { MESES } from '../../../shared/charts/chart-dates';
+import { formatFullDate, MESES } from '../../../shared/charts/chart-dates';
 import { chartToken, FWV_TOKEN } from '../../../shared/charts/chart-tokens';
 import { applyChartDefaults } from '../../../shared/charts/chart-defaults';
 import { createWindowState } from '../../../shared/charts/window-state';
@@ -40,14 +44,56 @@ const MICRO_LABELS: Record<MicrobiologyKey, { short: string; long: string }> = {
   BAnT: { short: 'BAnT', long: 'Anaerobias totales' },
 };
 
+// ----------------------------- Gráfica 4: tasa de corrosión / velocidad de picadura -----------------------------
+// Copia de la gráfica principal de physicochemistry.ts (mismo servicio, misma config de series):
+// es la misma variable de negocio, solo se muestra también en la vista ejecutiva.
+type CorrosionSeriesKey =
+  | 'generalCorrosionRate'
+  | 'corrosionRateMean'
+  | 'maximumStingSpeed'
+  | 'maximumStingMean';
+
+const CORROSION_SERIES_CONFIG: Record<CorrosionSeriesKey, {
+  label: string;
+  axis: 'y' | 'y1';
+  defaultType: 'line' | 'bar';
+  color: string;
+  fill?: string;
+}> = {
+  generalCorrosionRate: { label: 'Tasa de corrosión general', axis: 'y', defaultType: 'bar', color: '--chart-fq-corrosion-rate' },
+  corrosionRateMean: { label: 'Media tasa de corrosión', axis: 'y', defaultType: 'line', color: '--chart-fq-corrosion-rate', fill: '--chart-fq-corrosion-rate-fill' },
+  maximumStingSpeed: { label: 'Velocidad máxima de picadura', axis: 'y1', defaultType: 'bar', color: '--chart-fq-pitting-speed' },
+  maximumStingMean: { label: 'Media velocidad de picadura', axis: 'y1', defaultType: 'line', color: '--chart-fq-pitting-speed-mean', fill: '--chart-fq-pitting-speed-fill' },
+};
+
+// Página de calendario (1 año si el histórico cabe en uno, si no bloques de 6) para la
+// paginación de la gráfica principal — igual que mainPages en physicochemistry.ts.
+interface CorrosionYearPage {
+  startYear: number;
+  endYear: number;
+  start: number;
+  end: number;
+}
+
 @Component({
   selector: 'app-overview',
-  imports: [CommonModule, FormsModule, ButtonModule, ChartModule, SliderModule, KpiCard, ChartFrame],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    ChartModule,
+    SliderModule,
+    DialogModule,
+    KpiCard,
+    ChartFrame,
+  ],
   templateUrl: './overview.html',
   styleUrl: './overview.css',
 })
 export class Overview {
   private readonly overviewService = inject(OverviewService);
+  private readonly filtersState = inject(FiltersStateService);
+  private readonly physicochemistryService = inject(PhysicochemistryService);
   private readonly locale = inject(LOCALE_ID);
 
   readonly summary = this.overviewService.summary;
@@ -57,6 +103,13 @@ export class Overview {
 
   constructor() {
     applyChartDefaults();
+
+    // Maquinaria B (igual que physicochemistry.ts): al llegar datos nuevos, la gráfica de
+    // corrosión salta a la última página de año.
+    effect(() => {
+      const total = this.sortedCorrosionRecords().length;
+      this.corrosionPageIndex.set(total === 0 ? 0 : Math.max(0, this.corrosionPages().length - 1));
+    });
   }
 
   readonly metrics = computed<OverviewMetric[]>(() => {
@@ -125,8 +178,9 @@ export class Overview {
   }
 
   // ----------------------------- Gráfica 1: FWV reportada vs. calculada -----------------------------
-  // Mismo lenguaje visual que la gráfica de dosificación: una barra por serie y mes.
-  // Colores por token de dominio FWV (mismos que corrosion/thps-tolerance). Leyenda nativa arriba.
+  // Mismo lenguaje visual que la gráfica de dosificación: barras con relleno pastel + borde.
+  // Colores por token de dominio FWV (mismos que corrosion/thps-tolerance para el borde; el
+  // relleno pastel es exclusivo de esta vista). Leyenda nativa arriba.
   readonly fwvChart = computed(() => {
     const months = this.summary.value()?.freeWater?.months ?? [];
     return {
@@ -134,16 +188,20 @@ export class Overview {
       datasets: [
         {
           label: 'FWV reportada',
-          backgroundColor: chartToken(FWV_TOKEN.reportada),
-          borderWidth: 0,
+          backgroundColor: chartToken('--chart-fwv-reportada-fill'),
+          borderColor: chartToken(FWV_TOKEN.reportada),
+          borderWidth: 1.5,
+          borderSkipped: false,
           borderRadius: 2,
           maxBarThickness: 46,
           data: months.map((m) => m.reportedMean),
         },
         {
           label: 'FWV calculada',
-          backgroundColor: chartToken(FWV_TOKEN.calculada),
-          borderWidth: 0,
+          backgroundColor: chartToken('--chart-fwv-calculada-fill'),
+          borderColor: chartToken(FWV_TOKEN.calculada),
+          borderWidth: 1.5,
+          borderSkipped: false,
           borderRadius: 2,
           maxBarThickness: 46,
           data: months.map((m) => m.calculatedMean),
@@ -334,6 +392,197 @@ export class Overview {
     return `${MESES[month].toLowerCase()}/${String(year).slice(-2)}`;
   }
 
+  // ----------------------------- Gráfica 4: tasa de corrosión / velocidad de picadura -----------------------------
+  // Reutiliza PhysicochemistryService (mismo singleton/caché que consume el tab physicochemistry;
+  // se pide con los mismos filtros globales tanque/años/meses, sin llamada HTTP nueva).
+  readonly corrosionReview = this.physicochemistryService.review;
+
+  readonly corrosionRecords = computed(() => this.corrosionReview.value()?.data ?? []);
+
+  readonly sortedCorrosionRecords = computed<PhysicalChemistryRecord[]>(() =>
+    this.corrosionRecords().slice().sort((a, b) => a.date.localeCompare(b.date)),
+  );
+
+  readonly corrosionSubtitle = computed(() => {
+    const recs = this.sortedCorrosionRecords();
+    if (recs.length < 2) return 'Media móvil y valores por evento';
+    return `Media móvil y valores por evento · ${this.corrosionMonthYear(recs[0].date)} – ${this.corrosionMonthYear(recs[recs.length - 1].date)}`;
+  });
+
+  // La gráfica recibe SIEMPRE todo el histórico con fechas reales (eje X lineal); se pagina por
+  // año calendario (1 año si cabe, si no bloques de 6) — igual que mainPages en physicochemistry.ts.
+  readonly corrosionPages = computed<CorrosionYearPage[]>(() => {
+    const records = this.sortedCorrosionRecords();
+    if (!records.length) return [];
+
+    const minYear = new Date(records[0].date).getFullYear();
+    const maxYear = new Date(records[records.length - 1].date).getFullYear();
+    const pageSizeYears = maxYear - minYear + 1 <= 1 ? 1 : 6;
+
+    const pages: CorrosionYearPage[] = [];
+    let end = maxYear;
+    while (end >= minYear) {
+      const start = Math.max(minYear, end - pageSizeYears + 1);
+      pages.push({
+        startYear: start,
+        endYear: end,
+        start: new Date(start, 0, 2).getTime(),
+        end: new Date(end + 1, 0, 1).getTime() - 1,
+      });
+      end = start - 1;
+    }
+
+    return pages.reverse();
+  });
+
+  corrosionPageIndex = signal(0);
+
+  readonly corrosionPage = computed<CorrosionYearPage | null>(() => {
+    const pages = this.corrosionPages();
+    return pages[this.corrosionPageIndex()] ?? pages[pages.length - 1] ?? null;
+  });
+
+  private static corrosionDomainOf(values: number[]): { min: number; max: number } {
+    if (!values.length) return { min: 0, max: 1 };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const pad = (max - min) * 0.1 || 1;
+    return { min: Math.max(0, min - pad), max: max + pad };
+  }
+
+  // Dominio fijo por eje, calculado una sola vez sobre TODO el histórico: así el eje Y no se
+  // reescala al cambiar de página.
+  private readonly corrosionYDomain = computed(() =>
+    Overview.corrosionDomainOf(
+      this.sortedCorrosionRecords()
+        .flatMap((r) => [r.generalCorrosionRate, r.corrosionRateMean])
+        .filter((v): v is number => v != null),
+    ),
+  );
+
+  private readonly corrosionY1Domain = computed(() =>
+    Overview.corrosionDomainOf(
+      this.sortedCorrosionRecords()
+        .flatMap((r) => [r.maximumStingSpeed, r.maximumStingMean])
+        .filter((v): v is number => v != null),
+    ),
+  );
+
+  readonly corrosionChartData = computed(() => {
+    const records = this.sortedCorrosionRecords();
+    if (!records.length) return { datasets: [] };
+
+    const datasets = (Object.keys(CORROSION_SERIES_CONFIG) as CorrosionSeriesKey[]).map((key) => {
+      const cfg = CORROSION_SERIES_CONFIG[key];
+      const isBar = cfg.defaultType === 'bar';
+      // Serie "media": área rellena + marcadores de círculo hueco (ver CORROSION_SERIES_CONFIG.fill).
+      const isMean = !isBar && !!cfg.fill;
+      const color = chartToken(cfg.color);
+
+      return {
+        type: cfg.defaultType,
+        label: cfg.label,
+        yAxisID: cfg.axis,
+        borderColor: isBar ? chartToken('--color-white') : color,
+        backgroundColor: isMean ? chartToken(cfg.fill ?? cfg.color) : color,
+        fill: isMean ? 'origin' : false,
+        order: isBar ? 999 : isMean ? 1 : 0,
+        borderWidth: isBar ? 1.5 : 2.5,
+        borderSkipped: isBar ? false : undefined,
+        borderRadius: isBar ? { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } : undefined,
+        barThickness: isBar ? 14 : undefined,
+        pointStyle: 'circle',
+        pointRadius: isBar ? undefined : isMean ? 3.5 : 1,
+        pointHoverRadius: isBar ? undefined : isMean ? 5 : 3,
+        pointBackgroundColor: isMean ? chartToken('--color-white') : color,
+        pointBorderColor: color,
+        pointBorderWidth: isMean ? 2 : 1,
+        tension: 0.3,
+        spanGaps: true,
+        data: records.map((r) => ({ x: new Date(r.date).getTime(), y: r[key] })),
+      };
+    });
+
+    return { datasets };
+  });
+
+  readonly corrosionChartOptions = computed(() => {
+    const yDomain = this.corrosionYDomain();
+    const y1Domain = this.corrosionY1Domain();
+    const page = this.corrosionPage();
+    const viewStart = page?.start ?? 0;
+    const viewEnd = page?.end ?? 0;
+
+    return {
+      responsive: true,
+      animation: false as const,
+      // Hover y tooltip resuelven siempre el mismo punto (índice más cercano en X) — igual que
+      // physicochemistry.ts, evita que aparezcan dos cajas por el doble eje Y.
+      interaction: { mode: 'index' as const, intersect: false, axis: 'x' as const },
+      plugins: {
+        legend: this.baseLegend(),
+        tooltip: {
+          position: 'nearest' as const,
+          titleFont: { size: 14, weight: 'bold' },
+          bodyFont: { size: 13 },
+          displayColors: true,
+          callbacks: {
+            title: (items: Array<{ parsed: { x: number } }>) =>
+              items[0] ? this.corrosionDate(items[0].parsed.x) : '',
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: 'linear' as const,
+          min: viewStart,
+          max: viewEnd,
+          bounds: 'data' as const,
+          ticks: {
+            callback: (value: number | string) => this.corrosionMonthYear(Number(value)),
+            maxRotation: 0,
+            autoSkip: true,
+          },
+        },
+        y: {
+          type: 'linear' as const,
+          position: 'left' as const,
+          min: yDomain.min,
+          max: yDomain.max,
+          title: { display: true, text: CORROSION_SERIES_CONFIG.generalCorrosionRate.label },
+        },
+        y1: {
+          type: 'linear' as const,
+          position: 'right' as const,
+          min: y1Domain.min,
+          max: y1Domain.max,
+          title: { display: true, text: CORROSION_SERIES_CONFIG.maximumStingSpeed.label },
+          grid: { drawOnChartArea: false },
+        },
+      },
+    };
+  });
+
+  // Arrow para pasarla como `[resetHook]` a `<app-chart-frame>`.
+  readonly resetCorrosionView = (): void => {
+    this.corrosionPageIndex.set(Math.max(0, this.corrosionPages().length - 1));
+  };
+
+  // Reciben string ISO del backend o timestamp (callback de ticks); igual que en
+  // physicochemistry.ts, pendiente el swap a dateParts/isoToLocalTimestamp (bug de zona horaria,
+  // ver chart-dates.ts) hasta confirmar el formato de `date` que entrega el backend.
+  private corrosionDate(d: string | number): string {
+    const dt = new Date(d);
+    const yy = String(dt.getFullYear()).slice(-2);
+    return `${MESES[dt.getMonth()]} ${dt.getDate()} ${yy}`;
+  }
+
+  private corrosionMonthYear(d: string | number): string {
+    const dt = new Date(d);
+    const yy = String(dt.getFullYear()).slice(-2);
+    return `${MESES[dt.getMonth()]} ${yy}`;
+  }
+
   // ----------------------------- Condiciones contractuales vs. ejecutado (AnnualSummary) -----------------------------
   // Tabla al lado de las gráficas de FWV/dosificación: una fila por año (condiciones pactadas)
   // que se expande a su detalle mensual ejecutado (`annualSummary.periodos[].ejecutado`).
@@ -358,6 +607,47 @@ export class Overview {
     });
   }
 
+  // ----------------------------- Popup: detalle de inyección de un mes -----------------------------
+  // Se abre con la lupa de cada fila del "ejecutado" mensual. `selectedMonth` guarda el mes
+  // elegido (o null si el popup está cerrado); el resource de detalle solo pide datos cuando
+  // hay un mes seleccionado (ver OverviewService.monthlyInjections).
+  private readonly selectedMonth = signal<{ mes: string; label: string } | null>(null);
+
+  readonly monthlyInjections = this.overviewService.monthlyInjections(() => {
+    const tank = this.filtersState.filters().tank;
+    const sel = this.selectedMonth();
+    if (!tank || !sel) return undefined;
+
+    const [anio, mes] = sel.mes.split('-').map(Number);
+    return { tankId: tank, anio, mes };
+  });
+
+  // Postbache no toma mediciones (llega con todos los numéricos en null): se descarta del
+  // popup, que muestra solo Prebache y Seguimiento (los que sí traen datos).
+  readonly visibleInjections = computed(
+    () => this.monthlyInjections.value()?.filter((inj) => inj.bache !== 'Postbache') ?? [],
+  );
+
+  readonly detailDialogVisible = computed(() => this.selectedMonth() !== null);
+  readonly detailDialogTitle = computed(() => {
+    const sel = this.selectedMonth();
+    return sel ? `Detalle de inyección · ${sel.label}` : '';
+  });
+
+  openMonthDetail(ej: TankSummaryEjecutado): void {
+    this.selectedMonth.set({ mes: ej.mes, label: `${this.mesLabel(ej.mes)} ${ej.mes.split('-')[0]}` });
+  }
+
+  closeMonthDetail(): void {
+    this.selectedMonth.set(null);
+  }
+
+  // `visibleChange` del p-dialog: se dispara en `false` al cerrar con la X, ESC o clic
+  // fuera del modal (dismissableMask).
+  onDetailDialogVisibleChange(visible: boolean): void {
+    if (!visible) this.closeMonthDetail();
+  }
+
   // 'yyyy-MM' -> 'Enero'. `mes` no trae día: se construye con día 1 (evita el bug de zona
   // horaria de parsear fecha-sola con `new Date(string)`, ver chart-dates.ts).
   mesLabel(mes: string): string {
@@ -371,6 +661,15 @@ export class Overview {
   numOrDash(value: number | null | undefined, format = '1.0-0'): string {
     return value == null ? '—' : formatNumber(value, this.locale, format);
   }
+
+  // Igual que numOrDash pero para texto libre (observaciones).
+  textOrDash(value: string | null | undefined): string {
+    return value == null || value.trim() === '' ? '—' : value;
+  }
+
+  // 'yyyy-MM-dd' -> '5 Ago 2025'. Usa formatFullDate (chart-dates.ts) para no arrastrar
+  // el mismo bug de zona horaria que `mesLabel`.
+  protected readonly formatFullDate = formatFullDate;
 
   // Leyenda nativa de Chart.js arriba (misma configuración que corrosion/physicochemistry/thps):
   // muestra las series y permite ocultarlas al hacer clic.

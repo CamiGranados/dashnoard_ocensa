@@ -19,7 +19,7 @@ import { MultiSelect } from 'primeng/multiselect';
 
 interface FilterOption {
   label: string;
-  value: string;
+  value: string | null;
 }
 
 export interface fileError {
@@ -82,8 +82,9 @@ export class TopbarFilters implements OnInit, OnDestroy {
       forkJoin({
       years: this.FiltersService.getYears(),
       tanks: this.FiltersService.getTanks(),
+      companies: this.FiltersService.getCompanies(),
     }).subscribe({
-      next: ({ years, tanks }) => {
+      next: ({ years, tanks, companies }) => {
         // años
         this.yearOptions = years.map(y => ({ label: y.toString(), value: y }));
         if (this.yearOptions.length) {
@@ -96,11 +97,19 @@ export class TopbarFilters implements OnInit, OnDestroy {
           this.tank = this.tankOptions[this.tankOptions.length - 1].value;
         }
 
+        // compañías (select "Origen") — "Todos" por defecto, igual que el filtro de mes
+        this.escalaOptions = [
+          { label: 'Todos', value: null },
+          ...companies.map(c => ({ label: c.name, value: c.id })),
+        ];
+        this.escala = null;
+
         // publica los defaults YA con ambos listos
         this.filtersState.setFilters({
           tank: this.tank,
           years: this.selectedYears,
           months: this.selectedMonth ? [this.selectedMonth] : [],
+          company: this.escala,
         });
 
         this.cdr.detectChanges();
@@ -113,6 +122,7 @@ export class TopbarFilters implements OnInit, OnDestroy {
         tank: this.tank,
         years: this.selectedYears,
         months: this.selectedMonth ? [this.selectedMonth] : [],
+        company: this.escala,
       });
     });
   }
@@ -258,12 +268,10 @@ export class TopbarFilters implements OnInit, OnDestroy {
   }
 
 
-  // --------------------------------------------------    EJEMPLO DE OPCIONES DE FILTRO
+  // --------------------------------------------------    FILTRO ORIGEN (compañías)
 
-  readonly escalaOptions: FilterOption[] = [
-    { label: 'CIC', value: 'CIC' },
-    { label: 'CHAMPIONX', value: 'CHAMPIONX' },
-  ];
+  escalaOptions: FilterOption[] = [{ label: 'Todos', value: null }];
+  escala: string | null = null;
 
   readonly periodOptions: FilterOption[] = [
     { label: 'Últimas 24 horas', value: '24h' },
@@ -271,7 +279,6 @@ export class TopbarFilters implements OnInit, OnDestroy {
     { label: 'Últimos 30 días', value: '30d' },
   ];
 
-  escala = 'log';
   period = '24h';
   mostrarAlertas = true;
 }

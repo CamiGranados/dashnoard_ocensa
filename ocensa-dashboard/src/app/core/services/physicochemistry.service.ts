@@ -10,7 +10,7 @@ export class PhysicochemistryService {
   private readonly filtersState = inject(FiltersStateService);
 
   readonly review = httpResource<PhysicalChemistryResponse>(() => {
-    const { tank, years, months } = this.filtersState.filters();
+    const { tank, years, months, company } = this.filtersState.filters();
 
     // Sin tanque seleccionado no hay nada que pedir todavía.
     if (!tank) {
@@ -23,7 +23,8 @@ export class PhysicochemistryService {
       body: {
         tankId: tank,
         years: years,
-        months: months
+        months: months,
+        companyId: company,
       },
     };
   });

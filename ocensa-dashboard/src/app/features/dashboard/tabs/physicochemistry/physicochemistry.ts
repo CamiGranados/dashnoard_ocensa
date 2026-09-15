@@ -48,18 +48,19 @@ const MINI_SERIES_CONFIG: Record<MiniSeriesKey, {
   color: string;
   limits: { min: number; max: number };
 }> = {
-  temperatureC: { label: 'Temperatura (°C)', color: '--chart-fq-temperatura', limits: { min: 24, max: 32 } },
-  h2S: { label: 'H2S', color: '--chart-fq-h2s', limits: { min: 0, max: 5 } },
-  ph: { label: 'pH', color: '--chart-fq-ph', limits: { min: 0, max: 8.5 } },
-  conductivity: { label: 'Conductividad', color: '--chart-fq-conductividad', limits: { min: 0, max: 3600 } },
-  alkalinity: { label: 'Alcalinidad', color: '--chart-fq-alcalinidad', limits: { min: 45, max: 1200 } },
-  calcium: { label: 'Calcio', color: '--chart-fq-calcio', limits: { min: 0, max: 700 } },
+  temperatureC: { label: 'Temperatura (°C)', color: '--chart-fq-temperatura', limits: { min: -35, max: 35 } },
+  h2S: { label: 'H2S', color: '--chart-fq-h2s', limits: { min: 0, max: 0.5 } },
+  ph: { label: 'pH', color: '--chart-fq-ph', limits: { min: 5.0, max: 7.5 } },
+  conductivity: { label: 'Conductividad', color: '--chart-fq-conductividad', limits: { min: 0, max: 5000 } },
+  alkalinity: { label: 'Alcalinidad', color: '--chart-fq-alcalinidad', limits: { min: 0, max: 500 } },
+  calcium: { label: 'Calcio', color: '--chart-fq-calcio', limits: { min: 0, max: 150 } },
 };
 
 interface MiniChartCard {
   key: MiniSeriesKey;
   label: string;
   hasAlert: boolean;
+  subtitle?: string;
   data: { labels: string[]; datasets: unknown[] };
   options: Record<string, unknown>;
   plugins: unknown[];
@@ -322,6 +323,7 @@ export class Physicochemistry {
         key,
         label: cfg.label,
         hasAlert,
+        subtitle: hasAlert ? 'Valores fuera de rango detectados' : undefined,
         data: {
           labels,
           datasets: [

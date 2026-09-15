@@ -3,7 +3,7 @@
   <div class="dashboard-header">
     <div class="header-left">
       <h1 class="dashboard-title">Vista Ejecutiva</h1>
-      <span class="header-subtitle">Consolidado general de la información más relevante: cumplimiento de indicadores y límites de tolerancia..</span>
+      <span class="header-subtitle">Consolidado general de la información más relevante: cumplimiento de indicadores y límites de tolerancia.</span>
     </div>
     <div class="header-right">
       <button pButton
@@ -286,6 +286,7 @@
                                     <th>Periodicidad real</th>
                                     <th>Dosis real (ppm)</th>
                                     <th>Galones reales</th>
+                                    <th class="ov-annual-toggle-col"></th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -296,6 +297,16 @@
                                       <td>{{ ej.periodicidadReal }}</td>
                                       <td>{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
                                       <td>{{ numOrDash(ej.galonesReales) }}</td>
+                                      <td class="ov-annual-toggle-col">
+                                        <button
+                                          type="button"
+                                          class="ov-annual-detail-search"
+                                          [attr.aria-label]="'Ver detalle de inyección de ' + mesLabel(ej.mes)"
+                                          (click)="openMonthDetail(ej)"
+                                        >
+                                          <i class="pi pi-search"></i>
+                                        </button>
+                                      </td>
                                     </tr>
                                   }
                                 </tbody>
@@ -318,13 +329,67 @@
             }
           </section>
 
-          <!-- 4. Reservado: pendiente de construir (gráfica que acompaña la tabla anterior) -->
-          <section class="ov-chart-card ov-chart-card--placeholder">
-            <div class="ov-chart-empty">
-              <i class="pi pi-clock"></i>
-              <p>Gráfica pendiente (se construye al final).</p>
-            </div>
-          </section>
+          <!-- 4. Tasa de corrosión y velocidad de picadura (misma gráfica que physicochemistry,
+               vía PhysicochemistryService: mismo caché, sin petición HTTP nueva) -->
+          @if (corrosionReview.isLoading()) {
+            <section class="ov-chart-card">
+              <h3 class="ov-chart-title">Tasa de corrosión y velocidad de picadura</h3>
+              <div class="ov-chart-body">
+                <p>Cargando datos fisicoquímicos…</p>
+              </div>
+            </section>
+          } @else if (corrosionReview.error()) {
+            <section class="ov-chart-card">
+              <h3 class="ov-chart-title">Tasa de corrosión y velocidad de picadura</h3>
+              <div class="ov-chart-empty">
+                <i class="pi pi-exclamation-triangle"></i>
+                <p>No se pudo cargar la información fisicoquímica.</p>
+              </div>
+            </section>
+          } @else if (sortedCorrosionRecords().length) {
+            <app-chart-frame
+              title="Tasa de corrosión y velocidad de picadura"
+              [subtitle]="corrosionSubtitle()"
+              exportName="corrosion-picadura"
+              bodyHeight="420px"
+              [ownsAxisRange]="false"
+              [resetHook]="resetCorrosionView"
+            >
+              <p-chart type="bar" [data]="corrosionChartData()" [options]="corrosionChartOptions()" />
+
+              @if (corrosionPages().length > 1) {
+                <div class="ov-window">
+                  <div class="ov-window-info">
+                    <span class="ov-window-title">Ventana visible</span>
+                    @if (corrosionPage(); as page) {
+                      <span class="ov-window-range">
+                        @if (page.startYear === page.endYear) {
+                          {{ page.startYear }}
+                        } @else {
+                          {{ page.startYear }} - {{ page.endYear }}
+                        }
+                      </span>
+                    }
+                  </div>
+
+                  <p-slider
+                    [min]="0"
+                    [max]="corrosionPages().length - 1"
+                    [step]="1"
+                    [(ngModel)]="corrosionPageIndex"
+                    class="ov-slider"
+                  />
+                </div>
+              }
+            </app-chart-frame>
+          } @else {
+            <section class="ov-chart-card ov-chart-card--placeholder">
+              <div class="ov-chart-empty">
+                <i class="pi pi-chart-bar"></i>
+                <p>Sin datos fisicoquímicos para los filtros seleccionados.</p>
+              </div>
+            </section>
+          }
 
           <!-- 5. Resumen de control microbiológico -->
           <section class="ov-chart-card ov-chart-card--wide">
@@ -448,6 +513,61 @@
       }
     </main>
   </div>
+
+  <p-dialog
+    [header]="detailDialogTitle()"
+    [visible]="detailDialogVisible()"
+    (visibleChange)="onDetailDialogVisibleChange($event)"
+    [modal]="true"
+    [dismissableMask]="true"
+    [baseZIndex]="2000"
+    [style]="{ width: 'min(1200px, 95vw)' }"
+  >
+    @if (monthlyInjections.isLoading()) {
+      <p>Cargando detalle de inyección…</p>
+    } @else if (monthlyInjections.error()) {
+      <p>No se pudo cargar el detalle de inyección.</p>
+    } @else if (visibleInjections().length) {
+      <div class="ov-inj-scroll">
+        <table class="ov-inj-table">
+          <thead>
+            <tr>
+              <th>Fecha inyección</th>
+              <th>FWV estimado (bls)</th>
+              <th>GSV (bls)</th>
+              <th>FWV reportado OPS (bls)</th>
+              <th>FWV calculado (bls)</th>
+              <th>FWV incrementada (bls)</th>
+              <th>Dosis programada (ppm)</th>
+              <th>Volumen programado (Gls)</th>
+              <th>Dosis real inyectada (ppm)</th>
+              <th>Volumen real inyectado (Gls)</th>
+              <th>Bache</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (inj of visibleInjections(); track inj.fechaInyeccion + inj.bache) {
+              <tr>
+                <td class="ov-inj-date">{{ formatFullDate(inj.fechaInyeccion) }}</td>
+                <td>{{ numOrDash(inj.fwvEstimadoBls, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.gsvBls, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.fwvReportadoOpsBls, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.fwvCalculadoBls, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.fwvIncrementadaBls, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.dosisProgramadaPpm, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.volumenProgramadoGls, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.dosisRealPpm, '1.0-2') }}</td>
+                <td>{{ numOrDash(inj.volumenRealGls, '1.0-2') }}</td>
+                <td class="ov-inj-bache">{{ textOrDash(inj.bache) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p>Sin detalle de inyección para este mes.</p>
+    }
+  </p-dialog>
 
 </div>
 

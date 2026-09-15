@@ -8,6 +8,11 @@ export interface Tank {
   name: string;
 }
 
+export interface Company {
+  id: string;
+  name: string;
+}
+
 export interface Measurement {
   variable: string;
   numericValue: number;
@@ -28,7 +33,11 @@ export class FiltersService {
     return this.http.get<Tank[]>(`${this.apiUrl}/Tanks/listTanks`);
   }
 
-  getMeasurements(tankId: string, year: number[] = [], months: number[] = []): Observable<Measurement[]> {
+  getCompanies(): Observable<Company[]> {
+    return this.http.get<Company[]>(`${this.apiUrl}/Tanks/listCompanies`);
+  }
+
+  getMeasurements(tankId: string, year: number[] = [], months: number[] = [], companyId: string | null = null): Observable<Measurement[]> {
     let params = new HttpParams()
       .set('tankId', tankId)
 
@@ -37,6 +46,10 @@ export class FiltersService {
 
     // agrega cada mes como parámetro repetido: months=1&months=2...
     months.forEach(m => { params = params.append('months', m); });
+
+    if (companyId) {
+      params = params.set('companyId', companyId);
+    }
 
     return this.http.get<Measurement[]>(`${this.apiUrl}/Tanks/fwv`, { params });
   }

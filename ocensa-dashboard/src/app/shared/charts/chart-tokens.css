@@ -16,11 +16,24 @@
   --chart-bht: #239a59;
   --chart-bant: #43474f;
 
+  /* — Planctónicas en barra (thps-tolerance, banda 4): mismo trazo de arriba +
+       relleno pastel propio, par trazo/relleno (mismo lenguaje visual que
+       dosis-real/-fill). NO se usan en microbiology (ahí van como línea/punto). — */
+  --chart-bsr-fill: #b6d3f0;
+  --chart-bpa-fill: #f7c5aa;
+  --chart-bht-fill: #b2dcc5;
+  --chart-bant-fill: #bdbfc1;
+
   /* — FWV (serie) — */
   --chart-fwv-reportada: #2f80d7;
   --chart-fwv-estimada: #4da7e9;
   --chart-fwv-calculada: #22ba76;
   --chart-fwv-incrementada: #f3a12b;
+
+  /* — FWV barras (vista ejecutiva): mismo azul/verde de arriba, como par trazo/relleno
+       (barras pastel con borde, mismo lenguaje visual que dosis-programada/-fill). — */
+  --chart-fwv-reportada-fill: #bcd9f4;
+  --chart-fwv-calculada-fill: #bdead6;
 
   /* — Dosis y volumen (barras: par trazo/relleno) — */
   --chart-dosis-real: #83b2e3;
@@ -34,6 +47,7 @@
        distintos, NO unificar. El naranja de "deficiente" comparte valor con
        dosis-programada-fill / fwv-incrementada a propósito (familia de alerta). — */
   --chart-residual: #447da2;
+  --chart-residual-fill: #bed2de; /* barra thps: par trazo/relleno con --chart-residual */
   --chart-residual-ok: #d0f1e0;
   --chart-residual-ok-border: #188a56;
   --chart-residual-ok-hover: #7ae29d;

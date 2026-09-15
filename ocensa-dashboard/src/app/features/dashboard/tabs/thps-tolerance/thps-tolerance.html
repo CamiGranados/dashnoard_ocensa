@@ -1,9 +1,9 @@
 <div class="thps-container">
   <div class="thps-header">
-    <h1 class="thps-title">Tolerancia THPS</h1>
-    @if (totalRecords()) {
-      <span class="thps-registros-info">{{ totalRecords() | number }} registros</span>
-    }
+    <div class="header-left">
+      <h1 class="dashboard-title">Tratamiento y Residual</h1>
+      <span class="header-subtitle">Cuatro paneles de información detallada de FWV, Residual, Microbiología y Dosis aplicadas.</span>
+    </div>
   </div>
 
   @if (review.isLoading()) {
@@ -137,7 +137,7 @@
       </div>
     }
 
-    <div class="thps-table-panel" #tablePanel>
+    <!-- <div class="thps-table-panel" #tablePanel>
       <h3 class="thps-table-title">Registros históricos</h3>
       <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="thps-table">
         <ng-template pTemplate="header">
@@ -168,7 +168,7 @@
           </tr>
         </ng-template>
       </p-table>
-    </div>
+    </div> -->
   } @else {
     <p>Selecciona un tanque para ver la revisión de THPS.</p>
   }

@@ -1,5 +1,9 @@
 
 /* --- Cabecera de ejes --- */
+.header {
+  margin-top: 2rem;
+  margin-left: 1rem;
+}
 .corrosion__header {
   display: flex;
   justify-content: space-between;

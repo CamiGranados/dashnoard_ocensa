@@ -1,4 +1,5 @@
 import type { Plugin } from 'chart.js';
+import { refLinesHidden } from '../../../../shared/charts/chart-reference-lines';
 
 export interface LimitLinesOptions {
   min: number;
@@ -10,7 +11,7 @@ export const limitLinesPlugin: Plugin<'line' | 'bar'> = {
   id: 'limitLines',
 
   afterDatasetsDraw(chart, _args, options: LimitLinesOptions) {
-    if (!options) return;
+    if (!options || refLinesHidden(chart)) return;
     const yScale = chart.scales['y'];
     if (!yScale) return;
 

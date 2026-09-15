@@ -1,9 +1,9 @@
 <div class="pq-container">
   <div class="pq-header">
-    <h1 class="pq-title">Fisicoquímica</h1>
-    @if (totalRecords()) {
-      <span class="pq-registros-info">{{ totalRecords() | number }} registros</span>
-    }
+    <div class="header-left">
+      <h1 class="dashboard-title">Fisicoquímica</h1>
+      <span class="header-subtitle">Información detallada sobre las variables fisicoquímicas del sistema y su comportamiento frente a las velocidades de corrosión.</span>
+    </div>
   </div>
 
   @if (review.isLoading()) {
@@ -80,7 +80,7 @@
     </app-chart-frame>
 
     <div class="pq-mini-section">
-      <h2 class="pq-mini-heading">Otras variables fisicoquímicas</h2>
+      <h2 class="pq-mini-heading">Variables Fisicoquímicas Medidas</h2>
 
       @if (sortedRecords().length > 1) {
         <div class="pq-window">
@@ -108,21 +108,22 @@
       <div class="pq-mini-grid">
         @for (chart of miniCharts(); track chart.key) {
           <div class="pq-mini-card" [class.pq-mini-card--alert]="chart.hasAlert">
-            <h3 class="pq-mini-title">
-              {{ chart.label }}
-              @if (chart.hasAlert) {
-                <i class="pi pi-exclamation-triangle pq-mini-alert-icon" title="Valores fuera de rango"></i>
-              }
-            </h3>
-            <div class="pq-mini-chart">
+            <app-chart-frame
+              [title]="chart.label"
+              [subtitle]="chart.subtitle"
+              [bare]="true"
+              bodyHeight="220px"
+              [hasRefLines]="true"
+              [exportName]="'fisicoquimica-' + chart.key"
+            >
               <p-chart type="line" [data]="chart.data" [options]="chart.options" [plugins]="chart.plugins" />
-            </div>
+            </app-chart-frame>
           </div>
         }
       </div>
     </div>
 
-    <div class="pq-table-panel">
+    <!-- <div class="pq-table-panel">
       <p-table [value]="records()" [paginator]="records().length > 10" [rows]="10" styleClass="pq-table">
         <ng-template pTemplate="header">
           <tr>
@@ -156,7 +157,7 @@
           </tr>
         </ng-template>
       </p-table>
-    </div>
+    </div> -->
   } @else {
     <p>Selecciona un tanque para ver la información fisicoquímica.</p>
   }

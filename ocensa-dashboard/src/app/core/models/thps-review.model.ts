@@ -4,7 +4,7 @@ export interface ThpsReviewSummary {
   residualMedian: number | null;
   effectiveDoseMedian: number | null;
   retentionMedian: number | null;
-  eventsWithRealDoseCount: number;
+  calculatedFwvMedian: number | null;
   totalRecords: number;
 }
 

@@ -90,7 +90,7 @@ export class Corrosion {
 
       this.loadingMeasurements.set(true);
 
-      const subscription = this.dataService.getMeasurements(f.tank, f.years, f.months)
+      const subscription = this.dataService.getMeasurements(f.tank, f.years, f.months, f.company)
         .pipe(finalize(() => this.loadingMeasurements.set(false)))
         .subscribe({
           next: (data) => {

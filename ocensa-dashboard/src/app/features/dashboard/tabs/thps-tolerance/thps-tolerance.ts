@@ -70,6 +70,11 @@ interface BandSeriesConfig {
   border: string;
   /** Eje Y al que se ancla la serie. Por defecto 'y'; 'y1' para el eje secundario (Residual). */
   yAxisID?: string;
+  /** Línea punteada (sólo aplica con `type: 'line'`). */
+  dashed?: boolean;
+  /** Marcador "hueco" (círculo blanco + contorno del color de la serie), sin relleno de área
+   *  — mismo estilo que la serie "media" de physicochemistry/overview (sólo `type: 'line'`). */
+  hollowMarker?: boolean;
 }
 
 // TODO(usuario): título de eje Y y etiquetas de serie reales — unidades pendientes de confirmar.
@@ -83,18 +88,18 @@ const BAND1_SERIES: BandSeriesConfig[] = [
 const BAND3_Y_TITLE = 'FWV (ppm)'; // TODO
 const BAND3_Y1_TITLE = 'Residual (%)';
 const BAND3_SERIES: BandSeriesConfig[] = [
-  { key: 'fwvReportada', label: 'FWV Reportada', color: FWV_TOKEN.reportada, border: FWV_TOKEN.reportada },
-  { key: 'fwvEstimada', label: 'FWV Estimada', color: FWV_TOKEN.estimada, border: FWV_TOKEN.estimada },
-  { key: 'fwvCalculada', label: 'FWV Calculada', color: FWV_TOKEN.calculada, border: FWV_TOKEN.calculada },
-  { key: 'residualPct', label: 'Residual', color: '--chart-residual', border: '--chart-residual', yAxisID: 'y1' },
+  { key: 'fwvReportada', label: 'FWV Reportada', color: FWV_TOKEN.reportada, border: FWV_TOKEN.reportada, hollowMarker: true },
+  { key: 'fwvEstimada', label: 'FWV Estimada', color: FWV_TOKEN.estimada, border: FWV_TOKEN.estimada, dashed: true },
+  { key: 'fwvCalculada', label: 'FWV Calculada', color: FWV_TOKEN.calculada, border: FWV_TOKEN.calculada, hollowMarker: true },
+  { key: 'residualPct', label: 'Residual', color: '--chart-residual-fill', border: '--chart-residual', yAxisID: 'y1' },
 ];
 
 const BAND4_Y_TITLE = 'log₁₀(Bac/mL)';
 const BAND4_SERIES: BandSeriesConfig[] = [
-  { key: 'bant', label: 'BAnT', color: PLANCTONICA_TOKEN.bant, border: PLANCTONICA_TOKEN.bant },
-  { key: 'bht', label: 'BHT', color: PLANCTONICA_TOKEN.bht, border: PLANCTONICA_TOKEN.bht },
-  { key: 'bpa', label: 'BPA', color: PLANCTONICA_TOKEN.bpa, border: PLANCTONICA_TOKEN.bpa },
-  { key: 'bsr', label: 'BSR', color: PLANCTONICA_TOKEN.bsr, border: PLANCTONICA_TOKEN.bsr },
+  { key: 'bant', label: 'BAnT', color: '--chart-bant-fill', border: PLANCTONICA_TOKEN.bant },
+  { key: 'bht', label: 'BHT', color: '--chart-bht-fill', border: PLANCTONICA_TOKEN.bht },
+  { key: 'bpa', label: 'BPA', color: '--chart-bpa-fill', border: PLANCTONICA_TOKEN.bpa },
+  { key: 'bsr', label: 'BSR', color: '--chart-bsr-fill', border: PLANCTONICA_TOKEN.bsr },
 ];
 
 // Recibe un timestamp local (ver toChartRow). El swap a isoToLocalTimestamp está
@@ -117,18 +122,47 @@ const DEFAULT_SERIES_TYPE: Record<ChartSeriesKey, 'line' | 'bar'> = {
   fwvReportada: 'line',
   fwvEstimada: 'line',
   fwvCalculada: 'line',
-  bant: 'line',
-  bht: 'line',
-  bpa: 'line',
-  bsr: 'line',
+  bant: 'bar',
+  bht: 'bar',
+  bpa: 'bar',
+  bsr: 'bar',
 };
 
-// Ancho FIJO de cada barra, en px. Con eje de tiempo lineal e intervalos irregulares (rachas de
-// registros muy juntos y luego huecos largos), el dimensionado por porcentaje deja las barras
-// minúsculas: Chart.js toma el menor hueco entre dos fechas como referencia de todo el ancho.
-// Por eso lo fijamos. La separación entre barras contiguas la da el contorno de cada barra
-// (cfg.border); si aún se confunden, baja BAR_THICKNESS o el windowSize (menos puntos = más aire).
-const BAR_THICKNESS = 10;
+// Ancho FIJO de cada barra, en px (valor base, sin zoom — ver barThicknessScale). Con eje de
+// tiempo lineal e intervalos irregulares (rachas de registros muy juntos y luego huecos largos),
+// el dimensionado por porcentaje deja las barras minúsculas: Chart.js toma el menor hueco entre
+// dos fechas como referencia de todo el ancho. Por eso lo fijamos.
+const BAR_THICKNESS = 14;
+// Con barThickness fijo, Chart.js reserva un "carril" de BAR_THICKNESS por barra y lo pinta
+// completo: las barras agrupadas del mismo punto X quedan pegadas, sin hueco propio. Pintar
+// menos que el carril (maxBarThickness) dejando la barra centrada en él sí abre una separación
+// visible entre barras contiguas.
+const BAR_GAP = 2;
+const BAR_MAX_THICKNESS = BAR_THICKNESS - BAR_GAP;
+
+// Al hacer zoom (plugin, banda FWV/microbiología/dosis) la ventana temporal visible se acorta,
+// pero el nº de puntos del dataset no cambia: sin esto las barras quedarían con su ancho base
+// aunque sobre mucho más espacio horizontal por punto tras el zoom. Raíz cuadrada = crecimiento
+// suave; techo en 2.5x para no desbordar en el zoom máximo (nivel 10). Se aplica de forma
+// imperativa sobre las instancias vivas (ver constructor) para no reinicializar el <p-chart> en
+// cada paso de zoom.
+function barThicknessScale(zoomLevel: number): number {
+  return Math.min(2.5, Math.max(1, Math.sqrt(zoomLevel)));
+}
+
+interface BarSizedDataset {
+  type?: string;
+  barThickness?: number;
+  maxBarThickness?: number;
+}
+
+function applyBarScale(chart: Chart, scale: number): void {
+  for (const ds of chart.data.datasets as BarSizedDataset[]) {
+    if (ds.type !== 'bar') continue;
+    ds.barThickness = BAR_THICKNESS * scale;
+    ds.maxBarThickness = BAR_MAX_THICKNESS * scale;
+  }
+}
 
 function seriesHasData(rows: ThpsChartRow[], cfg: BandSeriesConfig): boolean {
   return rows.some((r) => r[cfg.key] != null);
@@ -154,17 +188,31 @@ function yDomainOf(
 function buildLinearDataset(rows: ThpsChartRow[], cfg: BandSeriesConfig, type: 'line' | 'bar') {
   // Barras: relleno claro (color) + contorno más oscuro (border) en los 4 lados.
   // Líneas: el trazo usa el color de borde (para líneas border === color).
-  return lineOrBarDataset({
+  const dataset = lineOrBarDataset({
     label: cfg.label,
     type,
     stroke: chartToken(cfg.border),
     fill: chartToken(cfg.color),
     yAxisID: cfg.yAxisID ?? 'y',
+    dashed: cfg.dashed,
     barThickness: BAR_THICKNESS,
+    maxBarThickness: BAR_MAX_THICKNESS,
     barBorderWidth: 1.5,
     barBorderRadius: 2,
     data: rows.map((r) => ({ x: r.timestamp, y: r[cfg.key] })),
   });
+  if (type !== 'line' || !cfg.hollowMarker) return dataset;
+  // Marcador hueco (círculo blanco + contorno del color de la serie), sin relleno de área —
+  // mismo lenguaje visual que la serie "media" de physicochemistry/overview.
+  return {
+    ...dataset,
+    pointStyle: 'circle',
+    pointRadius: 3.5,
+    pointHoverRadius: 5,
+    pointBackgroundColor: chartToken('--color-white'),
+    pointBorderColor: chartToken(cfg.border),
+    pointBorderWidth: 2,
+  };
 }
 
 // Escala log10: 0 real (bacteria no detectada) no es graficable (log(0) indefinido). Se sustituye SOLO
@@ -371,19 +419,25 @@ export class ThpsTolerance {
     // Inyecta la config de zoom en cada banda viva (imperativo, no vía `options` nuevas, para
     // no reinicializar los `<p-chart>` al cambiar de modo). Re-aplica el rango de zoom
     // persistido cuando `bands()` recrea una gráfica (mover slider, toggles, datos nuevos).
+    // También reaplica el ancho de barra según el zoom vigente (barThicknessScale): igual que
+    // el zoom, imperativo sobre la instancia viva para no reinicializar el <p-chart> en cada
+    // paso — por eso corre en cada pasada, no sólo cuando cambia `mode`.
     afterEveryRender(() => {
       const mode = this.bandMode();
       const bounds = this.bandZoomBounds();
+      const barScale = barThicknessScale(this.bandZoomLevel());
       for (const c of this.liveCharts()) {
-        if (this.configuredBands.get(c) === mode) continue;
-        this.configuredBands.set(c, mode);
-        (c.options.plugins ??= {}).zoom = buildZoomOptions({
-          mode,
-          axisMode: 'x',
-          onZoomComplete: (src) => this.syncBandZoom(src),
-          onPanComplete: (src) => this.syncBandZoom(src),
-        });
-        if (bounds) c.zoomScale('x', { min: bounds[0], max: bounds[1] }, 'none');
+        if (this.configuredBands.get(c) !== mode) {
+          this.configuredBands.set(c, mode);
+          (c.options.plugins ??= {}).zoom = buildZoomOptions({
+            mode,
+            axisMode: 'x',
+            onZoomComplete: (src) => this.syncBandZoom(src),
+            onPanComplete: (src) => this.syncBandZoom(src),
+          });
+          if (bounds) c.zoomScale('x', { min: bounds[0], max: bounds[1] }, 'none');
+        }
+        applyBarScale(c, barScale);
         c.update('none');
       }
     });
@@ -532,11 +586,11 @@ export class ThpsTolerance {
         color: 'warning',
       },
       {
-        title: 'Eventos con dosis real',
-        value: summary.eventsWithRealDoseCount,
-        unit: `/ ${summary.totalRecords}`,
-        subtitle: 'Registros con dosis inyectada medida',
-        icon: 'fa-regular fa-calendar-check',
+        title: 'FWV calculada (mediana)',
+        value: summary.calculatedFwvMedian,
+        unit: 'ppm',
+        subtitle: 'Mediana del periodo filtrado',
+        icon: 'fa-solid fa-water',
         color: 'danger',
       },
     ];
