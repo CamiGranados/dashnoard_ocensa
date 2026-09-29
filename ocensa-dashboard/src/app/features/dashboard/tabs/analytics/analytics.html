@@ -1,0 +1,244 @@
+<div class="analytics-container">
+  <div class="analytics-header">
+    <div class="header-left">
+      <h1 class="dashboard-title">Analítica</h1>
+      <span class="header-subtitle">
+        Control de biocida: variables de proceso el día de cada inyección, comparadas entre
+        ventanas controladas y no controladas.
+      </span>
+    </div>
+  </div>
+
+  <!-- ================= Eficacia del biocida (biocide-efficacy) ================= -->
+  <div class="analytics-efficacy">
+    <h2 class="analytics-boxes__title">Eficacia del biocida</h2>
+
+    @if (efficacy.isLoading()) {
+      <p>Cargando eficacia del biocida…</p>
+    } @else if (efficacy.error()) {
+      <p>No se pudo cargar la eficacia del biocida.</p>
+    } @else if (hasEfficacyData()) {
+      <div class="metrics-grid">
+        @for (metric of efficacyMetrics(); track metric.title) {
+          <app-kpi-card
+            [label]="metric.title"
+            [value]="metric.value"
+            [unit]="metric.unit"
+            [caption]="metric.subtitle"
+            [icon]="metric.icon"
+            [accent]="metric.color"
+          />
+        }
+      </div>
+
+      <div class="analytics-efficacy__grid">
+        <div class="analytics-table-panel analytics-efficacy__table">
+          <div class="analytics-table-panel__head">
+            <div class="analytics-table-panel__titles">
+              <h3 class="analytics-table-title">Eficacia por bacteria planctónica</h3>
+              <p class="analytics-table-subtitle">Evaluación individual vs. ventana global compuesta</p>
+            </div>
+            <span class="analytics-badge">{{ totalSamplesCount() }} muestras totales</span>
+          </div>
+
+          <p-table [value]="bacteriaRows()" styleClass="analytics-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Bacteria</th>
+                <th>% control (ventana)</th>
+                <th>No Muestras</th>
+                <th>% fuera de control (muestra)</th>
+                <th>% control (muestra)</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr [class.analytics-row--total]="row.key === null">
+                <td>
+                  <div class="analytics-bacteria-cell">
+                    @if (bacteriaColor(row); as color) {
+                      <span class="analytics-bacteria-indicator" [style.color]="color">
+                        <span class="analytics-bacteria-indicator__pulse"></span>
+                      </span>
+                    }
+                    <span class="analytics-bacteria-cell__code">{{ row.label }}</span>
+                    @if (bacteriaDescription(row); as desc) {
+                      <span class="analytics-bacteria-cell__desc">({{ desc }})</span>
+                    }
+                  </div>
+                </td>
+                <td>{{ row.windowControlPercent != null ? (row.windowControlPercent | number: '1.0-1') + '%' : '—' }}</td>
+                <td>{{ row.samplesCount }}</td>
+                <td class="analytics-cell--control">
+                  {{ row.sampleOutOfControlPercent != null ? (row.sampleOutOfControlPercent | number: '1.0-1') + '%' : '—' }}
+                </td>
+                <td>
+                  @if (row.sampleControlPercent != null) {
+                    <div class="analytics-dist">
+                      <div class="analytics-dist-bar">
+                        <div class="analytics-dist-bar__fill" [style.width.%]="row.sampleControlPercent"></div>
+                      </div>
+                      <span class="analytics-dist__value">{{ row.sampleControlPercent | number: '1.0-1' }}%</span>
+                    </div>
+                  } @else {
+                    —
+                  }
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5">Sin registros para los filtros seleccionados.</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+
+        <div class="analytics-box-card analytics-efficacy__chart">
+          <app-chart-frame
+            title="THPS promedio por estado"
+            subtitle="Concentración residual promedio de principio activo (%)"
+            [bare]="true"
+            bodyHeight="240px"
+            [tools]="boxTools"
+            exportName="biocida-thps-por-estado"
+          >
+            @if (thpsStatusChart().hasData) {
+              <p-chart
+                type="bar"
+                [data]="thpsStatusChart().data"
+                [options]="thpsStatusChart().options"
+                [plugins]="thpsStatusChart().plugins"
+              />
+            } @else {
+              <div class="analytics-box-card__empty">
+                <i class="pi pi-chart-bar"></i>
+                <p>Sin datos suficientes.</p>
+              </div>
+            }
+            @if (thpsDelta(); as delta) {
+              <p class="analytics-thps-delta">
+                Diferencia entre estados: <strong>{{ delta > 0 ? '+' : '' }}{{ delta | number: '1.1-1' }} p.p.</strong>
+                de THPS promedio (no controlado vs. controlado)
+              </p>
+            }
+          </app-chart-frame>
+        </div>
+      </div>
+    } @else {
+      <p>Sin datos de eficacia para los filtros seleccionados.</p>
+    }
+  </div>
+
+  <!-- ================= Control de biocida (variables por estado de control) ================= -->
+  @if (review.isLoading()) {
+    <p>Cargando control de biocida…</p>
+  } @else if (review.error()) {
+    <p>No se pudo cargar el control de biocida.</p>
+  } @else if (windows().length) {
+    <div class="metrics-grid">
+      @for (metric of metrics(); track metric.title) {
+        <app-kpi-card
+          [label]="metric.title"
+          [value]="metric.value"
+          [unit]="metric.unit"
+          [caption]="metric.subtitle"
+          [icon]="metric.icon"
+          [accent]="metric.color"
+        />
+      }
+    </div>
+
+    <div class="analytics-boxes">
+      <div class="analytics-boxes__head">
+        <div class="analytics-boxes__titles">
+          <h2 class="analytics-boxes__title">Variables de proceso por estado de control</h2>
+          <p class="analytics-boxes__subtitle">
+            Comparativa de rangos intercuartiles (IQR), medianas y valores atípicos (outliers).
+          </p>
+        </div>
+        <div class="analytics-boxes__legend">
+          <span class="analytics-boxes__legend-label">Grupos:</span>
+          <app-chart-legend [items]="legendItems" />
+        </div>
+      </div>
+
+      <div class="analytics-boxes__grid">
+        @for (chart of boxCharts(); track chart.variable) {
+          <div class="analytics-box-card">
+            <app-chart-frame
+              [title]="chart.label"
+              [bare]="true"
+              bodyHeight="240px"
+              [tools]="boxTools"
+              [exportName]="'biocida-' + chart.variable"
+            >
+              @if (chart.hasData) {
+                <p-chart [type]="$any('boxplot')" [data]="chart.data" [options]="chart.options" />
+              } @else {
+                <div class="analytics-box-card__empty">
+                  <i class="pi pi-chart-bar"></i>
+                  <p>Sin datos suficientes.</p>
+                </div>
+              }
+            </app-chart-frame>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="analytics-table-panel">
+      <h3 class="analytics-table-title">Ventanas de inyección</h3>
+      <p-table [value]="windows()" [paginator]="windows().length > 10" [rows]="10" styleClass="analytics-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha inyección</th>
+            <th>Estado</th>
+            <th>Días desde última inyección</th>
+            <th>THPS (%)</th>
+            <th>BSW (%)</th>
+            <th>Dosis inyectada</th>
+            <th>Temperatura (°C)</th>
+            <th>Volumen real</th>
+            <th>pH</th>
+            <th>H2S</th>
+            <th>Conductividad</th>
+            <th>Alcalinidad</th>
+            <th>Calcio</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-w>
+          <tr>
+            <td>{{ w.injectionDate | date: "d 'de' MMM 'de' y" }}</td>
+            <td>
+              @if (w.controlled === true) {
+                <span class="analytics-status analytics-status--ok">Controlado</span>
+              } @else if (w.controlled === false) {
+                <span class="analytics-status analytics-status--bad">No controlado</span>
+              } @else {
+                <span class="analytics-status analytics-status--unknown">Sin evaluar</span>
+              }
+            </td>
+            <td>{{ w.daysSinceLastInjection ?? '—' }}</td>
+            <td>{{ w.thpsPercent ?? '—' }}</td>
+            <td>{{ w.bswPercent ?? '—' }}</td>
+            <td>{{ w.actualInjectedDose ?? '—' }}</td>
+            <td>{{ w.temperatureC ?? '—' }}</td>
+            <td>{{ w.realVolume ?? '—' }}</td>
+            <td>{{ w.ph ?? '—' }}</td>
+            <td>{{ w.h2S ?? '—' }}</td>
+            <td>{{ w.conductivity ?? '—' }}</td>
+            <td>{{ w.alkalinity ?? '—' }}</td>
+            <td>{{ w.calcium ?? '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="13">Sin registros para los filtros seleccionados.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  } @else {
+    <p>Selecciona un tanque para ver el control de biocida.</p>
+  }
+</div>

@@ -54,3 +54,16 @@ export const FWV_TOKEN: Record<FwvKey, string> = {
   calculada: '--chart-fwv-calculada',
   incrementada: '--chart-fwv-incrementada',
 };
+
+/** Control de biocida (analytics): estado de la ventana de inyección. Par trazo/relleno. */
+export type BiocideGroupKey = 'controlled' | 'notControlled';
+
+export const BIOCIDE_GROUP_TOKEN: Record<BiocideGroupKey, string> = {
+  controlled: '--chart-biocide-controlled',
+  notControlled: '--chart-biocide-not-controlled',
+};
+
+export const BIOCIDE_GROUP_FILL_TOKEN: Record<BiocideGroupKey, string> = {
+  controlled: '--chart-biocide-controlled-fill',
+  notControlled: '--chart-biocide-not-controlled-fill',
+};

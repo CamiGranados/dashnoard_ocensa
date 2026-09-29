@@ -46,57 +46,6 @@
 
 
   <div class="layout">
-    <!-- <aside class="col-left panel last-values">
-      <h4 class="last-values__title">Porqué un tanque requiere atención</h4>
-      <p class="last-values__subtitle">Valores reales y criterios transparentes; esta vista no crea un ranking.</p>
-      <div class="last-values_panel">
-        <div class="last-values__header">
-          <div class="last-values__icon">
-            <img src="images/drop.png" alt="" />
-          </div>
-          <div class="last-values__heading">
-            <h3 class="last-values__title">Últimos valores registrados</h3>
-            <p class="last-values__subtitle">
-              @if (lastMeasurementDate()) {
-                corte {{ lastMeasurementDate() | date: "d 'de' MMM 'de' y" }}
-              } @else {
-                Sin fecha de corte disponible
-              }
-            </p>
-          </div>
-        </div>
-
-        <div class="last-values-list">
-          @for (row of lastValueRows(); track row.key) {
-            <div class="last-value-row">
-              <div class="last-value-row__main">
-                <span class="last-value-row__label">{{ row.label }}</span>
-                <span class="last-value-row__value">
-                  @if (row.value === null || row.value === undefined) {
-                    —
-                  } @else if (row.key === 'company') {
-                    {{ row.value }}
-                  } @else {
-                    {{ row.value | number: '1.0-2' }}
-                  }
-                </span>
-              </div>
-              <span class="last-value-row__date">
-                {{ row.date ? (row.date | date: "d 'de' MMM 'de' y") : '—' }}
-              </span>
-            </div>
-          }
-        </div>
-      </div>
-
-      <div class="last-values-note">
-        <i class="pi pi-info-circle last-values-note__icon"></i>
-        <span class="last-values-note__text">
-          Variación de agua = rango intercuartílico de FWV reportada.
-          Galones = mediana por aplicación; no suma mensual.
-        </span>
-      </div>
-    </aside> -->
     <main class="col-right">
       @if (summary.isLoading()) {
         <p>Cargando gráficas…</p>
@@ -249,94 +198,94 @@
               }
             </div> -->
 
-            @if (annualPeriods().length) {
+            @if (annualNodes().length) {
               <div class="ov-annual-scroll">
-                <table class="ov-annual-table">
-                  <thead>
+                <p-treetable
+                  [value]="annualNodes()"
+                  class="ov-annual-table"
+                  (onNodeExpand)="onAnnualNodeExpand($event)"
+                  (onNodeCollapse)="onAnnualNodeCollapse($event)"
+                >
+                  <ng-template pTemplate="header">
                     <tr>
-                      <th class="ov-annual-toggle-col"></th>
-                      <th>Año</th>
-                      <th>Agua contractual (bls)</th>
-                      <th>Period. contractual</th>
-                      <th>Dosis oferta (ppm)</th>
-                      <th>Gal. estim. oferta</th>
-                      <th>Agua línea base (bls)</th>
-                      <th>Period. línea base</th>
-                      <th>Dosis línea base (ppm)</th>
-                      <th>Gal. línea base</th>
+                      <th rowspan="2" class="ov-annual-th-anio">Año</th>
+                      <th colspan="4" class="ov-annual-group">Contractual</th>
+                      <th colspan="4" class="ov-annual-group ov-annual-col-divider">Línea base (Ejecutado)</th>
                     </tr>
-                  </thead>
-                  <tbody>
-                    @for (periodo of annualPeriods(); track periodo.anio) {
-                      <tr class="ov-annual-row">
-                        <td class="ov-annual-toggle-col">
-                          <button
-                            type="button"
-                            class="ov-annual-toggle"
-                            [attr.aria-expanded]="isYearExpanded(periodo.anio)"
-                            [attr.aria-label]="(isYearExpanded(periodo.anio) ? 'Contraer' : 'Expandir') + ' ' + periodo.anio"
-                            (click)="toggleYear(periodo.anio)"
-                          >
-                            <i class="pi" [ngClass]="isYearExpanded(periodo.anio) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
-                          </button>
+                    <tr>
+                      <th>Agua (bls)</th>
+                      <th>Period.</th>
+                      <th>Dosis (ppm)</th>
+                      <th>Gal. estim.</th>
+                      <th class="ov-annual-col-divider">Agua (bls)</th>
+                      <th>Period.</th>
+                      <th>Dosis (ppm)</th>
+                      <th>Gal.</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+                    @if (rowData.tipo === 'anio') {
+                      <tr [ttRow]="rowNode" class="ov-annual-row">
+                        <td class="ov-annual-year">
+                          <p-treeTableToggler [rowNode]="rowNode" />
+                          {{ rowData.anio }}
                         </td>
-                        <td class="ov-annual-year">{{ periodo.anio }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.aguaEstimadaContractualBls) }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.periodicidadContractualBachesMes) }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.dosisOfertaEconomicaPpm, '1.0-1') }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.galonesEstimadosOferta) }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.aguaEstimadaLineaBaseBls) }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.periodicidadLineaBase) }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.dosisLineaBase, '1.0-1') }}</td>
-                        <td>{{ numOrDash(periodo.condiciones.galonesEstimadosLineaBase) }}</td>
+                        <td>{{ numOrDash(rowData.condiciones.aguaEstimadaContractualBls) }}</td>
+                        <td>{{ numOrDash(rowData.condiciones.periodicidadContractualBachesMes) }}</td>
+                        <td>{{ numOrDash(rowData.condiciones.dosisOfertaEconomicaPpm, '1.0-1') }}</td>
+                        <td>{{ numOrDash(rowData.condiciones.galonesEstimadosOferta) }}</td>
+                        <td class="ov-annual-col-divider">
+                          {{ numOrDash(rowData.condiciones.aguaEstimadaLineaBaseBls) }}
+                        </td>
+                        <td>{{ numOrDash(rowData.condiciones.periodicidadLineaBase) }}</td>
+                        <td>{{ numOrDash(rowData.condiciones.dosisLineaBase, '1.0-1') }}</td>
+                        <td>{{ numOrDash(rowData.condiciones.galonesEstimadosLineaBase) }}</td>
                       </tr>
-                      @if (isYearExpanded(periodo.anio)) {
-                        <tr class="ov-annual-detail-row">
-                          <td class="ov-annual-toggle-col"></td>
-                          <td colspan="9">
-                            @if (periodo.ejecutado.length) {
-                              <table class="ov-annual-detail-table">
-                                <thead>
+                    } @else {
+                      <tr [ttRow]="rowNode" class="ov-annual-detail-row">
+                        <td colspan="9">
+                          @if (rowData.ejecutado.length) {
+                            <table class="ov-annual-detail-table">
+                              <thead>
+                                <tr>
+                                  <th>Mes</th>
+                                  <th>Agua real (bls)</th>
+                                  <th>Periodicidad real</th>
+                                  <th>Dosis real (ppm)</th>
+                                  <th>Galones reales</th>
+                                  <th class="ov-annual-toggle-col"></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (ej of rowData.ejecutado; track ej.mes) {
                                   <tr>
-                                    <th>Mes</th>
-                                    <th>Agua real (bls)</th>
-                                    <th>Periodicidad real</th>
-                                    <th>Dosis real (ppm)</th>
-                                    <th>Galones reales</th>
-                                    <th class="ov-annual-toggle-col"></th>
+                                    <td class="ov-annual-detail-month">{{ mesLabel(ej.mes) }}</td>
+                                    <td>{{ numOrDash(ej.aguaRealBls) }}</td>
+                                    <td>{{ ej.periodicidadReal }}</td>
+                                    <td>{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
+                                    <td>{{ numOrDash(ej.galonesReales) }}</td>
+                                    <td class="ov-annual-toggle-col">
+                                      <button
+                                        type="button"
+                                        class="ov-annual-detail-search"
+                                        [attr.aria-label]="'Ver detalle de inyección de ' + mesLabel(ej.mes)"
+                                        (click)="openMonthDetail(ej)"
+                                      >
+                                        <i class="pi pi-search"></i>
+                                      </button>
+                                    </td>
                                   </tr>
-                                </thead>
-                                <tbody>
-                                  @for (ej of periodo.ejecutado; track ej.mes) {
-                                    <tr>
-                                      <td class="ov-annual-detail-month">{{ mesLabel(ej.mes) }}</td>
-                                      <td>{{ numOrDash(ej.aguaRealBls) }}</td>
-                                      <td>{{ ej.periodicidadReal }}</td>
-                                      <td>{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
-                                      <td>{{ numOrDash(ej.galonesReales) }}</td>
-                                      <td class="ov-annual-toggle-col">
-                                        <button
-                                          type="button"
-                                          class="ov-annual-detail-search"
-                                          [attr.aria-label]="'Ver detalle de inyección de ' + mesLabel(ej.mes)"
-                                          (click)="openMonthDetail(ej)"
-                                        >
-                                          <i class="pi pi-search"></i>
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  }
-                                </tbody>
-                              </table>
-                            } @else {
-                              <p class="ov-annual-detail-empty">Sin ejecutado mensual para {{ periodo.anio }}.</p>
-                            }
-                          </td>
-                        </tr>
-                      }
+                                }
+                              </tbody>
+                            </table>
+                          } @else {
+                            <p class="ov-annual-detail-empty">Sin ejecutado mensual para {{ rowData.anio }}.</p>
+                          }
+                        </td>
+                      </tr>
                     }
-                  </tbody>
-                </table>
+                  </ng-template>
+                </p-treetable>
               </div>
             } @else {
               <div class="ov-chart-empty">

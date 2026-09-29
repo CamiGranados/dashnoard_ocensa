@@ -307,25 +307,54 @@
   padding-bottom: 0.25rem;
 }
 
-.ov-annual-table {
+/* <p-treetable> reemplaza la tabla plana + toggle manual: el árbol (año -> detalle) y el
+   ícono/estado de expandir los maneja PrimeNG; solo se ajusta tipografía/alineación para
+   mantener el mismo lenguaje visual que las demás mini-tablas de esta vista. Como el DOM lo
+   pinta el componente de PrimeNG (no el template de Overview), hace falta ::ng-deep.
+   OJO: sin `[scrollable]` — ese modo pinta header y body en DOS <table> independientes que
+   deben calcular el mismo ancho de columna por su cuenta; con 9 columnas y sin anchos fijos
+   se desincronizan y los títulos del header quedan superpuestos. Una sola <table> (modo por
+   defecto) más el scroll horizontal de `.ov-annual-scroll` da el mismo resultado sin el bug. */
+:host ::ng-deep .ov-annual-table .p-treetable-table {
   width: 100%;
+  font-size: 0.78rem;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.78rem;
 }
 
-.ov-annual-table th,
-.ov-annual-table td {
+:host ::ng-deep .ov-annual-table th,
+:host ::ng-deep .ov-annual-table td {
   padding: 0.5rem 0.6rem;
   text-align: right;
-  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.ov-annual-table thead th {
+:host ::ng-deep .ov-annual-table thead th {
   color: var(--color-muted);
   font-weight: 600;
   text-align: right;
+}
+
+/* Cabecera agrupada (2 filas): "Contractual" / "Línea base (Ejecutado)" por encima de las
+   4 métricas de cada escenario — mismo patrón visual de referencia del negocio. */
+:host ::ng-deep .ov-annual-table .ov-annual-group {
+  text-align: center;
+  color: var(--color-primary);
+  background: var(--color-accent-light);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+:host ::ng-deep .ov-annual-table .ov-annual-th-anio {
+  text-align: left;
+  vertical-align: bottom;
+}
+
+/* Separador vertical entre el bloque "Contractual" y "Línea base (Ejecutado)". */
+:host ::ng-deep .ov-annual-table .ov-annual-col-divider {
+  border-left: 2px solid var(--color-border);
 }
 
 .ov-annual-toggle-col {
@@ -334,34 +363,14 @@
   padding-right: 0 !important;
 }
 
-.ov-annual-year {
+:host ::ng-deep .ov-annual-table .ov-annual-year {
   text-align: left;
   color: var(--color-primary);
   font-weight: 700;
 }
 
-.ov-annual-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-}
-
-.ov-annual-toggle:hover {
+:host ::ng-deep .ov-annual-table .ov-annual-detail-row > td {
   background: var(--color-accent-light);
-  color: var(--color-primary);
-}
-
-.ov-annual-detail-row td {
-  background: var(--color-accent-light);
-  border-bottom: 2px solid var(--color-border);
   padding: 0.6rem 0.6rem 0.75rem;
 }
 
@@ -404,15 +413,19 @@
   height: 1.75rem;
   padding: 0;
   border: none;
-  background: transparent;
-  color: var(--color-muted);
+  /* background: transparent; */
+  /* color: var(--color-muted); */
+  background: #e8edf2;
+  color: #7a8a9a;
   cursor: pointer;
   border-radius: var(--radius-sm);
+  font-weight: 700;
 }
 
 .ov-annual-detail-search:hover {
-  background: var(--color-accent-light);
   color: var(--color-primary);
+  box-shadow: 2px 2px 5px #c8cdd2, -2px -2px 5px #ffffff;
+  font-weight: 800;
 }
 
 /* Popup de detalle de inyección (lupa de cada mes) */

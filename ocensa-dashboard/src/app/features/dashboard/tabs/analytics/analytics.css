@@ -1,0 +1,356 @@
+.analytics-container {
+  padding: 24px;
+  background-color: var(--color-background);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* --- Tarjetas de métrica: las pinta <app-kpi-card> --- */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* --- Grilla de boxplots (uno por variable) --- */
+.analytics-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.analytics-boxes__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.analytics-boxes__titles {
+  min-width: 0;
+}
+
+.analytics-boxes__title {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.analytics-boxes__subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.analytics-boxes__legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.analytics-boxes__legend-label {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.analytics-boxes__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .analytics-boxes__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .analytics-boxes__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-box-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.analytics-box-card__empty {
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-faint);
+}
+
+.analytics-box-card__empty i {
+  font-size: 1.75rem;
+}
+
+/* --- Tabla de ventanas de inyección --- */
+.analytics-table-panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  min-width: 0;
+}
+
+.analytics-table-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 16px;
+}
+
+.analytics-table-panel__titles {
+  min-width: 0;
+}
+
+.analytics-table-panel__titles .analytics-table-title {
+  margin-bottom: 0.2rem;
+}
+
+.analytics-table-subtitle {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.analytics-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  /* background: var(--color-gray-light);
+  color: var(--color-gray-dark); */
+  background: #fbf1e6;
+  color: #dc894d;
+  border: 1px solid #fbeacb;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.analytics-table-title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.analytics-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.analytics-status--ok {
+  background: var(--color-green-light);
+  color: var(--color-green-dark);
+}
+
+.analytics-status--bad {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+.analytics-status--unknown {
+  background: var(--color-gray-light);
+  color: var(--color-gray-dark);
+}
+
+/* --- Eficacia del biocida (biocide-efficacy) --- */
+.analytics-efficacy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.analytics-efficacy__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .analytics-efficacy__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-efficacy__table {
+  min-width: 0;
+  font-size: 12px;
+}
+
+/* Datos centrados; la columna "Bacteria" (icono + nombre) se deja alineada a la izquierda */
+:host ::ng-deep .analytics-efficacy__table .p-datatable-thead > tr > th,
+:host ::ng-deep .analytics-efficacy__table .p-datatable-tbody > tr > td {
+  text-align: center;
+}
+
+:host ::ng-deep .analytics-efficacy__table .p-datatable-thead > tr > th:first-child,
+:host ::ng-deep .analytics-efficacy__table .p-datatable-tbody > tr > td:first-child {
+  text-align: left;
+}
+
+.analytics-efficacy__chart {
+  padding: 0.85rem;
+  min-width: 0;
+}
+
+.analytics-row--total td {
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-accent-light);
+  /* background: #eaf2f4; */
+}
+
+/* --- Celda "Bacteria": indicador con pulso (radar) + sigla + nombre completo --- */
+.analytics-bacteria-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.analytics-bacteria-cell__code {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.analytics-bacteria-cell__desc {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+.analytics-bacteria-indicator {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 3 anillos (::before, ::after y el span .pulse) con el mismo keyframe, desfasados 0.8s cada
+   uno sobre un ciclo de 2.4s: así siempre hay 2-3 ondas visibles a la vez (efecto sonar/radar),
+   en vez de una sola onda expandiéndose. */
+.analytics-bacteria-indicator::before,
+.analytics-bacteria-indicator::after,
+.analytics-bacteria-indicator__pulse {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: analytics-bacteria-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+.analytics-bacteria-indicator::after {
+  animation-delay: 0.8s;
+}
+
+.analytics-bacteria-indicator__pulse {
+  animation-delay: 1.6s;
+}
+
+@keyframes analytics-bacteria-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.35;
+  }
+  70%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-bacteria-indicator::before,
+  .analytics-bacteria-indicator::after,
+  .analytics-bacteria-indicator__pulse {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* --- "Distribución muestra": barra con el % fuera de control de esa bacteria --- */
+.analytics-dist {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 140px;
+}
+
+.analytics-dist-bar {
+  flex: 1;
+  min-width: 70px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--color-green-light);
+  overflow: hidden;
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.05));
+}
+
+.analytics-dist-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-green) 0%, var(--color-green-dark) 100%);
+}
+
+.analytics-dist__value {
+  flex-shrink: 0;
+  min-width: 2.8rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: right;
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.2));
+}
+
+
+/* --- Diferencia de THPS entre estados, bajo la gráfica de barras --- */
+.analytics-thps-delta {
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.analytics-thps-delta strong {
+  color: var(--color-primary);
+}

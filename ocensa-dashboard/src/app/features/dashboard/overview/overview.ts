@@ -5,10 +5,17 @@ import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { SliderModule } from 'primeng/slider';
 import { DialogModule } from 'primeng/dialog';
+import { TreeTableModule, TreeTableNodeCollapseEvent, TreeTableNodeExpandEvent } from 'primeng/treetable';
+import { TreeNode } from 'primeng/api';
 import { OverviewService } from '../../../core/services/overview.service';
 import { FiltersStateService } from '../../../core/services/filters-state.service';
 import { PhysicochemistryService } from '../../../core/services/physicochemistry.service';
-import { MicrobiologyKey, TankSummaryEjecutado, TankSummaryPeriod } from '../../../core/models/overview.model';
+import {
+  MicrobiologyKey,
+  TankSummaryCondiciones,
+  TankSummaryEjecutado,
+  TankSummaryPeriod,
+} from '../../../core/models/overview.model';
 import { PhysicalChemistryRecord } from '../../../core/models/physicochemistry.model';
 import { KpiCard, KpiAccent } from '../../../shared/components/kpi-card/kpi-card';
 import { ChartFrame } from '../../../shared/charts/chart-frame/chart-frame';
@@ -75,6 +82,12 @@ interface CorrosionYearPage {
   end: number;
 }
 
+// Nodo de la p-treeTable "Condiciones contractuales vs. ejecutado": una fila raíz por año
+// (condiciones pactadas) con un único hijo "detalle" que contiene el ejecutado mensual.
+type AnnualNodeData =
+  | { tipo: 'anio'; anio: number; condiciones: TankSummaryCondiciones }
+  | { tipo: 'detalle'; anio: number; ejecutado: TankSummaryEjecutado[] };
+
 @Component({
   selector: 'app-overview',
   imports: [
@@ -84,6 +97,7 @@ interface CorrosionYearPage {
     ChartModule,
     SliderModule,
     DialogModule,
+    TreeTableModule,
     KpiCard,
     ChartFrame,
   ],
@@ -592,17 +606,34 @@ export class Overview {
     [...(this.annualSummary()?.periodos ?? [])].sort((a, b) => a.anio - b.anio),
   );
 
-  // Años con el detalle mensual desplegado; vacío por defecto (todo colapsado).
+  // Años con el detalle mensual desplegado; vacío por defecto (todo colapsado). Se guarda
+  // aparte del árbol (no en `node.expanded`) para que sobreviva a un recómputo de
+  // `annualNodes` (p. ej. al cambiar de tanque/año no se pierde qué años tenía abiertos).
   private readonly expandedYears = signal<ReadonlySet<number>>(new Set());
 
-  isYearExpanded(anio: number): boolean {
-    return this.expandedYears().has(anio);
+  // Árbol de la p-treeTable: un nodo raíz por año (condiciones pactadas) con un único hijo
+  // "detalle" que renderiza el ejecutado mensual completo (ver pTemplate="body" en el html).
+  readonly annualNodes = computed<TreeNode<AnnualNodeData>[]>(() => {
+    const expanded = this.expandedYears();
+    return this.annualPeriods().map((periodo) => ({
+      data: { tipo: 'anio', anio: periodo.anio, condiciones: periodo.condiciones },
+      expanded: expanded.has(periodo.anio),
+      children: [{ data: { tipo: 'detalle', anio: periodo.anio, ejecutado: periodo.ejecutado } }],
+    }));
+  });
+
+  onAnnualNodeExpand(event: TreeTableNodeExpandEvent<AnnualNodeData>): void {
+    const anio = event.node.data?.anio;
+    if (anio == null) return;
+    this.expandedYears.update((years) => new Set(years).add(anio));
   }
 
-  toggleYear(anio: number): void {
+  onAnnualNodeCollapse(event: TreeTableNodeCollapseEvent<AnnualNodeData>): void {
+    const anio = event.node.data?.anio;
+    if (anio == null) return;
     this.expandedYears.update((years) => {
       const next = new Set(years);
-      next.has(anio) ? next.delete(anio) : next.add(anio);
+      next.delete(anio);
       return next;
     });
   }

@@ -23,9 +23,7 @@ export class Sidebar {
       expanded: true,
       items: [
         { label: 'Operación e Inyección', icon: 'pi pi-bolt', routerLink: '/corrosion'},
-        { label: 'Analítica', icon: 'pi pi-chart-bar',
-          items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
-        },
+        { label: 'Analítica', icon: 'pi pi-chart-bar', routerLink: '/analytics' },
       ],
     },
     {

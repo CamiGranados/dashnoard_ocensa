@@ -23,9 +23,16 @@ function isXYPoint(p: unknown): p is { x: number | string; y: number | null } {
   return typeof p === 'object' && p !== null && 'x' in p && 'y' in p;
 }
 
+/** Punto de un dataset `boxplot` (`@sgratzl/chartjs-chart-boxplot`): sin `x`/`y`, sólo estadísticos. */
+function isBoxPoint(p: unknown): p is { median: number } {
+  return typeof p === 'object' && p !== null && typeof (p as { median?: unknown }).median === 'number';
+}
+
 function pointValue(p: unknown): number | null {
   if (typeof p === 'number') return p;
   if (isXYPoint(p)) return typeof p.y === 'number' ? p.y : null;
+  // Sin un valor único natural (es una caja, no un punto): se exporta la mediana.
+  if (isBoxPoint(p)) return p.median;
   return null;
 }
 

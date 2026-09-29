@@ -1,5 +1,6 @@
 import Chart from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { BoxAndWiskers, BoxPlotController } from '@sgratzl/chartjs-chart-boxplot';
 import { chartToken } from './chart-tokens';
 
 let applied = false;
@@ -26,6 +27,10 @@ export function applyChartDefaults(): void {
   // registrarlo aquí no cambia el comportamiento de ninguna gráfica existente. Vive en este
   // archivo —el único que importa `chart.js/auto`— para no salir de los chunks lazy.
   Chart.register(zoomPlugin);
+
+  // Tipo de gráfica 'boxplot' (analytics: control de biocida). Mismo criterio que el zoom:
+  // registrarlo aquí no afecta a ninguna gráfica que no pida `type="boxplot"`.
+  Chart.register(BoxPlotController, BoxAndWiskers);
 
   const gridRaw = getComputedStyle(document.documentElement)
     .getPropertyValue('--chart-grid')

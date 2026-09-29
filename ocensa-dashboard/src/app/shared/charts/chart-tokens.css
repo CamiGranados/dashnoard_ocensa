@@ -74,6 +74,13 @@
   --chart-limite-control: #07a771; /* 10^2 UFC/mL en log10 */
   --chart-limite-residual: var(--color-orange-dark); /* 20 % contractual */
 
+  /* — Control de biocida (analytics): boxplot Controlado vs No controlado por variable.
+       Par trazo/relleno, igual convención que dosis-real/-fill. — */
+  --chart-biocide-controlled: #188a56;
+  --chart-biocide-controlled-fill: #bdead6;
+  --chart-biocide-not-controlled: #c0392b;
+  --chart-biocide-not-controlled-fill: #f5c2b8;
+
   /* — Cromo -> pasa a Chart.defaults en chart-defaults.ts — */
   --chart-grid: #eef2f7;
   --chart-axis-text: #6b7a99;

@@ -44,6 +44,11 @@ export const routes: Routes = [
                 m => m.Physicochemistry,
               ),
           },
+          {
+            path: 'analytics',
+            loadComponent: () =>
+              import('./features/dashboard/tabs/analytics/analytics').then(m => m.Analytics),
+          },
         ],
       },
     ],
