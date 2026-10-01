@@ -47,7 +47,20 @@
   --color-yellow:         #ea911a;
   --color-accent:         #003466;
   --color-white:           #ffffff;
+  --color-danger-row:     #fff7f7;
+  --color-warn-border:    #f2cf7a;
+  --color-info-light:     #e3f0fd;
 
+  /* bar-gradient */
+  --bar-gradient-green-oscuro: #147A3D;
+  --bar-gradient-green-claro: #38B56C;
+  --bar-gradient-green-texto: #1E8E4E;
+  --bar-gradient-orange-oscuro: #C2690A;
+  --bar-gradient-orange-claro: #F7A934;
+  --bar-gradient-orange-texto: #E08A12;
+  --bar-gradient-red-oscuro: #8C1F24;
+  --bar-gradient-red-claro: #D2504F;
+  --bar-gradient-red-texto: #B23A3A;
 
   /* Sombras */
   --shadow-sm: 0 2px 8px rgba(0, 52, 102, 0.06);

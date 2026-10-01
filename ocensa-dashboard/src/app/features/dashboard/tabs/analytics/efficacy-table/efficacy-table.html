@@ -1,0 +1,150 @@
+<div class="analytics-table-panel analytics-efficacy__table">
+  <div class="analytics-table-panel__head">
+    <div class="analytics-table-panel__titles">
+      <h3 class="analytics-table-title">Eficacia por grupo Microbiologico (Planctónicas)</h3>
+      <p class="analytics-table-subtitle">
+        Evaluación individual vs. ventana global compuesta · Criterio de tolerancia
+        contractual OCENSA
+      </p>
+    </div>
+    <span class="analytics-badge">{{ totalSamples() }} muestras totales</span>
+  </div>
+
+  <p-table [value]="rows()" styleClass="analytics-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Grupo Microbiologico</th>
+        <th>% control (ventana)</th>
+        <th>N° muestras</th>
+        <th>% fuera de control (muestra)</th>
+        <th>% control (muestra) &amp; eficacia</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      @let wLevel = windowLevel(row);
+      @let oLevel = outOfControlLevel(row);
+      @let role = bacteriaRole(row);
+      <tr
+        [class.analytics-row--total]="row.key === null"
+        [class.analytics-row--critical]="row.key !== null && wLevel?.tone === 'bad'"
+      >
+        <td>
+          <div class="analytics-bacteria-cell">
+            @if (bacteriaColor(row); as color) {
+              <span class="analytics-bacteria-indicator" [style.color]="color">
+                <span class="analytics-bacteria-indicator__pulse"></span>
+              </span>
+            }
+            @if (row.key === null) {
+              <i class="fa-solid fa-list-check analytics-bacteria-cell__total-icon"></i>
+            }
+            <div class="analytics-bacteria-cell__text">
+              <div class="analytics-bacteria-cell__line">
+                <span class="analytics-bacteria-cell__code">{{
+                  row.key === null ? 'Total Combinado' : row.label
+                }}</span>
+                @if (bacteriaDescription(row); as desc) {
+                  <span class="analytics-bacteria-cell__desc">({{ desc }})</span>
+                }
+              </div>
+              @if (role) {
+                <div class="analytics-bacteria-cell__role">
+                  <strong>{{ role.role }}</strong>
+                  <span>{{ role.impact }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </td>
+        <td>
+          @if (row.windowControlPercent != null) {
+            <div class="analytics-window">
+              <span class="analytics-window__value analytics-tone--{{ wLevel?.tone }}">
+                {{ row.windowControlPercent | number: '1.0-1' }}%
+              </span>
+              @if (row.key !== null && wLevel) {
+                <span class="analytics-tag analytics-tag--{{ wLevel.tone }}">
+                  {{ wLevel.label }}
+                </span>
+              }
+            </div>
+          } @else {
+            —
+          }
+        </td>
+        <td>
+          <span class="analytics-chip" [class.analytics-chip--total]="row.key === null">
+            @if (row.key !== null) {
+              <i class="fa-solid fa-jar"></i>
+            }
+            {{ row.samplesCount }}
+          </span>
+        </td>
+        <td>
+          @if (row.key === null && row.sampleOutOfControlPercent != null && oLevel) {
+            <span class="analytics-total-value analytics-tone--{{ oLevel.tone }}">
+              {{ row.sampleOutOfControlPercent | number: '1.0-1' }}%
+            </span>
+          } @else if (row.sampleOutOfControlPercent != null && oLevel) {
+            <span class="analytics-pill analytics-pill--{{ oLevel.tone }}">
+              <span class="analytics-pill__dot"></span>
+              <strong>{{ row.sampleOutOfControlPercent | number: '1.0-1' }}%</strong>
+              <span class="analytics-pill__level">({{ oLevel.label }})</span>
+            </span>
+          } @else {
+            —
+          }
+        </td>
+        <td>
+          @if (row.sampleControlPercent != null) {
+            @let eff = efficacyColor(row.sampleControlPercent);
+            <div class="analytics-eff analytics-eff--{{ eff }}">
+              <div class="analytics-eff__head">
+                <span class="analytics-eff__label">{{
+                  row.key === null ? 'Consolidado Sistema' : 'Eficacia THPS'
+                }}</span>
+                <span class="analytics-eff__value">
+                  {{ row.sampleControlPercent | number: '1.0-1' }}%
+                </span>
+              </div>
+              <div class="analytics-eff__bar">
+                <div
+                  class="analytics-eff__fill"
+                  [style.width.%]="row.sampleControlPercent"
+                ></div>
+                <span class="analytics-eff__goal" [style.left.%]="efficacyGoal"></span>
+              </div>
+            </div>
+          } @else {
+            —
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5">Sin registros para los filtros seleccionados.</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="summary">
+      <div class="analytics-legend">
+        <span class="analytics-legend__item">
+          <span class="analytics-legend__goal"></span>
+          Meta contractual OCENSA (≥ 80% control)
+        </span>
+        <span class="analytics-legend__item">
+          <span class="analytics-legend__dot analytics-legend__dot--ok"></span>
+          Rango Normal
+        </span>
+        <span class="analytics-legend__item">
+          <span class="analytics-legend__dot analytics-legend__dot--warn"></span>
+          Desviación Moderada
+        </span>
+        <span class="analytics-legend__item">
+          <span class="analytics-legend__dot analytics-legend__dot--bad"></span>
+          Crítico
+        </span>
+      </div>
+    </ng-template>
+  </p-table>
+</div>

@@ -22,9 +22,8 @@ import {
   chartToken,
   BIOCIDE_GROUP_TOKEN,
   BIOCIDE_GROUP_FILL_TOKEN,
-  PLANCTONICA_TOKEN,
-  PlanctonicaKey,
 } from '../../../../shared/charts/chart-tokens';
+import { EfficacyTable } from './efficacy-table/efficacy-table';
 import { barValueLabelsPlugin } from './analytics.plugins';
 
 
@@ -75,7 +74,7 @@ function bacteriaRow(
 
 @Component({
   selector: 'app-analytics',
-  imports: [CommonModule, TableModule, ChartModule, KpiCard, ChartLegend, ChartFrame],
+  imports: [CommonModule, TableModule, ChartModule, KpiCard, ChartLegend, ChartFrame, EfficacyTable],
   templateUrl: './analytics.html',
   styleUrl: './analytics.css',
 })
@@ -253,23 +252,6 @@ export class Analytics {
       bacteriaRow(null, 'Total Combinado', w.controlPercent, s.evaluatedSamplesCount, s.controlPercent, s.outOfControlPercent),
     ];
   });
-
-  /** Resuelve el swatch de color de una fila (PLANCTONICA_TOKEN; la fila "Total" no tiene uno propio). */
-  protected bacteriaColor(row: BacteriaEfficacyRow): string | null {
-    return row.key == null ? null : chartToken(PLANCTONICA_TOKEN[row.key]);
-  }
-
-  private static readonly BACTERIA_DESCRIPTIONS: Record<PlanctonicaKey, string> = {
-    bsr: 'Sulfatorreductoras',
-    bpa: 'Productoras Ácido',
-    bht: 'Heterótrofas Totales',
-    bant: 'Anaerobias Totales',
-  };
-
-  /** Nombre completo de la bacteria (fila "Total" no tiene uno propio). */
-  protected bacteriaDescription(row: BacteriaEfficacyRow): string | null {
-    return row.key == null ? null : Analytics.BACTERIA_DESCRIPTIONS[row.key];
-  }
 
   /** Total de muestras evaluadas (badge de la cabecera de la tabla de bacterias). */
   readonly totalSamplesCount = computed(() => this.bySample()?.evaluatedSamplesCount ?? 0);

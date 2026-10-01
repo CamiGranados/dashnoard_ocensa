@@ -1,0 +1,423 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.analytics-table-panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  min-width: 0;
+}
+
+.analytics-table-title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.analytics-table-subtitle{
+  margin: 0.2rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.analytics-badge{
+  padding: 8px;
+  background: #F8FAFC;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+}
+
+.analytics-table-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 16px;
+}
+
+.analytics-table-panel__titles {
+  min-width: 0;
+}
+
+.analytics-table-panel__titles .analytics-efficacy__table {
+  min-width: 0;
+  font-size: 12px;
+}
+
+/* Datos centrados; la columna "Bacteria" (icono + nombre) se deja alineada a la izquierda */
+:host ::ng-deep .analytics-efficacy__table .p-datatable-thead > tr > th,
+:host ::ng-deep .analytics-efficacy__table .p-datatable-tbody > tr > td {
+  text-align: center;
+}
+
+:host ::ng-deep .analytics-efficacy__table .p-datatable-thead > tr > th:first-child,
+:host ::ng-deep .analytics-efficacy__table .p-datatable-tbody > tr > td:first-child {
+  text-align: left;
+}
+
+/* Contorno externo redondeado de la tabla (overflow recorta header/total a las esquinas) */
+:host ::ng-deep .analytics-efficacy__table .p-datatable {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+/* 
+:host ::ng-deep .analytics-efficacy__table .p-datatable-table-container {
+  border-radius: var(--radius-md);
+} */
+
+/* Encabezado con el color primary */
+:host ::ng-deep .analytics-efficacy__table .p-datatable-thead > tr > th {
+  color: var(--color-gray-mid);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1rem 0.75rem;
+}
+
+:host ::ng-deep .analytics-efficacy__table .p-datatable-tbody > tr > td {
+  padding: 1rem 0.75rem;
+}
+
+.analytics-row--critical td {
+  background: var(--color-danger-row);
+}
+
+.analytics-row--total td {
+  font-weight: 700;
+  border-top: 1px solid var(--color-primary-light);
+  /* background: var(--color-accent-light); */
+  background: #F1F5F9;
+  color: var(--color-primary) !important;
+}
+
+/* --- Celda "Bacteria": indicador con pulso (radar) + sigla + nombre completo --- */
+.analytics-bacteria-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.analytics-bacteria-cell__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.analytics-bacteria-cell__line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.analytics-bacteria-cell__role {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--color-muted);
+}
+
+.analytics-bacteria-cell__role strong {
+  color: var(--color-accent-dark);
+  font-weight: 700;
+}
+
+.analytics-bacteria-cell__code {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-primary);
+}
+
+.analytics-bacteria-cell__desc {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.analytics-bacteria-indicator {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 3 anillos (::before, ::after y el span .pulse) con el mismo keyframe, desfasados 0.8s cada
+   uno sobre un ciclo de 2.4s: así siempre hay 2-3 ondas visibles a la vez (efecto sonar/radar),
+   en vez de una sola onda expandiéndose. */
+.analytics-bacteria-indicator::before,
+.analytics-bacteria-indicator::after,
+.analytics-bacteria-indicator__pulse {
+  content: '';
+  position: absolute;
+  inset: -1.8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: analytics-bacteria-pulse 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+.analytics-bacteria-indicator::after {
+  animation-delay: 0.8s;
+}
+
+.analytics-bacteria-indicator__pulse {
+  animation-delay: 1.6s;
+}
+
+@keyframes analytics-bacteria-pulse {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.35;
+  }
+  70%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-bacteria-indicator::before,
+  .analytics-bacteria-indicator::after,
+  .analytics-bacteria-indicator__pulse {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* --- Tonos compartidos (ok / bad / warn / info / neutral) --- */
+.analytics-tone--ok { color: var(--color-green-mid); }
+.analytics-tone--bad { color: var(--color-danger); }
+.analytics-tone--warn { color: var(--color-warn); }
+.analytics-tone--info { color: var(--color-accent-dark); }
+.analytics-tone--neutral { color: var(--color-gray-dark); }
+
+/* --- % control (ventana): valor grande + badge de estado --- */
+.analytics-window {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.analytics-window__value {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.analytics-tag {
+  padding: 0.1rem 0.55rem;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.analytics-tag--ok { background: var(--color-green-light); border-color: var(--color-green-mid); color: var(--color-green-dark); }
+.analytics-tag--bad { background: var(--color-danger-light); border-color: var(--color-danger); color: var(--color-danger); }
+.analytics-tag--info { background: var(--color-info-light); border-color: var(--color-primary-sub); color: var(--color-accent-dark); }
+.analytics-tag--neutral { background: var(--color-gray-light); border-color: var(--color-gray); color: var(--color-gray-dark); }
+
+/* --- N° muestras: chip con matraz --- */
+.analytics-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-accent-light);
+  color: var(--color-primary-mid);
+  font-weight: 700;
+  font-size: 13px;
+
+  i {
+    filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.08));
+  }
+}
+
+/* --- Fila "Total Combinado" --- */
+.analytics-bacteria-cell__total-icon {
+  font-size: 16px;
+  color: var(--color-primary);
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.08));
+}
+
+.analytics-chip--total {
+  background: var(--color-primary-light);
+  border-color: transparent;
+  color: var(--color-gray-dark);
+}
+
+.analytics-total-value {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* --- Pie: leyenda + norma --- */
+:host ::ng-deep .analytics-efficacy__table .p-datatable-tfoot,
+:host ::ng-deep .analytics-efficacy__table .p-datatable-summary {
+  padding: 0.9rem 1rem;
+  background: var(--color-white);
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.analytics-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.analytics-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.analytics-legend__goal {
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  background: #94A3B8;
+}
+
+.analytics-legend__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.analytics-legend__dot--ok { background: var(--color-green-mid); }
+.analytics-legend__dot--warn { background: var(--color-warn); }
+.analytics-legend__dot--bad { background: var(--color-danger); }
+
+.analytics-norma {
+  margin: 0.75rem 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+/* --- % fuera de control: pill con punto + nivel --- */
+.analytics-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.analytics-pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.analytics-pill__level {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.analytics-pill--ok { background: var(--color-green-light); border-color: var(--color-green-mid); color: var(--color-green-dark); }
+.analytics-pill--bad { background: var(--color-danger-light); border-color: var(--color-danger); color: var(--color-danger); }
+.analytics-pill--warn { background: var(--color-warn-light); border-color: var(--color-warn-border); color: var(--color-warn); }
+.analytics-pill--neutral { background: var(--color-gray-light); border-color: var(--color-gray); color: var(--color-gray-dark); }
+.analytics-pill--info { background: var(--color-info-light); border-color: var(--color-primary-sub); color: var(--color-accent-dark); }
+
+/* --- Eficacia THPS: color por regla (getEfficacyColor) en barra y texto --- */
+.analytics-eff {
+  --eff-color: var(--color-gray-mid);
+  --eff-color-oscuro: var(--color-gray-mid);
+  --eff-color-claro: var(--color-gray-mid);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 150px;
+  text-align: left;
+}
+
+.analytics-eff--red {
+  --eff-color: var(--bar-gradient-red-texto);
+  --eff-color-oscuro: var(--bar-gradient-red-oscuro);
+  --eff-color-claro: var(--bar-gradient-red-claro);
+}
+.analytics-eff--amber {
+  --eff-color: var(--bar-gradient-orange-texto);
+  --eff-color-oscuro: var(--bar-gradient-orange-oscuro);
+  --eff-color-claro: var(--bar-gradient-orange-claro);
+}
+.analytics-eff--green {
+  --eff-color: var(--bar-gradient-green-texto);
+  --eff-color-oscuro: var(--bar-gradient-green-oscuro);
+  --eff-color-claro: var(--bar-gradient-green-claro);
+}
+
+.analytics-eff__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.analytics-eff__label {
+  color: var(--color-muted);
+}
+
+.analytics-eff__value {
+  color: var(--eff-color);
+  font-weight: 800;
+}
+
+.analytics-eff__bar {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-primary-light);
+}
+
+.analytics-eff__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--eff-color-oscuro) 0%, var(--eff-color-claro) 100%);
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.06))
+}
+
+.analytics-eff__goal {
+  position: absolute;
+  top: -1.1px;
+  bottom: -1.1px;
+  width: 2px;
+  background: var(--color-accent);
+  border-radius: 1px;
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.08))
+}

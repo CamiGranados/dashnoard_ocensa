@@ -32,66 +32,10 @@
       </div>
 
       <div class="analytics-efficacy__grid">
-        <div class="analytics-table-panel analytics-efficacy__table">
-          <div class="analytics-table-panel__head">
-            <div class="analytics-table-panel__titles">
-              <h3 class="analytics-table-title">Eficacia por bacteria planctónica</h3>
-              <p class="analytics-table-subtitle">Evaluación individual vs. ventana global compuesta</p>
-            </div>
-            <span class="analytics-badge">{{ totalSamplesCount() }} muestras totales</span>
-          </div>
-
-          <p-table [value]="bacteriaRows()" styleClass="analytics-table">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Bacteria</th>
-                <th>% control (ventana)</th>
-                <th>No Muestras</th>
-                <th>% fuera de control (muestra)</th>
-                <th>% control (muestra)</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-row>
-              <tr [class.analytics-row--total]="row.key === null">
-                <td>
-                  <div class="analytics-bacteria-cell">
-                    @if (bacteriaColor(row); as color) {
-                      <span class="analytics-bacteria-indicator" [style.color]="color">
-                        <span class="analytics-bacteria-indicator__pulse"></span>
-                      </span>
-                    }
-                    <span class="analytics-bacteria-cell__code">{{ row.label }}</span>
-                    @if (bacteriaDescription(row); as desc) {
-                      <span class="analytics-bacteria-cell__desc">({{ desc }})</span>
-                    }
-                  </div>
-                </td>
-                <td>{{ row.windowControlPercent != null ? (row.windowControlPercent | number: '1.0-1') + '%' : '—' }}</td>
-                <td>{{ row.samplesCount }}</td>
-                <td class="analytics-cell--control">
-                  {{ row.sampleOutOfControlPercent != null ? (row.sampleOutOfControlPercent | number: '1.0-1') + '%' : '—' }}
-                </td>
-                <td>
-                  @if (row.sampleControlPercent != null) {
-                    <div class="analytics-dist">
-                      <div class="analytics-dist-bar">
-                        <div class="analytics-dist-bar__fill" [style.width.%]="row.sampleControlPercent"></div>
-                      </div>
-                      <span class="analytics-dist__value">{{ row.sampleControlPercent | number: '1.0-1' }}%</span>
-                    </div>
-                  } @else {
-                    —
-                  }
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="5">Sin registros para los filtros seleccionados.</td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
+        <app-efficacy-table
+          [rows]="bacteriaRows()"
+          [totalSamples]="totalSamplesCount()"
+        />
 
         <div class="analytics-box-card analytics-efficacy__chart">
           <app-chart-frame
