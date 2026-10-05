@@ -10,6 +10,8 @@
   box-shadow: var(--shadow-sm);
   padding: 20px;
   min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .analytics-table-title {

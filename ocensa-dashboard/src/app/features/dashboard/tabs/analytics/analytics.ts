@@ -17,14 +17,19 @@ import { KpiCard, KpiAccent } from '../../../../shared/components/kpi-card/kpi-c
 import { ChartLegend, ChartLegendItem } from '../../../../shared/charts/chart-legend/chart-legend';
 import { ChartFrame } from '../../../../shared/charts/chart-frame/chart-frame';
 import { ChartTool } from '../../../../shared/charts/chart-toolbar/chart-toolbar';
+import { formatFullDate } from '../../../../shared/charts/chart-dates';
 import { applyChartDefaults } from '../../../../shared/charts/chart-defaults';
 import {
   chartToken,
   BIOCIDE_GROUP_TOKEN,
   BIOCIDE_GROUP_FILL_TOKEN,
 } from '../../../../shared/charts/chart-tokens';
+import { BoxplotCard, formatBoxNumber } from '../../../../shared/charts/boxplot-card/boxplot-card';
+import { boxAnnotationsPlugin, BoxAnnotationsOptions } from '../../../../shared/charts/boxplot-card/boxplot-annotations.plugin';
+import { boxplotStatsFromGroup } from '../../../../shared/charts/boxplot-stats';
 import { EfficacyTable } from './efficacy-table/efficacy-table';
 import { barValueLabelsPlugin } from './analytics.plugins';
+import { boxVariableConfig } from './boxplot-variables.config';
 
 
 const GROUP_LABELS = ['Controlado', 'No controlado'];
@@ -74,7 +79,7 @@ function bacteriaRow(
 
 @Component({
   selector: 'app-analytics',
-  imports: [CommonModule, TableModule, ChartModule, KpiCard, ChartLegend, ChartFrame, EfficacyTable],
+  imports: [CommonModule, TableModule, ChartModule, KpiCard, ChartLegend, ChartFrame, EfficacyTable, BoxplotCard],
   templateUrl: './analytics.html',
   styleUrl: './analytics.css',
 })
@@ -157,13 +162,59 @@ export class Analytics {
       chartToken(BIOCIDE_GROUP_FILL_TOKEN.notControlled),
     ];
     const border = [chartToken(BIOCIDE_GROUP_TOKEN.controlled), chartToken(BIOCIDE_GROUP_TOKEN.notControlled)];
+    const windows = this.windows();
+    const font = `10px ${chartToken('--chart-font-mono', 'monospace')}`;
 
     return this.variables().map((v) => {
+      const cfg = boxVariableConfig(v.variable, v.label);
+      const rows = cfg
+        ? windows.filter((w) => typeof w[cfg.field] === 'number')
+        : [];
+      const rawOf = (controlled: boolean) =>
+        rows.filter((w) => w.controlled === controlled).map((w) => w[cfg!.field] as number);
+
       const points = [toBoxPoint(v.controlled), toBoxPoint(v.notControlled)];
+      const shownGroup: 0 | 1 = v.notControlled ? 1 : 0;
+      const stats = boxplotStatsFromGroup(
+        shownGroup === 1 ? v.notControlled : v.controlled,
+        cfg ? rawOf(shownGroup === 0) : [],
+      );
+      const outlierCount = (v.controlled?.outliers.length ?? 0) + (v.notControlled?.outliers.length ?? 0);
+
+      // Fecha de cada outlier del grupo mostrado (si se puede cruzar con las ventanas).
+      const shownRows = rows.filter((w) => w.controlled === (shownGroup === 0));
+      const outliers = (stats?.outliers ?? []).map((value) => {
+        const win = cfg ? shownRows.find((w) => w[cfg.field] === value) : undefined;
+        const date = win ? formatFullDate(win.injectionDate) : '';
+        return { value, text: date ? `${formatBoxNumber(value)} · ${date}` : formatBoxNumber(value) };
+      });
+
+      const annotations: BoxAnnotationsOptions = {
+        groupIndex: shownGroup,
+        stats,
+        format: formatBoxNumber,
+        font,
+        textColor: chartToken('--chart-bx-annot', '#6b7a99'),
+        outlierColor: chartToken('--chart-bx-outlier', '#d92d20'),
+        limitColor: chartToken('--chart-bx-limit', '#d92d20'),
+        bandColor: chartToken('--chart-bx-band', 'rgba(24,138,86,0.1)'),
+        outliers,
+        band: cfg?.safeBand ?? null,
+        limit: cfg?.limit ?? null,
+      };
+      const refValues = [cfg?.limit, cfg?.safeBand?.min, cfg?.safeBand?.max].filter((n): n is number => n != null);
+
       return {
         variable: v.variable,
         label: v.label,
+        color: chartToken(cfg?.colorToken ?? '--color-primary', '#1c4463'),
         hasData: points.some((p) => p != null),
+        shownGroup,
+        stats,
+        outlierCount,
+        spreadMetric: cfg?.spreadMetric ?? 'sigma',
+        limit: cfg?.limit ?? null,
+        plugins: [boxAnnotationsPlugin],
         data: {
           labels: GROUP_LABELS,
           datasets: [
@@ -173,26 +224,40 @@ export class Analytics {
               backgroundColor: bg,
               borderColor: border,
               borderWidth: 1.5,
-              outlierBackgroundColor: border,
-              outlierBorderColor: border,
+              medianColor: chartToken('--chart-biocide-median', '#2563eb'),
+              outlierBackgroundColor: chartToken('--chart-bx-outlier', '#d92d20'),
+              outlierBorderColor: chartToken('--chart-bx-outlier', '#d92d20'),
+              outlierRadius: 3,
               itemRadius: 0,
+              barPercentage: 0.5,
+              categoryPercentage: 0.9,
             },
           ],
         },
         options: {
           responsive: true,
           animation: false,
+          layout: { padding: { top: 14, bottom: 14, left: 2, right: 2 } },
           plugins: {
             legend: { display: false },
+            boxAnnotations: annotations,
             tooltip: {
               callbacks: {
+                title: (items: { dataIndex: number }[]) => GROUP_LABELS[items[0]?.dataIndex ?? 0],
                 label: (ctx: { raw: unknown }) => boxTooltipLines(ctx.raw as BoxPoint | null),
               },
             },
           },
           scales: {
-            x: { ticks: { maxRotation: 0, autoSkip: false } },
-            y: { grace: '5%' },
+            x: { display: false },
+            y: {
+              display: false,
+              grid: { display: false },
+              grace: '10%',
+              ...(refValues.length
+                ? { suggestedMin: Math.min(...refValues), suggestedMax: Math.max(...refValues) }
+                : {}),
+            },
           },
         },
       };
@@ -307,6 +372,49 @@ export class Analytics {
           y: { title: { display: true, text: 'THPS (%)' }, grace: '5%' },
         },
       },
+    };
+  });
+
+  // Diagnóstico de principio activo, derivado de THPS por estado y % de control de ventana.
+  // Los umbrales de los textos (90 % consumo, 50/80 % de control) son criterio de presentación
+  // del frontend, no vienen del backend.
+  readonly activeDiagnosis = computed(() => {
+    const rows = this.thpsByControlStatus();
+    const controlled = rows.find((r) => r.controlled) ?? null;
+    const notControlled = rows.find((r) => !r.controlled) ?? null;
+    if (!controlled && !notControlled) return null;
+
+    const consumed = controlled ? 100 - controlled.averageThpsPercent : null;
+    const delta = this.thpsDelta();
+    const falseResidual = delta != null && delta > 0;
+
+    const windowControl = this.byInjectionWindow()?.controlPercent ?? null;
+    const correlation =
+      windowControl == null
+        ? null
+        : {
+            percent: windowControl,
+            label: windowControl < 50 ? 'Crítico' : windowControl < 80 ? 'Moderado' : 'Óptimo',
+            tone: windowControl < 50 ? 'danger' : windowControl < 80 ? 'warn' : 'ok',
+          };
+
+    return {
+      efficiency: {
+        title: consumed != null && consumed >= 90 ? 'Consumo Óptimo' : 'Consumo Parcial',
+        tone: consumed != null && consumed >= 90 ? 'ok' : 'warn',
+        detail:
+          consumed != null
+            ? `${consumed.toFixed(1)}% de molécula activa consumida en erradicación.`
+            : 'Sin muestras controladas para estimar el consumo.',
+      },
+      emulsion: {
+        title: falseResidual ? 'Falso Residual' : 'Sin Falso Residual',
+        tone: falseResidual ? 'warn' : 'ok',
+        detail: falseResidual
+          ? 'THPS acumulado sin contacto efectivo con biofilm activo.'
+          : 'El THPS residual no supera al de las muestras controladas.',
+      },
+      correlation,
     };
   });
 

@@ -1,0 +1,71 @@
+@if (expanded()) {
+  <div class="bx-backdrop" (click)="expanded.set(false)"></div>
+}
+
+<article class="bx-card" [class.bx-card--expanded]="expanded()" [style.--bx-color]="chart().color">
+  <header class="bx-head">
+    <span class="bx-dot" aria-hidden="true"></span>
+    <h3 class="bx-title">{{ title() }}</h3>
+    <div class="bx-actions">
+      <button type="button" class="bx-icon-btn" aria-label="Descargar gráfica" title="Descargar" [disabled]="!chart().hasData" (click)="download()">
+        <i class="pi pi-download"></i>
+      </button>
+      <button
+        type="button"
+        class="bx-icon-btn"
+        [attr.aria-label]="expanded() ? 'Cerrar pantalla completa' : 'Expandir'"
+        [title]="expanded() ? 'Cerrar' : 'Expandir'"
+        (click)="expanded.set(!expanded())"
+      >
+        <i class="pi" [class.pi-window-maximize]="!expanded()" [class.pi-window-minimize]="expanded()"></i>
+      </button>
+    </div>
+  </header>
+
+  @if (chart().hasData && chart().stats; as s) {
+    <div class="bx-sub">
+      <span class="bx-iqr">IQR: <span class="bx-mono">{{ fmt(s.q1) }} – {{ fmt(s.q3) }}</span></span>
+      <span class="bx-median">
+        <strong class="bx-mono">{{ fmt(s.median) }}</strong>
+        <small>Med</small>
+      </span>
+    </div>
+
+    <div class="bx-plot-box">
+      <div class="bx-plot">
+        <p-chart
+          [type]="$any('boxplot')"
+          [data]="chart().data"
+          [options]="chart().options"
+          [plugins]="$any(chart().plugins)"
+          width="100%"
+          height="100%"
+        />
+      </div>
+      <div class="bx-cats">
+        <span class="bx-cat" [class.bx-cat--active]="chart().shownGroup === 0">Control</span>
+        <span class="bx-cat" [class.bx-cat--active]="chart().shownGroup === 1">No Control</span>
+      </div>
+    </div>
+
+    <footer class="bx-foot">
+      <span class="bx-status" [attr.data-state]="footerState()">
+        <i
+          class="pi"
+          [class.pi-check-circle]="footerState() === 'stable'"
+          [class.pi-exclamation-triangle]="footerState() === 'outliers' || footerState() === 'dispersion'"
+          [class.pi-times-circle]="footerState() === 'limit'"
+        ></i>
+        {{ footerText() }}
+      </span>
+      @if (spreadText(); as spread) {
+        <span class="bx-mono bx-spread">{{ spread }}</span>
+      }
+    </footer>
+  } @else {
+    <div class="bx-empty">
+      <i class="pi pi-chart-bar"></i>
+      <p>Sin datos suficientes.</p>
+    </div>
+  }
+</article>

@@ -69,19 +69,25 @@
 
 .analytics-boxes__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
-@media (max-width: 900px) {
+@media (min-width: 600px) {
   .analytics-boxes__grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 600px) {
+@media (min-width: 1000px) {
   .analytics-boxes__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1400px) {
+  .analytics-boxes__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
@@ -187,7 +193,7 @@
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (max-width: 900px) {
@@ -212,4 +218,86 @@
 
 .analytics-thps-delta strong {
   color: var(--color-primary);
+}
+
+/* --- Diagnóstico de principio activo, bajo la gráfica de THPS por estado --- */
+.analytics-diagnosis {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.analytics-diagnosis__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.analytics-diagnosis__header h4 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.analytics-diagnosis__method {
+  color: var(--color-primary-muted);
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.analytics-diagnosis__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.65rem;
+}
+
+.analytics-diagnosis__card {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-white);
+}
+
+.analytics-diagnosis__label {
+  display: block;
+  color: var(--color-gray-dark);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.analytics-diagnosis__title {
+  display: block;
+  margin: 0.25rem 0;
+  font-size: 1rem;
+}
+
+.analytics-diagnosis__card p {
+  margin: 0;
+  color: var(--color-gray-dark);
+  font-size: 0.78rem;
+}
+
+.analytics-diagnosis__footer {
+  margin: 0.75rem 0 0;
+  color: var(--color-gray-dark);
+  font-size: 0.78rem;
+}
+
+.analytics-diagnosis [data-tone='ok'] {
+  color: var(--color-green-mid);
+}
+
+.analytics-diagnosis [data-tone='warn'] {
+  color: var(--color-orange);
+}
+
+.analytics-diagnosis [data-tone='danger'] {
+  color: var(--color-danger);
 }

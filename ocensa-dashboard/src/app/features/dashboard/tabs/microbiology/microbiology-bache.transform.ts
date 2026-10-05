@@ -25,9 +25,9 @@ export interface BacheSample {
 }
 
 export interface BacheGroup {
-  // Fecha del Prebache que gobierna el bache. Si el grupo no tiene Prebache propio (p.ej. un
-  // Postbache suelto), se arrastra la del último Prebache visto -> la fecha "se repite" hasta
-  // que aparece un nuevo Prebache.
+  // Fecha del Prebache del bache ANTERIOR (el "último bache" respecto al actual). El primer
+  // bache no tiene anterior -> null ('—'). Si el grupo no tiene Prebache propio (p.ej. un
+  // Postbache suelto), se arrastra el valor vigente -> la fecha "se repite".
   ultimoBacheDate: Date | null;
   ultimoBacheLabel: string;
   // Muestras del ciclo ordenadas cronológicamente (Pre, Post, Seg 1, Seg 2…).
@@ -96,17 +96,20 @@ function finalizeGroup(group: WorkingGroup, lastPrebacheDate: Date | null): Bach
 /**
  * Agrupa por evento de bacheo: un Prebache abre un bache nuevo; el Postbache y los Seguimientos
  * siguientes se acumulan en ese mismo bache. Un segundo Postbache sin Prebache de por medio abre
- * otro bache (que hereda la fecha del último Prebache -> "se repite"). Los puntos previos al
- * primer Prebache forman su propio bache con ultimoBacheDate en null ('—').
+ * otro bache (que hereda la fecha vigente -> "se repite"). El título "ÚLTIMO BACHE" muestra la
+ * fecha del Prebache del bache anterior; el primer bache y los puntos previos al primer Prebache
+ * quedan con ultimoBacheDate en null ('—').
  */
 export function buildBacheGroups(points: TimelinePoint[]): BacheGroup[] {
   const groups: BacheGroup[] = [];
   let current: WorkingGroup | null = null;
+  // Fecha del Prebache del bache ANTERIOR: es la que se muestra en el título "ÚLTIMO BACHE".
   let lastPrebacheDate: Date | null = null;
+  let previousPrebacheDate: Date | null = null;
 
   const flush = () => {
     if (current && current.samples.length) {
-      groups.push(finalizeGroup(current, lastPrebacheDate));
+      groups.push(finalizeGroup(current, previousPrebacheDate));
     }
     current = null;
   };
@@ -114,6 +117,7 @@ export function buildBacheGroups(points: TimelinePoint[]): BacheGroup[] {
   for (const point of points) {
     if (point.category === 'Prebache') {
       flush();
+      previousPrebacheDate = lastPrebacheDate;
       lastPrebacheDate = point.date;
       current = { samples: [toSample(point, 'Pre')] };
     } else if (point.category === 'Postbache') {

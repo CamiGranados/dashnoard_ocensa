@@ -168,13 +168,13 @@
           }
 
           <!-- 3. Condiciones contractuales vs. ejecutado, por año -->
-          <section class="ov-chart-card">
-            <div class="last-values__header">
-              <div class="last-values__icon">
-                <i class="fa-solid fa-table-list "></i>
+          <section class="ov-chart-card ov-annual-card">
+            <div class="ov-annual-header">
+              <div class="ov-annual-icon">
+                <i class="fa-solid fa-table-list"></i>
               </div>
-              <div class="last-values__heading">
-                <h3 class="last-values__title">Condiciones contractuales vs. Ejecutado</h3>
+              <div class="ov-annual-heading">
+                <h3 class="ov-annual-title">Condiciones contractuales vs. Ejecutado</h3>
                 @if (annualSummary(); as tk) {
                   <span class="ov-annual-sub">
                     {{ tk.tanque }}
@@ -184,8 +184,16 @@
                   </span>
                 }
               </div>
+              <!-- Acciones solo visuales (sin lógica asociada todavía) -->
+              <div class="ov-annual-actions">
+                <button type="button" class="ov-annual-action" aria-label="Filtrar" title="Filtrar">
+                  <i class="pi pi-filter" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="ov-annual-action" aria-label="Expandir" title="Expandir">
+                  <i class="pi pi-window-maximize" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
-            <hr style="border:0; height: 1px; background: var(--color-gray-mid); width: 100%; margin: 0px 0px 10px 0px; border-radius: 5px; opacity: 0.2" />
             <!-- <div class="ov-annual-head">
               <h3 class="ov-chart-title">Condiciones contractuales vs. ejecutado</h3>
               @if (annualSummary(); as tk) {
@@ -209,37 +217,37 @@
                   <ng-template pTemplate="header">
                     <tr>
                       <th rowspan="2" class="ov-annual-th-anio">Año</th>
-                      <th colspan="4" class="ov-annual-group">Contractual</th>
+                      <th colspan="4" class="ov-annual-group ov-annual-group--contract">Contractual</th>
                       <th colspan="4" class="ov-annual-group ov-annual-col-divider">Línea base (Ejecutado)</th>
                     </tr>
-                    <tr>
+                    <tr class="ov-annual-subhead">
                       <th>Agua (bls)</th>
-                      <th>Period.</th>
+                      <th class="ov-annual-left">Period.</th>
                       <th>Dosis (ppm)</th>
                       <th>Gal. estim.</th>
                       <th class="ov-annual-col-divider">Agua (bls)</th>
-                      <th>Period.</th>
+                      <th class="ov-annual-left">Period.</th>
                       <th>Dosis (ppm)</th>
                       <th>Gal.</th>
                     </tr>
                   </ng-template>
                   <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
                     @if (rowData.tipo === 'anio') {
-                      <tr [ttRow]="rowNode" class="ov-annual-row">
+                      <tr [ttRow]="rowNode" class="ov-annual-row" [class.is-expanded]="rowNode.expanded">
                         <td class="ov-annual-year">
                           <p-treeTableToggler [rowNode]="rowNode" />
                           {{ rowData.anio }}
                         </td>
-                        <td>{{ numOrDash(rowData.condiciones.aguaEstimadaContractualBls) }}</td>
-                        <td>{{ numOrDash(rowData.condiciones.periodicidadContractualBachesMes) }}</td>
-                        <td>{{ numOrDash(rowData.condiciones.dosisOfertaEconomicaPpm, '1.0-1') }}</td>
-                        <td>{{ numOrDash(rowData.condiciones.galonesEstimadosOferta) }}</td>
-                        <td class="ov-annual-col-divider">
+                        <td class="ov-annual-contract">{{ numOrDash(rowData.condiciones.aguaEstimadaContractualBls) }}</td>
+                        <td class="ov-annual-contract ov-annual-left">{{ numOrDash(rowData.condiciones.periodicidadContractualBachesMes) }}</td>
+                        <td class="ov-annual-contract">{{ numOrDash(rowData.condiciones.dosisOfertaEconomicaPpm, '1.0-1') }}</td>
+                        <td class="ov-annual-contract ov-annual-contract--gal">{{ numOrDash(rowData.condiciones.galonesEstimadosOferta) }}</td>
+                        <td class="ov-annual-base ov-annual-col-divider">
                           {{ numOrDash(rowData.condiciones.aguaEstimadaLineaBaseBls) }}
                         </td>
-                        <td>{{ numOrDash(rowData.condiciones.periodicidadLineaBase) }}</td>
-                        <td>{{ numOrDash(rowData.condiciones.dosisLineaBase, '1.0-1') }}</td>
-                        <td>{{ numOrDash(rowData.condiciones.galonesEstimadosLineaBase) }}</td>
+                        <td class="ov-annual-base ov-annual-left">{{ numOrDash(rowData.condiciones.periodicidadLineaBase) }}</td>
+                        <td class="ov-annual-base">{{ numOrDash(rowData.condiciones.dosisLineaBase, '1.0-1') }}</td>
+                        <td class="ov-annual-base">{{ numOrDash(rowData.condiciones.galonesEstimadosLineaBase) }}</td>
                       </tr>
                     } @else {
                       <tr [ttRow]="rowNode" class="ov-annual-detail-row">
@@ -248,31 +256,33 @@
                             <table class="ov-annual-detail-table">
                               <thead>
                                 <tr>
-                                  <th>Mes</th>
+                                  <th class="ov-annual-detail-month">Mes</th>
                                   <th>Agua real (bls)</th>
-                                  <th>Periodicidad real</th>
+                                  <th class="ov-annual-left">Periodicidad real</th>
                                   <th>Dosis real (ppm)</th>
                                   <th>Galones reales</th>
-                                  <th class="ov-annual-toggle-col"></th>
                                 </tr>
                               </thead>
                               <tbody>
                                 @for (ej of rowData.ejecutado; track ej.mes) {
+                                  <!-- .row-alert / .row-warning existen en el CSS pero aún no se enlazan: falta definir la regla de negocio. -->
                                   <tr>
                                     <td class="ov-annual-detail-month">{{ mesLabel(ej.mes) }}</td>
-                                    <td>{{ numOrDash(ej.aguaRealBls) }}</td>
-                                    <td>{{ ej.periodicidadReal }}</td>
-                                    <td>{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
-                                    <td>{{ numOrDash(ej.galonesReales) }}</td>
-                                    <td class="ov-annual-toggle-col">
-                                      <button
-                                        type="button"
-                                        class="ov-annual-detail-search"
-                                        [attr.aria-label]="'Ver detalle de inyección de ' + mesLabel(ej.mes)"
-                                        (click)="openMonthDetail(ej)"
-                                      >
-                                        <i class="pi pi-search"></i>
-                                      </button>
+                                    <td class="ov-annual-detail-water" [class.is-empty]="ej.aguaRealBls == null">{{ numOrDash(ej.aguaRealBls) }}</td>
+                                    <td class="ov-annual-left" [class.is-zero]="ej.periodicidadReal === 0">{{ ej.periodicidadReal }}</td>
+                                    <td [class.is-empty]="ej.dosisRealPpm == null">{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
+                                    <td [class.is-empty]="ej.galonesReales == null">
+                                      <span class="ov-annual-gal">
+                                        {{ numOrDash(ej.galonesReales) }}
+                                        <button
+                                          type="button"
+                                          class="ov-annual-detail-search"
+                                          [attr.aria-label]="'Ver detalle de inyección de ' + mesLabel(ej.mes)"
+                                          (click)="openMonthDetail(ej)"
+                                        >
+                                          <i class="pi pi-search"></i>
+                                        </button>
+                                      </span>
                                     </td>
                                   </tr>
                                 }
@@ -286,6 +296,24 @@
                     }
                   </ng-template>
                 </p-treetable>
+              </div>
+
+              <!-- Paginador solo maquetado (no existe paginación real: la tabla muestra todos los años) -->
+              <div class="ov-annual-footer">
+                <span class="ov-annual-footer-info">
+                  Mostrando 1 a {{ annualNodes().length }} de {{ annualNodes().length }} resultados
+                </span>
+                <div class="ov-annual-pager">
+                  <button type="button" class="ov-annual-pager-btn" aria-label="Anterior" disabled>
+                    <i class="pi pi-angle-left"></i>
+                  </button>
+                  <button type="button" class="ov-annual-pager-btn" aria-label="Siguiente" disabled>
+                    <i class="pi pi-angle-right"></i>
+                  </button>
+                  <button type="button" class="ov-annual-pager-size" aria-label="Filas por página">
+                    10 <i class="pi pi-angle-down"></i>
+                  </button>
+                </div>
               </div>
             } @else {
               <div class="ov-chart-empty">
@@ -358,24 +386,18 @@
           }
 
           <!-- 5. Resumen de control microbiológico -->
-          <section class="ov-chart-card ov-chart-card--wide">
-            <div class="last-values__header">
+          <section class="ov-chart-card ov-chart-card--wide ov-micro-card">
+            <div class="ov-micro-header">
               <div class="last-values__icon">
                 <i class="fa-solid fa-microscope "></i>
               </div>
-              <div class="last-values__heading">
-                <h3 class="last-values__title">Resumen de control microbiológico</h3>
-                @if (microGrid(); as g) {
-                  <span class="ov-micro-kpi">
-                    <span class="ov-micro-kpi-dot"></span>
-                    {{ g.controlPercent != null ? (g.controlPercent | number: '1.0-0') : '—' }}% del
-                    periodo en control ({{ g.inControl }} de {{ g.total }})
-                  </span>
-                }
+              <div class="ov-micro-heading">
+                <h3 class="ov-micro-title">Resumen de control microbiológico</h3>
+                <span class="ov-micro-sub">
+                  Cada celda: mediciones dentro de <strong>10² Bact/mL</strong> sobre el total del
+                  mes analizado.
+                </span>
               </div>
-            </div>
-            <!-- <div class="ov-micro-head">
-              <h3 class="ov-chart-title">Resumen de control microbiológico</h3>
               @if (microGrid(); as g) {
                 <span class="ov-micro-kpi">
                   <span class="ov-micro-kpi-dot"></span>
@@ -383,18 +405,14 @@
                   periodo en control ({{ g.inControl }} de {{ g.total }})
                 </span>
               }
-            </div> -->
+            </div>
 
             @if (microGrid(); as g) {
-              <p class="ov-micro-sub">
-                Cada celda: mediciones dentro de 10² Bact/mL sobre el total del mes.
-              </p>
-
               <div class="ov-micro-scroll">
                 <table class="ov-micro-table">
                   <thead>
                     <tr>
-                      <th class="ov-micro-corner"></th>
+                      <th class="ov-micro-corner">Cepa / Variable</th>
                       @for (col of g.columns; track col.key) {
                         <th class="ov-micro-month" [class.is-current]="col.isCurrent">
                           {{ col.label }}
@@ -403,7 +421,7 @@
                           }
                         </th>
                       }
-                      <th class="ov-micro-month">Total periodo</th>
+                      <th class="ov-micro-month ov-micro-month--total">Total periodo</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -414,7 +432,11 @@
                           <span>{{ row.long }}</span>
                         </th>
                         @for (cell of row.cells; track $index) {
-                          <td>
+                          <td
+                            [ngClass]="
+                              cell.sampled && cell.total ? pctClass((cell.ok / cell.total) * 100) : ''
+                            "
+                          >
                             @if (cell.sampled) {
                               <span class="ov-micro-count">{{ cell.ok }}/{{ cell.total }}</span>
                             } @else {
@@ -445,7 +467,7 @@
                         <strong>Todas las variables</strong>
                       </th>
                       @for (tc of g.totalCells; track $index) {
-                        <td>
+                        <td [ngClass]="tc.sampled ? pctClass(tc.percent) : ''">
                           @if (tc.sampled) {
                             <span [ngClass]="['ov-micro-pct', pctClass(tc.percent)]">
                               {{ tc.percent != null ? (tc.percent | number: '1.0-0') + '%' : '—' }}
@@ -477,10 +499,39 @@
                 </table>
               </div>
 
-              <ul class="ov-micro-legend">
-                <li>Cada celda: mediciones dentro de límite / total del mes.</li>
-                <li><span class="ov-micro-none">—</span> Sin muestreo</li>
-              </ul>
+              <!-- Footer de paginación (solo maquetado, igual que la tarjeta de condiciones) -->
+              <div class="ov-annual-footer">
+                <span class="ov-annual-footer-info">
+                  Mostrando 1 a {{ g.rows.length }} de {{ g.rows.length }} cepas evaluadas ({{
+                    g.columns.length
+                  }}
+                  periodos)
+                </span>
+                <div class="ov-annual-pager">
+                  <button type="button" class="ov-annual-pager-btn" aria-label="Anterior" disabled>
+                    <i class="pi pi-angle-left"></i>
+                  </button>
+                  <button type="button" class="ov-annual-pager-btn" aria-label="Siguiente" disabled>
+                    <i class="pi pi-angle-right"></i>
+                  </button>
+                  <button type="button" class="ov-annual-pager-size" aria-label="Filas por página">
+                    10 <i class="pi pi-angle-down"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="ov-micro-legend">
+                <ul class="ov-micro-legend-items">
+                  <li class="ov-micro-legend-title">Convenciones de Control:</li>
+                  <li><span class="ov-micro-swatch is-ok"></span> Control Óptimo (≥ 80%)</li>
+                  <li><span class="ov-micro-swatch is-warn"></span> Alerta Moderada (40% - 80%)</li>
+                  <li><span class="ov-micro-swatch is-bad"></span> Fuera de Control (&lt; 40%)</li>
+                  <li class="ov-micro-legend-none">— Sin Muestreo / Parada Programada</li>
+                </ul>
+                <span class="ov-micro-legend-ref">
+                  Normativa de referencia: <strong>NACE TM0194 / API RP 38</strong>
+                </span>
+              </div>
             } @else {
               <div class="ov-chart-empty">
                 <i class="pi pi-table"></i>

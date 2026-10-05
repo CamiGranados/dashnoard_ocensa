@@ -1,6 +1,7 @@
 // biocide-control.model.ts
 // Coincide con BiocideControlResponseDto (backend). Endpoint: /Tanks/biocide-control.
 import { KpiAccent } from '../../shared/components/kpi-card/kpi-card';
+import { BoxplotStats } from '../../shared/charts/boxplot-stats';
 
 export interface BiocideControlWindow {
   injectionDate: string; // ISO
@@ -75,10 +76,25 @@ export interface BoxPoint {
   count: number;
 }
 
+/** Qué dispersión muestra el pie de la tarjeta: σ o coeficiente de variación. */
+export type BoxSpreadMetric = 'sigma' | 'cv';
+
 export interface VariableBoxChart {
   variable: string;
   label: string;
+  /** Color propio de la variable (ya resuelto desde su token): punto, mediana y "Med". */
+  color: string;
   hasData: boolean;
+  /** Índice del grupo que resume el subtítulo: 1 = No controlado, 0 = Controlado (si es el único con datos). */
+  shownGroup: 0 | 1;
+  /** Estadísticas del grupo mostrado (subtítulo, anotaciones, σ/CV). */
+  stats: BoxplotStats | null;
+  /** Outliers sumados de ambos grupos (pie de tarjeta). */
+  outlierCount: number;
+  spreadMetric: BoxSpreadMetric;
+  /** Umbral configurado de la variable (si lo hay): activa "Supera límite". */
+  limit: number | null;
   data: { labels: string[]; datasets: unknown[] };
   options: Record<string, unknown>;
+  plugins: unknown[];
 }

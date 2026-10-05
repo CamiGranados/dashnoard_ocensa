@@ -42,7 +42,7 @@
             title="THPS promedio por estado"
             subtitle="Concentración residual promedio de principio activo (%)"
             [bare]="true"
-            bodyHeight="240px"
+            bodyHeight="390px"
             [tools]="boxTools"
             exportName="biocida-thps-por-estado"
           >
@@ -66,6 +66,39 @@
               </p>
             }
           </app-chart-frame>
+
+          @if (activeDiagnosis(); as d) {
+            <section class="analytics-diagnosis">
+              <header class="analytics-diagnosis__header">
+                <h4>Diagnóstico de principio activo</h4>
+                <span class="analytics-diagnosis__method">Método HPLC UV-Vis</span>
+              </header>
+              <div class="analytics-diagnosis__grid">
+                <div class="analytics-diagnosis__card">
+                  <span class="analytics-diagnosis__label">Eficiencia biocida</span>
+                  <strong class="analytics-diagnosis__title" [attr.data-tone]="d.efficiency.tone">
+                    {{ d.efficiency.title }}
+                  </strong>
+                  <p>{{ d.efficiency.detail }}</p>
+                </div>
+                <div class="analytics-diagnosis__card">
+                  <span class="analytics-diagnosis__label">Riesgo en emulsión</span>
+                  <strong class="analytics-diagnosis__title" [attr.data-tone]="d.emulsion.tone">
+                    {{ d.emulsion.title }}
+                  </strong>
+                  <p>{{ d.emulsion.detail }}</p>
+                </div>
+              </div>
+              @if (d.correlation; as c) {
+                <p class="analytics-diagnosis__footer">
+                  Correlación Dosis vs. Eficacia Global
+                  <strong [attr.data-tone]="c.tone">
+                    {{ c.percent | number: '1.0-1' }}% control ventana ({{ c.label }})
+                  </strong>
+                </p>
+              }
+            </section>
+          }
         </div>
       </div>
     } @else {
@@ -108,24 +141,7 @@
 
       <div class="analytics-boxes__grid">
         @for (chart of boxCharts(); track chart.variable) {
-          <div class="analytics-box-card">
-            <app-chart-frame
-              [title]="chart.label"
-              [bare]="true"
-              bodyHeight="240px"
-              [tools]="boxTools"
-              [exportName]="'biocida-' + chart.variable"
-            >
-              @if (chart.hasData) {
-                <p-chart [type]="$any('boxplot')" [data]="chart.data" [options]="chart.options" />
-              } @else {
-                <div class="analytics-box-card__empty">
-                  <i class="pi pi-chart-bar"></i>
-                  <p>Sin datos suficientes.</p>
-                </div>
-              }
-            </app-chart-frame>
-          </div>
+          <app-boxplot-card [chart]="chart" />
         }
       </div>
     </div>

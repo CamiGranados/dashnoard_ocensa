@@ -80,6 +80,20 @@
   --chart-biocide-controlled-fill: #bdead6;
   --chart-biocide-not-controlled: #c0392b;
   --chart-biocide-not-controlled-fill: #f5c2b8;
+  --chart-biocide-median: #2563eb;
+
+  /* — Tarjeta boxplot (analytics): color de la variable (punto + mediana destacada) y cromo. — */
+  --chart-bx-thps: #447da2;
+  --chart-bx-bsw: #0e9aa7;
+  --chart-bx-dosis: #5b8fd0;
+  --chart-bx-volumen: #7c5cc4;
+  --chart-bx-annot: #6b7a99;
+  --chart-bx-outlier: #d92d20;
+  --chart-bx-band: rgba(24, 138, 86, 0.1);
+  --chart-bx-limit: #d92d20;
+  --chart-bx-stable: #188a56;
+  --chart-bx-warn: #d98a0b;
+  --chart-font-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, Consolas, monospace;
 
   /* — Cromo -> pasa a Chart.defaults en chart-defaults.ts — */
   --chart-grid: #eef2f7;

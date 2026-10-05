@@ -5,7 +5,7 @@ export interface BarValueLabelsOptions {
   format: (value: number, index: number) => string;
 }
 
-/** Etiqueta con el valor de cada barra, dibujada encima de ella (analytics: THPS promedio por
+/** Etiqueta con el valor de cada barra, dibujada encima de ella (o a su derecha si el eje es horizontal) (analytics: THPS promedio por
  *  estado de control — 2 barras, sin espacio para una leyenda de datos aparte). */
 export const barValueLabelsPlugin: Plugin<'bar'> = {
   id: 'barValueLabels',
@@ -19,8 +19,9 @@ export const barValueLabelsPlugin: Plugin<'bar'> = {
     const { ctx } = chart;
     ctx.save();
     ctx.font = '700 12px Inter, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
+    const horizontal = chart.options.indexAxis === 'y';
+    ctx.textAlign = horizontal ? 'left' : 'center';
+    ctx.textBaseline = horizontal ? 'middle' : 'bottom';
 
     meta.data.forEach((element, index) => {
       const raw = dataset.data[index];
@@ -28,7 +29,9 @@ export const barValueLabelsPlugin: Plugin<'bar'> = {
       const color = Array.isArray(dataset.borderColor) ? dataset.borderColor[index] : (dataset.borderColor ?? '#1f3a52');
       ctx.fillStyle = color as string;
       const point = element as unknown as { x: number; y: number };
-      ctx.fillText(options.format(raw, index), point.x, point.y - 6);
+      const text = options.format(raw, index);
+      if (horizontal) ctx.fillText(text, point.x + 6, point.y);
+      else ctx.fillText(text, point.x, point.y - 6);
     });
 
     ctx.restore();
