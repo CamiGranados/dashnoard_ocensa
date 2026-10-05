@@ -44,7 +44,6 @@
     <p>Selecciona un tanque para ver el resumen.</p>
   }
 
-
   <div class="layout">
     <main class="col-right">
       @if (summary.isLoading()) {
@@ -194,17 +193,6 @@
                 </button>
               </div>
             </div>
-            <!-- <div class="ov-annual-head">
-              <h3 class="ov-chart-title">Condiciones contractuales vs. ejecutado</h3>
-              @if (annualSummary(); as tk) {
-                <span class="ov-annual-sub">
-                  {{ tk.tanque }}
-                  @if (tk.capacidadNominalKBbls != null) {
-                    · Capacidad nominal {{ numOrDash(tk.capacidadNominalKBbls) }} KBbls
-                  }
-                </span>
-              }
-            </div> -->
 
             @if (annualNodes().length) {
               <div class="ov-annual-scroll">
@@ -225,7 +213,7 @@
                       <th class="ov-annual-left">Period.</th>
                       <th>Dosis (ppm)</th>
                       <th>Gal. estim.</th>
-                      <th class="ov-annual-col-divider">Agua (bls)</th>
+                      <th class="ov-annual-col-left">Agua (bls)</th>
                       <th class="ov-annual-left">Period.</th>
                       <th>Dosis (ppm)</th>
                       <th>Gal.</th>
@@ -259,7 +247,7 @@
                                   <th class="ov-annual-detail-month">Mes</th>
                                   <th>Agua real (bls)</th>
                                   <th class="ov-annual-left">Periodicidad real</th>
-                                  <th>Dosis real (ppm)</th>
+                                  <th class="ov-annual-detail-divider">Dosis real (ppm)</th>
                                   <th>Galones reales</th>
                                 </tr>
                               </thead>
@@ -270,7 +258,7 @@
                                     <td class="ov-annual-detail-month">{{ mesLabel(ej.mes) }}</td>
                                     <td class="ov-annual-detail-water" [class.is-empty]="ej.aguaRealBls == null">{{ numOrDash(ej.aguaRealBls) }}</td>
                                     <td class="ov-annual-left" [class.is-zero]="ej.periodicidadReal === 0">{{ ej.periodicidadReal }}</td>
-                                    <td [class.is-empty]="ej.dosisRealPpm == null">{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
+                                    <td class="ov-annual-detail-divider" [class.is-empty]="ej.dosisRealPpm == null">{{ numOrDash(ej.dosisRealPpm, '1.0-1') }}</td>
                                     <td [class.is-empty]="ej.galonesReales == null">
                                       <span class="ov-annual-gal">
                                         {{ numOrDash(ej.galonesReales) }}

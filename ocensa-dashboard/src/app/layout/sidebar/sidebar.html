@@ -13,17 +13,66 @@
         <i class="pi pi-circle-fill"></i>
       </span>
       <span class="app-sidebar__brand-text">
-        <span class="app-sidebar__brand-title">OCENSA</span>
+        <span class="app-sidebar__brand-title">
+          OCENSA
+          <span class="app-sidebar__pro">PRO</span>
+        </span>
         <span class="app-sidebar__brand-subtitle">Industrial Analytics</span>
       </span>
     </div>
   </ng-template>
 
-  <p-panelmenu [model]="items" [multiple]="true" class="app-sidebar__menu" />
+  <nav class="app-sidebar__nav" aria-label="Navegación principal">
+    <div class="app-sidebar__section">
+      <div class="app-sidebar__section-title">Módulos de control</div>
+      <a
+        class="app-sidebar__item"
+        [routerLink]="primaryItem.route"
+        routerLinkActive="is-active-primary"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+      >
+        <i class="app-sidebar__item-icon" [class]="primaryItem.icon"></i>
+        <span class="app-sidebar__item-label">{{ primaryItem.label }}</span>
+        <span class="app-sidebar__dot"></span>
+      </a>
+    </div>
+
+    @for (section of sections; track section.title) {
+      <div class="app-sidebar__section">
+        <div class="app-sidebar__section-title" [class.section-active]="isSectionActive(section)">
+          {{ section.title }}
+          <span class="app-sidebar__section-dot"></span>
+        </div>
+        @for (item of section.items; track item.route) {
+          <a
+            class="app-sidebar__item"
+            [routerLink]="item.route"
+            routerLinkActive="is-active"
+            #rla="routerLinkActive"
+            ariaCurrentWhenActive="page"
+          >
+            <i class="app-sidebar__item-icon" [class]="item.icon"></i>
+            <span class="app-sidebar__item-label">{{ item.label }}</span>
+            @if (item.badge && rla.isActive) {
+              <span class="app-sidebar__badge">{{ item.badge }}</span>
+            }
+            @if (item.hasSubmenu) {
+              <i class="pi pi-angle-right app-sidebar__chevron"></i>
+            }
+          </a>
+        }
+      </div>
+    }
+  </nav>
 
   <ng-template #footer>
-    <div class="app-sidebar_footer">
-      <img src="images/Logo CIC.png" />
+    <div class="app-sidebar__footer">
+      <img class="app-sidebar__footer-logo" src="images/Logo CIC.png" alt="Logo CIC" />
+      <span class="app-sidebar__footer-text">
+        <span class="app-sidebar__footer-title">Corporación CIC</span>
+        <span class="app-sidebar__footer-subtitle">Investigación Corrosión</span>
+      </span>
     </div>
   </ng-template>
 </p-drawer>

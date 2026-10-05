@@ -1,19 +1,66 @@
+:host {
+  /* Base */
+  --sb-bg: #0a1120;
+  --sb-footer-bg: #141d2f;
+  --sb-footer-border: #1e2635;
+
+  /* Textos e íconos (estado normal) */
+  --sb-section-title: #64748b;
+  --sb-item-text: #cbd5e1;
+  --sb-item-icon: #94a3b8;
+
+  /* Hover (ítems no activos) */
+  --sb-hover-bg: #1a2435;
+  --sb-hover-text: #ffffff;
+
+  /* Activo: Vista Ejecutiva */
+  --sb-primary-active-bg: linear-gradient(90deg, #1a68c6 0%, #215dd4 100%);
+  --sb-primary-active-text: #ffffff;
+  --sb-primary-active-dot: #ffffff;
+
+  /* Activo: resto de módulos */
+  --sb-active-bg: linear-gradient(90deg, #13374b 0%, #1a2538 100%);
+  --sb-active-border: rgba(34, 211, 238, 0.15);
+  --sb-active-text: #ffffff;
+  --sb-active-icon: #22d3ee;
+
+  /* Badge de sub-vista */
+  --sb-badge-bg: #1a4c61;
+  --sb-badge-border: #1c4a5e;
+  --sb-badge-text: #67e8f9;
+
+  /* Sección que contiene el ítem activo */
+  --sb-section-active: #22d3ee;
+
+  /* Marca */
+  --sb-brand-title: #ffffff;
+  --sb-brand-subtitle: #94a3b8;
+  --sb-header-border: rgba(255, 255, 255, 0.06);
+}
+
 :host ::ng-deep .app-sidebar.p-drawer {
   width: var(--app-sidebar-width);
-  background: #ffffff;
-  border-inline-end: 1px solid #e7eaee;
+  background: var(--sb-bg);
+  border-inline-end: 1px solid var(--sb-header-border);
   box-shadow: none;
 }
 
 :host ::ng-deep .app-sidebar .p-drawer-header {
   padding: 1.25rem 1rem 1rem;
-  border-bottom: 1px solid #eef1f4;
+  border-bottom: 1px solid var(--sb-header-border);
 }
 
 :host ::ng-deep .app-sidebar .p-drawer-content {
   padding: 0.5rem 0.5rem 1.5rem;
   overflow-y: auto;
 }
+
+:host ::ng-deep .app-sidebar .p-drawer-footer {
+  padding: 0.75rem;
+  border-top: 1px solid var(--sb-header-border);
+}
+
+/* Marca */
 
 .app-sidebar__brand {
   display: flex;
@@ -41,9 +88,23 @@
 }
 
 .app-sidebar__brand-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--sb-brand-title);
+}
+
+.app-sidebar__pro {
+  padding: 1px 6px;
+  border: 1px solid var(--sb-badge-border);
+  border-radius: 4px;
+  background: var(--sb-badge-bg);
+  color: var(--sb-badge-text);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .app-sidebar__brand-subtitle {
@@ -51,112 +112,177 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--sb-brand-subtitle);
 }
 
-/* PanelMenu: flatten the accordion look into a plain nav list */
+/* Navegación */
 
-:host ::ng-deep .app-sidebar__menu.p-panelmenu {
-  display: block;
-  border: none;
-}
-
-:host ::ng-deep .app-sidebar__menu ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-panel {
-  border: none;
-  margin-bottom: 0.15rem;
-}
-
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-header-link,
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-item-link {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0.55rem 0.75rem;
-  border-radius: 0.5rem;
-  color: #475569;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: none;
-  background: transparent;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-header-link:hover,
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-item-link:hover {
-  background: #f3f5f7;
-}
-
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-header-icon,
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-item-icon {
-  font-size: 0.9rem;
-  color: inherit;
-}
-
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu-icon {
-  width: 0.7rem;
-  height: 0.7rem;
-  order: 1;
-  margin-inline-start: auto;
-  color: #94a3b8;
-}
-
-/* Selected route (works for both root and nested items) */
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-item-link-active {
-  background: var(--color-primary-brand);
-  color: var(--color-primary);
-  font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--color-primary);
-}
-/* Item anidado activo: texto oscuro */
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu .p-panelmenu-item-link-active {
-  color: #1f2937 !important;
-  font-weight: 600 !important;
-}
-
-/* Nested items */
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu {
-  padding-inline-start: 1.5rem;
+.app-sidebar__nav {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
+  gap: 0.75rem;
 }
 
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu .p-panelmenu-item-link {
-  font-weight: 400;
-  font-size: 0.83rem;
-  color: #94a3b8;
+.app-sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
-:host ::ng-deep .app-sidebar__menu .p-panelmenu-submenu .p-panelmenu-item-link:hover {
-  color: var(--color-primary);
+.app-sidebar__section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem 0.35rem;
+  color: var(--sb-section-title);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
 }
 
-:host ::ng-deep .app-sidebar__menu .p-disabled .p-panelmenu-item-link {
-  color: #cbd5e1;
-  cursor: default;
+.app-sidebar__section-dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sb-section-active);
 }
 
-:host ::ng-deep .app-sidebar__menu .p-disabled .p-panelmenu-item-link:hover {
+.app-sidebar__section-title.section-active {
+  color: var(--sb-section-active);
+}
+
+.app-sidebar__section-title.section-active .app-sidebar__section-dot {
+  display: block;
+}
+
+.app-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
   background: transparent;
+  color: var(--sb-item-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.app-sidebar__item-icon {
+  font-size: 0.9rem;
+  color: var(--sb-item-icon);
+  transition: color 0.18s ease;
+}
+
+.app-sidebar__item-label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Hover: sólo ítems no activos */
+
+.app-sidebar__item:not(.is-active):not(.is-active-primary):hover {
+  background: var(--sb-hover-bg);
+  color: var(--sb-hover-text);
+}
+
+.app-sidebar__item:not(.is-active):not(.is-active-primary):hover .app-sidebar__item-icon {
+  color: var(--sb-hover-text);
+}
+
+/* Activo: Vista Ejecutiva */
+
+.app-sidebar__item.is-active-primary {
+  background: var(--sb-primary-active-bg);
+  color: var(--sb-primary-active-text);
+  font-weight: 600;
+}
+
+.app-sidebar__item.is-active-primary .app-sidebar__item-icon {
+  color: var(--sb-primary-active-text);
+}
+
+.app-sidebar__dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sb-primary-active-dot);
+}
+
+.app-sidebar__item.is-active-primary .app-sidebar__dot {
+  display: block;
+}
+
+/* Activo: resto de módulos */
+
+.app-sidebar__item.is-active {
+  background: var(--sb-active-bg);
+  border-color: var(--sb-active-border);
+  color: var(--sb-active-text);
+  font-weight: 600;
+}
+
+.app-sidebar__item.is-active .app-sidebar__item-icon {
+  color: var(--sb-active-icon);
+}
+
+.app-sidebar__badge {
+  padding: 2px 8px;
+  border: 1px solid var(--sb-badge-border);
+  border-radius: 6px;
+  background: var(--sb-badge-bg);
+  color: var(--sb-badge-text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.app-sidebar__chevron {
+  font-size: 0.7rem;
+  color: var(--sb-item-icon);
 }
 
 /* Footer */
-.app-sidebar_footer {
-  padding: 16px 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+.app-sidebar__footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--sb-footer-border);
+  border-radius: 8px;
+  background: var(--sb-footer-bg);
+}
 
-  img{
-    width: 80px;
-    flex-shrink: 0;
-  }
+.app-sidebar__footer-logo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.app-sidebar__footer-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.app-sidebar__footer-title {
+  color: var(--sb-hover-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.app-sidebar__footer-subtitle {
+  color: var(--sb-section-title);
+  font-size: 0.65rem;
 }

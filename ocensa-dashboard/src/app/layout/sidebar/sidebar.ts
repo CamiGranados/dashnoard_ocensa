@@ -1,50 +1,81 @@
-import { Component } from '@angular/core';
-import { MenuItem } from 'primeng/api';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Drawer } from 'primeng/drawer';
-import { PanelMenu } from 'primeng/panelmenu';
+import { filter, map } from 'rxjs';
+
+interface NavItem {
+  label: string;
+  icon: string;
+  route: string;
+  /** Sub-vista/pestaña activa del módulo; sin valor no se muestra badge. */
+  badge?: string;
+  /** Muestra siempre el chevron (indica submenú). */
+  hasSubmenu?: boolean;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
 
 @Component({
   selector: 'app-sidebar',
-  imports: [Drawer, PanelMenu],
+  imports: [Drawer, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
-  readonly items: MenuItem[] = [
+  private readonly router = inject(Router);
+
+  /** Vista Ejecutiva: estilo activo propio, no pertenece a ninguna sección resaltable. */
+  readonly primaryItem: NavItem = {
+    label: 'Vista Ejecutiva',
+    icon: 'pi pi-th-large',
+    route: '/',
+  };
+
+  readonly sections: NavSection[] = [
     {
-      label: 'Vista Ejecutiva',
-      icon: 'pi pi-th-large',
-      routerLink: '/',
-      routerLinkActiveOptions: { exact: true },
-    },
-    {
-      label: 'Análisis',
-      icon: 'pi pi-wave-pulse',
-      expanded: true,
+      title: 'Análisis técnico',
       items: [
-        { label: 'Operación e Inyección', icon: 'pi pi-bolt', routerLink: '/corrosion'},
-        { label: 'Analítica', icon: 'pi pi-chart-bar', routerLink: '/analytics' },
+        { label: 'Operación e Inyección', icon: 'pi pi-bolt', route: '/corrosion' },
+        { label: 'Analítica', icon: 'pi pi-chart-bar', route: '/analytics', hasSubmenu: true },
       ],
     },
     {
-      label: 'Calidad',
-      icon: 'pi pi-verified',
-      expanded: true,
+      title: 'Aseguramiento calidad',
       items: [
-        { label: 'Microbiología', icon: 'pi pi-search', routerLink: '/microbiology' },
-        { label: 'Fisicoquímica', icon: 'pi pi-chart-line', routerLink: '/physicochemistry' },
-        { label: 'Tratamiento y Residual', icon: 'pi pi-shield', routerLink: '/thps-tolerance' },
+        {
+          label: 'Microbiología',
+          icon: 'pi pi-search',
+          route: '/microbiology',
+          badge: 'Planctónicas',
+        },
+        { label: 'Fisicoquímica', icon: 'pi pi-chart-line', route: '/physicochemistry' },
+        { label: 'Tratamiento y Residual', icon: 'pi pi-shield', route: '/thps-tolerance' },
       ],
     },
-    // {
-    //   label: 'Información',
-    //   icon: 'pi pi-book',
-    //   items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
-    // },
-    // {
-    //   label: 'Histórico',
-    //   icon: 'pi pi-history',
-    //   items: [{ label: 'Próximamente', icon: 'pi pi-clock', disabled: true }],
-    // },
   ];
+
+  /** URL actual; se usa para que los títulos de sección reaccionen a la navegación. */
+  private readonly url = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map(e => e.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+
+  isSectionActive(section: NavSection): boolean {
+    this.url(); // dependencia reactiva
+    return section.items.some(item =>
+      this.router.isActive(item.route, {
+        paths: 'subset',
+        queryParams: 'ignored',
+        fragment: 'ignored',
+        matrixParams: 'ignored',
+      }),
+    );
+  }
 }
