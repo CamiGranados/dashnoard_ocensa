@@ -1,0 +1,15 @@
+@if (icon()) {
+  <div class="card-header__icon" aria-hidden="true">
+    <i [class]="icon()"></i>
+  </div>
+}
+<div class="card-header__titles">
+  <h3 class="card-header__title">{{ title() }}</h3>
+  @if (subtitle()) {
+    <p class="card-header__subtitle">{{ subtitle() }}</p>
+  }
+  <ng-content select="[subtitle]" />
+</div>
+<div class="card-header__actions">
+  <ng-content />
+</div>

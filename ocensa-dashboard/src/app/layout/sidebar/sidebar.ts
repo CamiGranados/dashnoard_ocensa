@@ -37,14 +37,14 @@ export class Sidebar {
 
   readonly sections: NavSection[] = [
     {
-      title: 'Análisis técnico',
+      title: 'Interacción de Variables',
       items: [
         { label: 'Operación e Inyección', icon: 'pi pi-bolt', route: '/corrosion' },
-        { label: 'Analítica', icon: 'pi pi-chart-bar', route: '/analytics', hasSubmenu: true },
+        { label: 'Analítica', icon: 'pi pi-chart-bar', route: '/analytics' },
       ],
     },
     {
-      title: 'Aseguramiento calidad',
+      title: 'Seguimiento de Variables',
       items: [
         {
           label: 'Microbiología',
@@ -52,7 +52,7 @@ export class Sidebar {
           route: '/microbiology',
           badge: 'Planctónicas',
         },
-        { label: 'Fisicoquímica', icon: 'pi pi-chart-line', route: '/physicochemistry' },
+        { label: 'Corrosión', icon: 'pi pi-chart-line', route: '/physicochemistry' },
         { label: 'Tratamiento y Residual', icon: 'pi pi-shield', route: '/thps-tolerance' },
       ],
     },

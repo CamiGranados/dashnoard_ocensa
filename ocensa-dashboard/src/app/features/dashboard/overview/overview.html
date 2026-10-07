@@ -56,6 +56,7 @@
           @if (fwvChart().labels.length) {
             <app-chart-frame
               title="FWV reportada vs. calculada"
+              icon="fa-solid fa-chart-column"
               [subtitle]="fwvSubtitle()"
               exportName="desviacion-fwv"
               [ownsAxisRange]="false"
@@ -99,7 +100,7 @@
             </app-chart-frame>
           } @else {
             <section class="ov-chart-card">
-              <h3 class="ov-chart-title">FWV reportada vs. calculada</h3>
+              <app-card-header icon="fa-solid fa-chart-column" title="FWV reportada vs. calculada" />
               <div class="ov-chart-body">
                 <div class="ov-chart-empty">
                   <i class="pi pi-chart-bar"></i>
@@ -113,6 +114,7 @@
           @if (doseChart().labels.length) {
             <app-chart-frame
               title="Dosificación programada vs. inyectada"
+              icon="fa-solid fa-flask"
               [subtitle]="doseSubtitle()"
               exportName="dosificacion"
               [ownsAxisRange]="false"
@@ -156,7 +158,7 @@
             </app-chart-frame>
           } @else {
             <section class="ov-chart-card">
-              <h3 class="ov-chart-title">Dosificación programada vs. inyectada</h3>
+              <app-card-header icon="fa-solid fa-flask" title="Dosificación programada vs. inyectada" />
               <div class="ov-chart-body">
                 <div class="ov-chart-empty">
                   <i class="pi pi-chart-bar"></i>
@@ -168,31 +170,20 @@
 
           <!-- 3. Condiciones contractuales vs. ejecutado, por año -->
           <section class="ov-chart-card ov-annual-card">
-            <div class="ov-annual-header">
-              <div class="ov-annual-icon">
-                <i class="fa-solid fa-table-list"></i>
-              </div>
-              <div class="ov-annual-heading">
-                <h3 class="ov-annual-title">Condiciones contractuales vs. Ejecutado</h3>
-                @if (annualSummary(); as tk) {
-                  <span class="ov-annual-sub">
-                    {{ tk.tanque }}
-                    @if (tk.capacidadNominalKBbls != null) {
-                      · Capacidad nominal {{ numOrDash(tk.capacidadNominalKBbls) }} KBbls
-                    }
-                  </span>
-                }
-              </div>
+            <app-card-header
+              class="ov-card-head"
+              icon="fa-solid fa-table-list"
+              title="Condiciones contractuales vs. Ejecutado"
+              [subtitle]="annualSubtitle()"
+            >
               <!-- Acciones solo visuales (sin lógica asociada todavía) -->
-              <div class="ov-annual-actions">
-                <button type="button" class="ov-annual-action" aria-label="Filtrar" title="Filtrar">
-                  <i class="pi pi-filter" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="ov-annual-action" aria-label="Expandir" title="Expandir">
-                  <i class="pi pi-window-maximize" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
+              <button type="button" class="ov-annual-action" aria-label="Filtrar" title="Filtrar">
+                <i class="pi pi-filter" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="ov-annual-action" aria-label="Expandir" title="Expandir">
+                <i class="pi pi-window-maximize" aria-hidden="true"></i>
+              </button>
+            </app-card-header>
 
             @if (annualNodes().length) {
               <div class="ov-annual-scroll">
@@ -315,14 +306,14 @@
                vía PhysicochemistryService: mismo caché, sin petición HTTP nueva) -->
           @if (corrosionReview.isLoading()) {
             <section class="ov-chart-card">
-              <h3 class="ov-chart-title">Tasa de corrosión y velocidad de picadura</h3>
+              <app-card-header icon="fa-solid fa-chart-line" title="Tasa de corrosión y velocidad de picadura" />
               <div class="ov-chart-body">
                 <p>Cargando datos fisicoquímicos…</p>
               </div>
             </section>
           } @else if (corrosionReview.error()) {
             <section class="ov-chart-card">
-              <h3 class="ov-chart-title">Tasa de corrosión y velocidad de picadura</h3>
+              <app-card-header icon="fa-solid fa-chart-line" title="Tasa de corrosión y velocidad de picadura" />
               <div class="ov-chart-empty">
                 <i class="pi pi-exclamation-triangle"></i>
                 <p>No se pudo cargar la información fisicoquímica.</p>
@@ -331,6 +322,7 @@
           } @else if (sortedCorrosionRecords().length) {
             <app-chart-frame
               title="Tasa de corrosión y velocidad de picadura"
+              icon="fa-solid fa-chart-line"
               [subtitle]="corrosionSubtitle()"
               exportName="corrosion-picadura"
               bodyHeight="420px"
@@ -375,17 +367,15 @@
 
           <!-- 5. Resumen de control microbiológico -->
           <section class="ov-chart-card ov-chart-card--wide ov-micro-card">
-            <div class="ov-micro-header">
-              <div class="last-values__icon">
-                <i class="fa-solid fa-microscope "></i>
-              </div>
-              <div class="ov-micro-heading">
-                <h3 class="ov-micro-title">Resumen de control microbiológico</h3>
-                <span class="ov-micro-sub">
-                  Cada celda: mediciones dentro de <strong>10² Bact/mL</strong> sobre el total del
-                  mes analizado.
-                </span>
-              </div>
+            <app-card-header
+              class="ov-card-head"
+              icon="fa-solid fa-microscope"
+              title="Resumen de control microbiológico"
+            >
+              <span subtitle>
+                Cada celda: mediciones dentro de <strong>10² Bact/mL</strong> sobre el total del
+                mes analizado.
+              </span>
               @if (microGrid(); as g) {
                 <span class="ov-micro-kpi">
                   <span class="ov-micro-kpi-dot"></span>
@@ -393,7 +383,7 @@
                   periodo en control ({{ g.inControl }} de {{ g.total }})
                 </span>
               }
-            </div>
+            </app-card-header>
 
             @if (microGrid(); as g) {
               <div class="ov-micro-scroll">

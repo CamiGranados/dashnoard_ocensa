@@ -14,6 +14,7 @@ import {
 import type { Chart } from 'chart.js';
 import { UIChart } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
+import { CardHeader } from '../../components/card-header/card-header';
 import { ChartToolbar, ChartTool, ALL_CHART_TOOLS } from '../chart-toolbar/chart-toolbar';
 import { createChartViewState, ChartInteractionMode } from '../chart-view-state';
 import { buildZoomOptions, readZoomBounds, readZoomLevel, resetView, stepZoom, ZoomAxisMode } from '../chart-zoom';
@@ -45,7 +46,7 @@ import { applyChartDefaults } from '../chart-defaults';
 @Component({
   selector: 'app-chart-frame',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DialogModule, ChartToolbar],
+  imports: [DialogModule, ChartToolbar, CardHeader],
   templateUrl: './chart-frame.html',
   styleUrl: './chart-frame.css',
   host: {
@@ -59,6 +60,8 @@ export class ChartFrame {
 
   readonly title = input.required<string>();
   readonly subtitle = input<string>();
+  /** Icono opcional a la izquierda del título (clases FA/PrimeIcons). */
+  readonly icon = input<string>('');
   /** Qué herramientas mostrar. Por defecto las 8. */
   readonly tools = input<readonly ChartTool[]>(ALL_CHART_TOOLS);
   /** Alto del área de gráfica. `Chart.defaults.maintainAspectRatio=false` exige uno explícito. */

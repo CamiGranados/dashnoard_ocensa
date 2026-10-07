@@ -25,32 +25,7 @@
   box-shadow: none;
 }
 
-/* --- Cabecera: título + subtítulo a la izquierda, barra de herramientas a la derecha --- */
-.chart-frame__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.chart-frame__titles {
-  min-width: 0;
-}
-
-.chart-frame__title {
-  margin: 0;
-  color: var(--color-primary);
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.chart-frame__subtitle {
-  margin: 0.15rem 0 0;
-  color: var(--color-muted);
-  font-size: 0.8rem;
-  line-height: 1.35;
-}
-
+/* --- Cabecera: ver shared/components/card-header --- */
 .chart-frame__sep {
   height: 1px;
   margin: 0;

@@ -17,6 +17,7 @@ import {
   TankSummaryPeriod,
 } from '../../../core/models/overview.model';
 import { PhysicalChemistryRecord } from '../../../core/models/physicochemistry.model';
+import { CardHeader } from '../../../shared/components/card-header/card-header';
 import { KpiCard, KpiAccent } from '../../../shared/components/kpi-card/kpi-card';
 import { ChartFrame } from '../../../shared/charts/chart-frame/chart-frame';
 import { formatFullDate, MESES } from '../../../shared/charts/chart-dates';
@@ -99,6 +100,7 @@ type AnnualNodeData =
     DialogModule,
     TreeTableModule,
     KpiCard,
+    CardHeader,
     ChartFrame,
   ],
   templateUrl: './overview.html',
@@ -601,6 +603,14 @@ export class Overview {
   // Tabla al lado de las gráficas de FWV/dosificación: una fila por año (condiciones pactadas)
   // que se expande a su detalle mensual ejecutado (`annualSummary.periodos[].ejecutado`).
   readonly annualSummary = computed(() => this.summary.value()?.annualSummary ?? null);
+
+  readonly annualSubtitle = computed(() => {
+    const tk = this.annualSummary();
+    if (!tk) return '';
+    return tk.capacidadNominalKBbls != null
+      ? `${tk.tanque} · Capacidad nominal ${this.numOrDash(tk.capacidadNominalKBbls)} KBbls`
+      : tk.tanque;
+  });
 
   readonly annualPeriods = computed<TankSummaryPeriod[]>(() =>
     [...(this.annualSummary()?.periodos ?? [])].sort((a, b) => a.anio - b.anio),

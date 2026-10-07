@@ -10,14 +10,7 @@
   [attr.aria-modal]="view.expanded() ? 'true' : null"
   [attr.aria-label]="view.expanded() ? title() : null"
 >
-  <div class="chart-frame__head">
-    <div class="chart-frame__titles">
-      <h3 class="chart-frame__title">{{ title() }}</h3>
-      @if (subtitle()) {
-        <p class="chart-frame__subtitle">{{ subtitle() }}</p>
-      }
-    </div>
-
+  <app-card-header class="chart-frame__head" [icon]="icon()" [title]="title()" [subtitle]="subtitle() ?? ''">
     <app-chart-toolbar
       [tools]="tools()"
       [mode]="view.mode()"
@@ -37,7 +30,7 @@
       (showData)="onShowData()"
       (copyImage)="onCopyImage()"
     />
-  </div>
+  </app-card-header>
 
   <hr class="chart-frame__sep" />
 

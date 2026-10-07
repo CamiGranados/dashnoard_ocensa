@@ -38,8 +38,8 @@ describe('ChartFrame', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.chart-frame__title')?.textContent).toContain('Desviación FWV');
-    expect(el.querySelector('.chart-frame__subtitle')?.textContent).toContain('Diferencia mensual');
+    expect(el.querySelector('.card-header__title')?.textContent).toContain('Desviación FWV');
+    expect(el.querySelector('.card-header__subtitle')?.textContent).toContain('Diferencia mensual');
     expect(el.querySelector('.chart-frame__sep')).toBeTruthy();
     expect(el.querySelector('app-chart-toolbar')).toBeTruthy();
     // La gráfica proyectada queda en el slot del cuerpo.
