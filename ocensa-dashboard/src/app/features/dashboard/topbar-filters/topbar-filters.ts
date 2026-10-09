@@ -105,6 +105,7 @@ export class TopbarFilters implements OnInit, OnDestroy {
         this.escala = null;
 
         // publica los defaults YA con ambos listos
+        this.publishTankName();
         this.filtersState.setFilters({
           tank: this.tank,
           years: this.selectedYears,
@@ -127,7 +128,13 @@ export class TopbarFilters implements OnInit, OnDestroy {
     });
   }
 
+  private publishTankName(): void {
+    const opt = this.tankOptions.find(o => o.value === this.tank);
+    this.filtersState.setTankName(opt?.label ?? null);
+  }
+
   onFiltersChange(): void {
+    this.publishTankName();
     this.filtrosChanged$.next();
   }
 

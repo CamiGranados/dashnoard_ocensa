@@ -25,8 +25,8 @@
   --sb-active-icon: #22d3ee;
 
   /* Badge de sub-vista */
-  --sb-badge-bg: #1a4c61;
-  --sb-badge-border: #1c4a5e;
+  --sb-badge-bg: #0f2f3f;
+  --sb-badge-border: #1e6a7f;
   --sb-badge-text: #67e8f9;
 
   /* Sección que contiene el ítem activo */
@@ -97,26 +97,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   border-radius: 0.65rem;
   background: var(--color-primary);
   color: #ffffff;
   font-size: 1.05rem;
-  /* Borde interior + dos anillos exteriores difuminados */
-  border: 1px solid color-mix(in srgb, var(--color-primary) 60%, #ffffff 40%);
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent),
-    0 0 0 6px color-mix(in srgb, var(--color-primary) 15%, transparent),
-    0 0 14px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  /* Borde degradado azul → cian */
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    var(--color-logo-border-start),
+    var(--color-logo-border-end)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-logo-border-start) 45%, transparent);
   overflow: hidden;
 }
 
 .app-sidebar__brand-logo {
   width: 100%;
   height: 100%;
-  border-radius: inherit;
+  border-radius: calc(0.65rem - 2px);
   object-fit: cover;
 }
 
@@ -136,18 +138,20 @@
 }
 
 .app-sidebar__pro {
-  padding: 1px 6px;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
   border: 1px solid var(--sb-badge-border);
-  border-radius: 4px;
+  border-radius: 5px;
   background: var(--sb-badge-bg);
   color: var(--sb-badge-text);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 .app-sidebar__brand-subtitle {
-  font-size: 0.62rem;
+  font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;

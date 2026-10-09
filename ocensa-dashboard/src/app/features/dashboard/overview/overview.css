@@ -164,7 +164,7 @@
   text-align: center;
   vertical-align: middle;
   border-bottom: 1px solid var(--ann-border-soft);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .ov-micro-table tbody td:not(.ov-micro-total-cell) {
@@ -181,7 +181,7 @@
   padding: 12px 10px;
   background: var(--ann-navy);
   color: var(--color-white);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -218,7 +218,7 @@
 .ov-micro-rowhead strong {
   display: block;
   color: var(--ann-text);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -233,7 +233,7 @@
   display: block;
   color: var(--ann-muted);
   font-family: var(--ann-mono);
-  font-size: 15px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -285,7 +285,7 @@
 }
 
 .ov-micro-total-cell .ov-micro-pct {
-  font-size: 13px;
+  font-size: 12px;
   vertical-align: middle;
 }
 
@@ -339,11 +339,11 @@
 
 .ov-micro-total-row .ov-micro-pct {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .ov-micro-total-row .ov-micro-count {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--ann-muted);
 }
 
@@ -597,6 +597,18 @@
   line-height: 1.25;
 }
 
+/* Flecha de expandir/colapsar del año: PrimeNG la pinta grande por defecto. */
+:host ::ng-deep .ov-annual-table.ov-annual-table .p-treetable-node-toggle-button {
+  width: 10px !important;
+  height: 10px !important;
+}
+
+:host ::ng-deep .ov-annual-table.ov-annual-table .p-treetable-node-toggle-button svg,
+:host ::ng-deep .ov-annual-table.ov-annual-table .p-treetable-node-toggle-button .p-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 /* Todo el contenido de la tabla (header y valores) va centrado. */
 :host ::ng-deep .ov-annual-table.ov-annual-table .ov-annual-left,
 .ov-annual-detail-table .ov-annual-left {
@@ -622,7 +634,7 @@
 /* Fila de grupos: "Contractual" / "Línea base (Ejecutado)" */
 :host ::ng-deep .ov-annual-table.ov-annual-table thead th.ov-annual-group {
   text-align: center;
-  font-size: 12px;
+  font-size: 10px;
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--ann-divider);
 }
@@ -704,11 +716,12 @@
 
 .ov-annual-detail-table {
   width: 100%;
-  min-width: 840px;
+  /* Sin min-width propio: se ajusta al ancho de la tabla padre (min 960px) y no la desborda. */
+  min-width: 0;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .ov-annual-detail-table th,
@@ -723,7 +736,7 @@
 .ov-annual-detail-table thead th {
   background: var(--ann-surface);
   color: var(--color-gray-mid);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;

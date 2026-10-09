@@ -131,7 +131,7 @@ export class Overview {
   readonly metrics = computed<OverviewMetric[]>(() => {
     const data = this.summary.value();
     const resume = data?.summary;
-    console.log(resume);
+    // console.log(resume);
     if (!resume) return [];
 
     const periodicity = resume.periodicity;

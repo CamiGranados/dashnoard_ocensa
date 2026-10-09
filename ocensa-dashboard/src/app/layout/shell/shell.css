@@ -4,13 +4,10 @@
   overflow: hidden;
   display: flex;
   align-items: flex-start;
-  /* justify-content: space-between; */
   gap: 24px;
-  /* Deja un respiro entre el sidebar fijo (p-drawer) y el header,
-     y lo alinea como tarjeta con el contenido de abajo */
   margin-block: var(--app-shell-gutter);
   margin-inline: calc(var(--app-sidebar-width) + var(--app-shell-gutter)) var(--app-shell-gutter);
-  background: linear-gradient(135deg, #061c3c 0%, #113561 100%);
+  background: linear-gradient(135deg, #0a1120 0%, #113561 100%);
   border-radius: 1rem;
   padding: 1.75rem 2rem;
   color: #ffffff;
@@ -112,8 +109,8 @@
   top: 50%;
   right:15px;
   transform: translateY(-50%);
-  width: 140px;
-  opacity: 0.4;
+  width: 130px;
+  opacity: 0.1;
   pointer-events: none;
   user-select: none;
   z-index: 0;

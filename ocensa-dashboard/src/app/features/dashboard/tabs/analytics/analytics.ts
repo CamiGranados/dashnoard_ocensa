@@ -25,7 +25,8 @@ import {
   BIOCIDE_GROUP_FILL_TOKEN,
 } from '../../../../shared/charts/chart-tokens';
 import { BoxplotCard, formatBoxNumber } from '../../../../shared/charts/boxplot-card/boxplot-card';
-import { boxAnnotationsPlugin, BoxAnnotationsOptions } from '../../../../shared/charts/boxplot-card/boxplot-annotations.plugin';
+import type { Chart } from 'chart.js';
+import { boxAnnotationsPlugin, BoxAnnotationsOptions, isOutlierHovered } from '../../../../shared/charts/boxplot-card/boxplot-annotations.plugin';
 import { boxplotStatsFromGroup } from '../../../../shared/charts/boxplot-stats';
 import { EfficacyTable } from './efficacy-table/efficacy-table';
 import { barValueLabelsPlugin } from './analytics.plugins';
@@ -242,6 +243,7 @@ export class Analytics {
             legend: { display: false },
             boxAnnotations: annotations,
             tooltip: {
+              filter: (item: { chart: Chart }) => !isOutlierHovered(item.chart),
               callbacks: {
                 title: (items: { dataIndex: number }[]) => GROUP_LABELS[items[0]?.dataIndex ?? 0],
                 label: (ctx: { raw: unknown }) => boxTooltipLines(ctx.raw as BoxPoint | null),

@@ -112,6 +112,13 @@
   } @else if (review.error()) {
     <p>No se pudo cargar el control de biocida.</p>
   } @else if (windows().length) {
+    <div class="analytics-boxes__titles">
+      <h2 class="analytics-boxes__title">Variables de proceso por estado de control</h2>
+      <p class="analytics-boxes__subtitle">
+        Comparativa de rangos intercuartiles (IQR), medianas y valores atípicos (outliers).
+      </p>
+    </div>
+
     <div class="metrics-grid">
       @for (metric of metrics(); track metric.title) {
         <app-kpi-card
@@ -126,13 +133,7 @@
     </div>
 
     <div class="analytics-boxes">
-      <div class="analytics-boxes__head">
-        <div class="analytics-boxes__titles">
-          <h2 class="analytics-boxes__title">Variables de proceso por estado de control</h2>
-          <p class="analytics-boxes__subtitle">
-            Comparativa de rangos intercuartiles (IQR), medianas y valores atípicos (outliers).
-          </p>
-        </div>
+      <div class="analytics-boxes__head analytics-boxes__head--end">
         <div class="analytics-boxes__legend">
           <span class="analytics-boxes__legend-label">Grupos:</span>
           <app-chart-legend [items]="legendItems" />

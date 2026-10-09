@@ -25,6 +25,13 @@ export class FiltersStateService {
   readonly months = this._months.asReadonly();
   readonly company = this._company.asReadonly();
 
+  // nombre visible del tanque (solo display; no forma parte de `filters` para no disparar recargas)
+  private readonly _tankName = signal<string | null>(null);
+  readonly tankName = this._tankName.asReadonly();
+
+  setTankName(name: string | null): void {
+    this._tankName.set(name);
+  }
 
   readonly filters = computed<DashboardFilters>(() => ({
     tank: this._tank(),

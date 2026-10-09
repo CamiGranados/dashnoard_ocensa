@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { LastUploadService } from '../../core/services/last-upload.service';
+import { FiltersStateService } from '../../core/services/filters-state.service';
 import { Sidebar } from '../sidebar/sidebar';
 import { StatusBar } from '../../shared/components/status-bar/status-bar';
 
@@ -10,7 +12,8 @@ import { StatusBar } from '../../shared/components/status-bar/status-bar';
   styleUrl: './shell.css',
 })
 export class Shell {
-  readonly activeTank = 'TK-001';
-  readonly lastUpdate = '10 Jul 2026 · 09:35 AM';
+  private readonly filtersState = inject(FiltersStateService);
+  readonly activeTank = computed(() => this.filtersState.tankName() ?? '—');
+  readonly lastUpdate = inject(LastUploadService).lastUpdateLabel;
   readonly overallStatus = 'Normal';
 }

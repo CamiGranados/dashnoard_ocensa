@@ -24,6 +24,17 @@ export interface BoxAnnotationsOptions {
   limit: number | null;
 }
 
+/** Distancia (px) al punto rojo para considerarlo "bajo el puntero". */
+const HOVER_RADIUS = 8;
+
+/** Outlier actualmente bajo el puntero, por gráfica. */
+const hoveredOutlier = new WeakMap<Chart, { index: number }>();
+
+/** Lo consulta el tooltip del boxplot para no solaparse con la etiqueta del outlier. */
+export function isOutlierHovered(chart: Chart): boolean {
+  return hoveredOutlier.has(chart);
+}
+
 /**
  * Anotaciones del boxplot de analytics: banda segura, línea de límite, Máx/Mín/Q2 y etiquetas de
  * outliers. Se dibujan en canvas porque dependen de la escala Y (que está oculta).
@@ -93,19 +104,53 @@ export const boxAnnotationsPlugin: Plugin<'boxplot'> = {
     ctx.textAlign = 'left';
     ctx.fillText(`Q2=${format(stats.median)}`, 2, px(stats.median));
 
-    // Etiquetas de outliers junto a su punto.
+    // Etiqueta del outlier bajo el puntero (sólo al pasar el mouse sobre el punto rojo).
+    const hovered = hoveredOutlier.get(chart);
     const element = chart.getDatasetMeta(0).data[options.groupIndex] as unknown as { x: number } | undefined;
-    if (element) {
-      ctx.fillStyle = options.outlierColor;
-      for (const o of options.outliers) {
+    if (hovered && element) {
+      const o = options.outliers[hovered.index];
+      if (o) {
         const oy = px(o.value);
-        const width = ctx.measureText(o.text).width;
-        const flip = element.x + 7 + width > chart.width;
-        ctx.textAlign = flip ? 'right' : 'left';
-        ctx.fillText(o.text, element.x + (flip ? -7 : 7), oy);
+        const padX = 5;
+        const w = ctx.measureText(o.text).width + padX * 2;
+        const h = 16;
+        const flip = element.x + 9 + w > chart.width;
+        const bx = flip ? element.x - 9 - w : element.x + 9;
+        const by = Math.min(Math.max(oy - h / 2, 0), chart.height - h);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.fillRect(bx, by, w, h);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'left';
+        ctx.fillText(o.text, bx + padX, by + h / 2);
       }
     }
 
     ctx.restore();
+  },
+
+  afterEvent(chart: Chart, args, options: BoxAnnotationsOptions) {
+    const e = args.event;
+    let index = -1;
+    if (options?.outliers?.length && e.x != null && e.y != null && e.type !== 'mouseout') {
+      const element = chart.getDatasetMeta(0).data[options.groupIndex] as unknown as
+        | { x: number }
+        | undefined;
+      const y = chart.scales['y'];
+      if (element && y) {
+        let best = HOVER_RADIUS;
+        options.outliers.forEach((o, i) => {
+          const d = Math.hypot(e.x! - element.x, e.y! - y.getPixelForValue(o.value));
+          if (d <= best) {
+            best = d;
+            index = i;
+          }
+        });
+      }
+    }
+    const prev = hoveredOutlier.get(chart)?.index ?? -1;
+    if (index === prev) return;
+    if (index < 0) hoveredOutlier.delete(chart);
+    else hoveredOutlier.set(chart, { index });
+    args.changed = true;
   },
 };

@@ -36,27 +36,93 @@
   letter-spacing: 0.8px;
   color: #8794A8;
 }
+
 /* ------------------  Styles select filters -------------------- */
-:host ::ng-deep .topbar-filters__select .p-select {
-  min-width: 0px;
-  border: 1px solid #bbc9df;
-  border-radius: 7px;
+.topbar-filters__field:not(:last-child) {
+  padding-right: 20px;
+  border-right: 1px solid #e2e8f2;
 }
 
-:host ::ng-deep .topbar-filters__select .p-select.p-focus {
-  border-color: var(--color-primary-muted);
-  box-shadow: 0 0 0 2px var(--color-primary-brand);
+:host ::ng-deep .topbar-filters__select {
+  display: block;
 }
 
-:host ::ng-deep .topbar-filters__select .p-select-label {
-  padding: 7px 30px 7px 11px;
-  font-size: 11.5px;
+:host ::ng-deep .topbar-filters__select .p-select,
+:host ::ng-deep .topbar-filters__select.p-select,
+:host ::ng-deep .topbar-filters__select .p-multiselect,
+:host ::ng-deep .topbar-filters__select.p-multiselect {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  width: max-content;
+  min-width: 160px;
+  height: 30px;
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  box-shadow: none;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+:host ::ng-deep .topbar-filters__select .p-select:hover,
+:host ::ng-deep .topbar-filters__select.p-select:hover,
+:host ::ng-deep .topbar-filters__select .p-multiselect:hover,
+:host ::ng-deep .topbar-filters__select.p-multiselect:hover {
+  border-color: #94a3b8 !important;
+}
+
+:host ::ng-deep .topbar-filters__select .p-select.p-focus,
+:host ::ng-deep .topbar-filters__select.p-select.p-focus,
+:host ::ng-deep .topbar-filters__select .p-multiselect.p-focus,
+:host ::ng-deep .topbar-filters__select.p-multiselect.p-focus {
+  border-color: var(--color-primary-brand) !important;
+  box-shadow: 0 0 0 2px var(--color-primary-muted);
+  outline: none;
+}
+
+:host ::ng-deep .topbar-filters__select .p-select-label,
+:host ::ng-deep .topbar-filters__select .p-multiselect-label-container {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 30px 0 12px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  text-align: left;
+  font-size: 12px;
   font-weight: 500;
-  color: #52575e;
+  color: #1e293b;
 }
 
-:host ::ng-deep .topbar-filters__select .p-select-dropdown {
-  color: #94a3b8;
+:host ::ng-deep .topbar-filters__select .p-multiselect-label {
+  padding: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+:host ::ng-deep .topbar-filters__select .p-select-dropdown,
+:host ::ng-deep .topbar-filters__select .p-multiselect-dropdown {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  width: auto;
+  background: transparent;
+  color: #64748b;
+}
+
+:host ::ng-deep .topbar-filters__select .p-select-dropdown-icon,
+:host ::ng-deep .topbar-filters__select .p-multiselect-dropdown-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .topbar-filters__alerts {

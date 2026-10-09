@@ -4,9 +4,9 @@
   <img src="images/tanque.png" class="watermark-icon">
   <div class="dashboard-header-main">
     <p class="dashboard-header_eyebrow">CIC · OCENSA · DASHBOARD TÉCNICO</p>
-    <h1 class="dashboard-header_title">Dashboard técnico de decisión · Desescalamiento THPS OCENSA</h1>
+    <h1 class="dashboard-header_title">Dashboard Técnico · Proyecto Desescalamiento THPS</h1>
     <p class="dashboard-header_subtitle">
-      Integración de análisis químico, microbiológico y fisicoquímico para optimizar el tratamiento químico en tanques de hidrocarburos.
+      Integración de variables para optimizar el tratamiento químico en tanques de hidrocarburos.
     </p>
   </div>
 
@@ -14,8 +14,8 @@
     <div class="data-upload_meta-item">
       <i class="pi pi-clock"></i>
       <div>
-        <span class="data-upload_meta-label">Última actualización</span>
-        <span class="data-upload_meta-value">{{ lastUpdate }}</span>
+        <span class="data-upload_meta-label">Última actualización de Datos</span>
+        <span class="data-upload_meta-value">{{ lastUpdate() }}</span>
       </div>
     </div>
 
@@ -25,20 +25,20 @@
       <i class="fa-solid fa-glass-water-droplet"></i>
       <div>
         <span class="data-upload_meta-label">Tanque activo</span>
-        <span class="data-upload_meta-value">{{ activeTank }}</span>
+        <span class="data-upload_meta-value">{{ activeTank() }}</span>
       </div>
     </div>
 
     <span class="dashboard-header-meta_divider"></span>
 
     <div class="data-upload_meta-item">
-      <div>
+      <!-- <div>
         <span class="data-upload_meta-label">Estado general</span>
         <span class="data-upload_meta-value data-upload_meta-value--status">
           <i class="pi pi-circle-fill"></i>
           {{ overallStatus }}
         </span>
-      </div>
+      </div> -->
     </div>
   </div>
 </header>

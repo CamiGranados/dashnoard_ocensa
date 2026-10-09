@@ -7,7 +7,7 @@
 :root {
   --app-sidebar-width: 14rem;
   /* Respiro exterior del área de contenido (entre sidebar/bordes y las tarjetas) */
-  --app-shell-gutter: 1rem;
+  --app-shell-gutter: 8px;
   /* --app-brand-color: #1c4463;
   --app-brand-color-light: #e6eef6; */
 
@@ -20,6 +20,8 @@
   --color-primary-sub:   #458ccc;
   --color-accent-sub:    #e8f1fb;
   --color-accent-dark:   #1e5fa8;
+  --color-logo-border-start: #2563eb;
+  --color-logo-border-end:   #22d3ee;
 
   /* — Grises — */
   --color-gray-light:     #e5e5e5;
@@ -158,15 +160,6 @@ body {
   display: flex;
   align-items: center;
   font-family: 'sora', sans-serif;
-}
-
-.dashboard-title::before{
-  content: '';
-  width: 15px;
-  height: 2px;
-  background-color: var(--color-primary);
-  border-radius: 1px;
-  flex-shrink: 0;
 }
 
 .header-subtitle{
