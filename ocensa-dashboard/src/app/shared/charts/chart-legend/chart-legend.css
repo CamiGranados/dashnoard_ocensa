@@ -19,6 +19,27 @@
   color: var(--color-muted);
 }
 
+.chart-legend__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.chart-legend__btn:hover {
+  color: var(--color-text, inherit);
+}
+
+.chart-legend__item.is-hidden {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
 .chart-legend__swatch {
   width: 10px;
   height: 10px;

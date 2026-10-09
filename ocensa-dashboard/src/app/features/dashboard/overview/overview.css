@@ -75,7 +75,6 @@
   box-shadow: none;
 }
 
-
 .ov-chart-body {
   height: 300px;
 }
@@ -123,10 +122,6 @@
   --ann-total-bg: #f1f5f9;
 }
 
-
-
-
-
 .ov-micro-kpi {
   margin-left: auto;
   flex-shrink: 0;
@@ -149,8 +144,6 @@
   background: var(--color-green-mid);
 }
 
-
-
 /* Contenedor de la tabla: margen, borde propio y esquinas recortadas */
 .ov-micro-scroll {
   margin: 1rem;
@@ -171,6 +164,7 @@
   text-align: center;
   vertical-align: middle;
   border-bottom: 1px solid var(--ann-border-soft);
+  font-size: 12px;
 }
 
 .ov-micro-table tbody td:not(.ov-micro-total-cell) {
@@ -187,7 +181,7 @@
   padding: 12px 10px;
   background: var(--ann-navy);
   color: var(--color-white);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -207,7 +201,7 @@
 
 .ov-micro-encurso {
   display: block;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -224,13 +218,13 @@
 .ov-micro-rowhead strong {
   display: block;
   color: var(--ann-text);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .ov-micro-rowhead span {
   color: #2563eb;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
 }
 
@@ -239,7 +233,7 @@
   display: block;
   color: var(--ann-muted);
   font-family: var(--ann-mono);
-  font-size: 11px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -291,7 +285,7 @@
 }
 
 .ov-micro-total-cell .ov-micro-pct {
-  font-size: 12px;
+  font-size: 13px;
   vertical-align: middle;
 }
 
@@ -345,17 +339,17 @@
 
 .ov-micro-total-row .ov-micro-pct {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .ov-micro-total-row .ov-micro-count {
-  font-size: 9px;
+  font-size: 13px;
   color: var(--ann-muted);
 }
 
 .ov-micro-total-row .ov-micro-total-cell .ov-micro-pct {
   display: inline;
-  font-size: 10px !important;
+  font-size: 13px !important;
 }
 
 .ov-micro-total-row .ov-micro-bar-fill.is-ok {
@@ -381,7 +375,7 @@
   background: var(--ann-surface);
   border-top: 1px solid var(--ann-border);
   color: var(--ann-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .ov-micro-legend-items {
@@ -472,10 +466,6 @@
   background: var(--ann-surface);
   border-bottom: 1px solid var(--ann-border);
 }
-
-
-
-
 
 
 .ov-annual-actions {

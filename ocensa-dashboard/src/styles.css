@@ -5,7 +5,7 @@
 @import "./app/shared/charts/chart-tokens.css";
 
 :root {
-  --app-sidebar-width: 15rem;
+  --app-sidebar-width: 14rem;
   /* Respiro exterior del área de contenido (entre sidebar/bordes y las tarjetas) */
   --app-shell-gutter: 1rem;
   /* --app-brand-color: #1c4463;
@@ -49,10 +49,19 @@
   --color-faint:          #a8b4cc;
   --color-yellow:         #ea911a;
   --color-accent:         #003466;
-  --color-white:           #ffffff;
+  --color-white:          #ffffff;
   --color-danger-row:     #fff7f7;
   --color-warn-border:    #f2cf7a;
   --color-info-light:     #e3f0fd;
+  --color-info:           #2b7fd4;
+  --color-info-border:    #b9d6f5;
+  --color-info-bg:        #f3f8fe;
+  --color-navy:           #061b3a;
+  --color-navy-hover:     #0d2a52;
+  --color-success:        #16a34a;
+  --color-success-bg:     #e7f6ec;
+  --color-success-text:   #1a7f37;
+  --color-success-border: #bbf0d3;
 
   /* bar-gradient */
   --bar-gradient-green-oscuro: #147A3D;
@@ -76,6 +85,23 @@
   /* Radios */
   --radius-sm: 8px;
   --radius-md: 14px;
+
+  /* Modal de límite de archivos */
+  --color-amber-light:    #fef3c7;
+  --color-amber-border:   #fcd34d;
+  --color-amber:          #f59e0b;
+  --color-amber-dark:     #b45309;
+  --color-amber-bar:      #f0b04a;
+  --color-teal:           #0f8b6e;
+  --color-teal-action:    #0e9f6e;
+  --color-teal-action-hover: #0b8a5f;
+  --color-rose:           #e11d48;
+  --color-rose-bg:        #fff1f2;
+  --color-rose-border:    #fecdd3;
+  --color-rose-badge-bg:  #ffe4e6;
+  --color-rose-badge-border: #fda4af;
+  --color-surface-soft:   #f8fafb;
+  --color-line-soft:      #f1f3f5;
 }
 
 * {

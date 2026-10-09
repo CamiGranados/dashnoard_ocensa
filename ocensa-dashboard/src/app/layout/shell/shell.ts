@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
+import { StatusBar } from '../../shared/components/status-bar/status-bar';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, Sidebar],
+  imports: [RouterOutlet, Sidebar, StatusBar],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })

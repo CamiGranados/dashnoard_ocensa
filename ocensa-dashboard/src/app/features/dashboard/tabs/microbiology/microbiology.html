@@ -13,7 +13,7 @@
   } @else if (records().length) {
     <div class="micro-chart-panel micro-bache-panel">
       @if (bacheCharts().length) {
-        <app-chart-legend [items]="legendItems()" />
+        <app-chart-legend [items]="legendItems()" (itemToggle)="toggleSeries($any($event))" />
 
         <div class="micro-bache-scroll">
           @for (chart of bacheCharts(); track $index; let first = $first) {

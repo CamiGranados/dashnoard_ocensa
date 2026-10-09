@@ -8,17 +8,22 @@
   styleClass="app-sidebar"
 >
   <ng-template #header>
-    <div class="app-sidebar__brand">
-      <span class="app-sidebar__brand-icon">
-        <i class="pi pi-circle-fill"></i>
-      </span>
-      <span class="app-sidebar__brand-text">
-        <span class="app-sidebar__brand-title">
-          OCENSA
-          <span class="app-sidebar__pro">PRO</span>
+    <div class="app-sidebar__header">
+      <div class="app-sidebar__brand">
+        <span class="app-sidebar__brand-icon">
+          <img class="app-sidebar__brand-logo" src="images/logo.jpeg" alt="Logo OCENSA" />
         </span>
-        <span class="app-sidebar__brand-subtitle">VISUALIZACIÓN E INTEGRACIÓN DE DATOS</span>
-      </span>
+        <span class="app-sidebar__brand-text">
+          <span class="app-sidebar__brand-title">
+            CIC ANALYTICS
+          </span>
+          <span class="app-sidebar__brand-subtitle">VISUALIZACIÓN E INTEGRACIÓN DE DATOS</span>
+        </span>
+      </div>
+      <div class="app-sidebar__meta">
+        <span class="app-sidebar__pro">Ocensa</span>
+        <span class="app-sidebar__version">v1.0.0</span>
+      </div>
     </div>
   </ng-template>
 
@@ -70,8 +75,7 @@
     <div class="app-sidebar__footer">
       <img class="app-sidebar__footer-logo" src="images/Logo CIC.png" alt="Logo CIC" />
       <span class="app-sidebar__footer-text">
-        <span class="app-sidebar__footer-title">Corporación CIC</span>
-        <span class="app-sidebar__footer-subtitle">Investigación Corrosión</span>
+        <span class="app-sidebar__footer-subtitle">Corporación para la Investigación de la Corrosión</span>
       </span>
     </div>
   </ng-template>

@@ -39,8 +39,8 @@ export class Sidebar {
     {
       title: 'Interacción de Variables',
       items: [
-        { label: 'Operación e Inyección', icon: 'pi pi-bolt', route: '/corrosion' },
-        { label: 'Analítica', icon: 'pi pi-chart-bar', route: '/analytics' },
+        { label: 'Operación e Inyección', icon: 'pi pi-bolt', route: '/corrosion', badge: '✓'},
+        { label: 'Analítica', icon: 'pi pi-chart-bar', route: '/analytics', badge: '✓' },
       ],
     },
     {
@@ -50,10 +50,10 @@ export class Sidebar {
           label: 'Microbiología',
           icon: 'pi pi-search',
           route: '/microbiology',
-          badge: 'Planctónicas',
+          badge: '↪',
         },
-        { label: 'Corrosión', icon: 'pi pi-chart-line', route: '/physicochemistry' },
-        { label: 'Tratamiento y Residual', icon: 'pi pi-shield', route: '/thps-tolerance' },
+        { label: 'Corrosión', icon: 'pi pi-chart-line', route: '/physicochemistry', badge: '↪', },
+        { label: 'Tratamiento y Residual', icon: 'pi pi-shield', route: '/thps-tolerance', badge: '↪', },
       ],
     },
   ];

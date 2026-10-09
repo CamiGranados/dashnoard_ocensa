@@ -1,7 +1,7 @@
-<section class="data-upload__panel">
+<section #filesSection class="data-upload__panel">
   <div class="data-upload__panel-header">
     <div>
-      <h2 class="data-upload__panel-title">1. Archivos seleccionados</h2>
+      <h2 class="data-upload__panel-title">1.Archivos seleccionados</h2>
       <p class="data-upload__panel-subtitle">
         Revise los archivos detectados. Puede agregar o quitar archivos antes de continuar.
       </p>
@@ -10,12 +10,19 @@
     <div class="data-upload__panel-actions">
       <input #fileInput type="file" accept=".xlsx" multiple hidden (change)="onFilesPicked($event)" />
       <p-button
+        class="btn-navy-outline"
         label="Agregar más archivos"
         icon="pi pi-plus"
         [outlined]="true"
         (onClick)="addFiles(fileInput)"
       />
-      <p-button label="Quitar todos" severity="secondary" [text]="true" [disabled]="datasets().length === 0" (onClick)="clearFiles()" />
+      <p-button
+        class="btn-gray-outline"
+        label="Quitar todos"
+        [outlined]="true"
+        [disabled]="datasets().length === 0"
+        (onClick)="clearFiles()"
+      />
     </div>
   </div>
 
@@ -35,8 +42,9 @@
         <div class="file-card">
           <span class="file-card__icon"><i class="pi pi-file-excel"></i></span>
           <div class="file-card__info">
-            <span class="file-card__name">{{ dataset.fileName }}</span>
-            <span class="file-card__meta">{{ dataset.category }} · {{ dataset.sizeKb }} KB</span>
+            <span class="file-card__name" [title]="dataset.fileName">{{ dataset.fileName }}</span>
+            <span class="file-card__meta">{{ dataset.category }}</span>
+            <span class="file-card__meta">{{ dataset.sizeKb }} KB</span>
           </div>
           <i
             class="pi file-card__status"
@@ -54,7 +62,9 @@
     </div>
 
     <p class="data-upload__files-summary" [class.data-upload__files-summary--warn]="errorCount() > 0">
-      <i class="pi" [class.pi-check-circle]="errorCount() === 0" [class.pi-exclamation-triangle]="errorCount() > 0"></i>
+      <span class="data-upload__summary-badge">
+        <i class="pi" [class.pi-check]="errorCount() === 0" [class.pi-exclamation-triangle]="errorCount() > 0"></i>
+      </span>
       {{ okCount() }} de {{ datasets().length }} archivos leídos correctamente
       @if (errorCount() > 0) {
         · {{ errorCount() }} con errores
@@ -85,26 +95,37 @@
       </div>
     </div>
 
-    <div class="data-upload__preview-grid">
-      @for (dataset of datasets(); track dataset.id) {
+    <div class="data-upload__preview-grid" [attr.data-count]="datasets().length">
+      @for (card of cards(); track card.dataset.id) {
         <article class="preview-card">
           <header class="preview-card__header">
             <span class="preview-card__icon"><i class="pi pi-file-excel"></i></span>
             <div class="preview-card__info">
-              <span class="preview-card__name">{{ dataset.fileName }}</span>
+              <span class="preview-card__name" [title]="card.dataset.fileName">{{ card.dataset.fileName }}</span>
               <span class="preview-card__meta">
-                @if (dataset.status === 'ok') {
-                  Hoja: {{ dataset.sheetName }}
+                @if (card.dataset.status === 'ok') {
+                  Hoja: {{ card.dataset.sheetName }}
                 } @else {
-                  {{ dataset.category }}
+                  {{ card.dataset.category }}
                 }
               </span>
             </div>
+            @if (card.dataset.status === 'ok') {
+              <button
+                type="button"
+                class="preview-card__expand"
+                (click)="openDetail(card.dataset)"
+                aria-label="Ver tabla completa"
+                title="Ver tabla completa"
+              >
+                <i class="pi pi-eye"></i>
+              </button>
+            }
           </header>
 
-          @switch (dataset.status) {
+          @switch (card.dataset.status) {
             @case ('ok') {
-              <p-table [value]="visibleRows(dataset)" [columns]="dataset.columns" class="preview-card__table">
+              <p-table [value]="visibleRows(card.dataset)" [columns]="card.columns" class="preview-card__table">
                 <ng-template pTemplate="header" let-columns>
                   <tr>
                     @for (col of columns; track col.field) {
@@ -115,14 +136,12 @@
                 <ng-template pTemplate="body" let-row let-columns="columns">
                   <tr>
                     @for (col of columns; track col.field) {
-                      <td>{{ row[col.field] }}</td>
+                      <td>{{ formatCell(col.field, row[col.field]) }}</td>
                     }
                   </tr>
                 </ng-template>
               </p-table>
-              <footer class="preview-card__footer">
-                Mostrando {{ visibleRows(dataset).length }} de {{ dataset.totalRows }} filas
-              </footer>
+              <footer class="preview-card__footer">Total filas: {{ card.dataset.totalRows }}</footer>
             }
             @case ('empty') {
               <div class="preview-card__notice">
@@ -131,7 +150,7 @@
             }
             @case ('error') {
               <div class="preview-card__notice">
-                <p-message severity="error" [closable]="false">{{ dataset.errorMessage }}</p-message>
+                <p-message severity="error" [closable]="false">{{ card.dataset.errorMessage }}</p-message>
               </div>
             }
           }
@@ -141,31 +160,46 @@
   </section>
 }
 
-<section class="data-upload__footer">
+<section class="data-upload__footer panel">
   <div class="data-upload__notes">
     @if (errorCount() > 0) {
-      <p-message severity="error" [closable]="false" class="data-upload__note">
-        <strong>Errores de lectura</strong>
-        <p>{{ errorCount() }} archivo(s) no se pudieron leer correctamente. Quítelos o reemplácelos antes de continuar.</p>
-      </p-message>
+      <div class="note-box note-box--error">
+        <i class="pi pi-times-circle note-box__icon"></i>
+        <div>
+          <strong>Errores de lectura</strong>
+          <p>{{ errorCount() }} archivo(s) no se pudieron leer correctamente. Quítelos o reemplácelos antes de continuar.</p>
+        </div>
+      </div>
     } @else if (datasets().length > 0) {
-      <p-message severity="success" [closable]="false" class="data-upload__note">
-        <strong>Validación</strong>
-        <p>Todos los archivos se leyeron correctamente y las columnas fueron detectadas.</p>
-      </p-message>
+      <div class="note-box note-box--info">
+        <i class="pi pi-info-circle note-box__icon"></i>
+        <div>
+          <strong>Validación</strong>
+          <p>Todos los archivos se leyeron correctamente y las columnas requeridas fueron detectadas.</p>
+        </div>
+      </div>
     }
 
-    <p-message severity="warn" [closable]="false" class="data-upload__note">
-      <strong>Recomendaciones</strong>
-      <ul>
-        <li>Verifique que las fechas y unidades sean consistentes.</li>
-        <li>Si algún dato no es correcto, puede eliminar el archivo y cargar una nueva versión.</li>
-      </ul>
-    </p-message>
+    <div class="note-box note-box--neutral">
+      <i class="pi pi-lightbulb note-box__icon note-box__icon--tip"></i>
+      <div>
+        <strong>Recomendaciones</strong>
+        <ul>
+          <li>Verifique que las fechas y unidades sean consistentes.</li>
+          <li>Si algún dato no es correcto, puede eliminar el archivo y cargar una nueva versión.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <div class="data-upload__actions">
-    <p-button label="Cancelar" severity="secondary" [outlined]="true" [disabled]="processing()" (onClick)="cancel()" />
+    <p-button
+      class="btn-navy-outline"
+      label="Cancelar"
+      [outlined]="true"
+      [disabled]="processing()"
+      (onClick)="cancel()"
+    />
     <p-button
       class="data-upload__submit"
       [disabled]="datasets().length === 0 || errorCount() > 0 || parsing() || processing()"
@@ -185,6 +219,145 @@
     }
   </div>
 </section>
+
+<p-dialog
+  [visible]="detailDataset() !== null"
+  (visibleChange)="onDetailVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '90vw', 'max-width': '1200px' }"
+>
+  <ng-template #header>
+    @if (detailDataset(); as detail) {
+      <div class="detail-modal__header">
+        <span class="detail-modal__icon"><i class="pi pi-file-excel"></i></span>
+        <div>
+          <span class="detail-modal__title">{{ detail.fileName }}</span>
+          <span class="detail-modal__meta">Hoja: {{ detail.sheetName }} · {{ detail.totalRows }} filas</span>
+        </div>
+      </div>
+    }
+  </ng-template>
+
+  @if (detailDataset(); as detail) {
+    <p-table
+      class="detail-modal__table"
+      [value]="detail.rows"
+      [columns]="detail.columns"
+      [paginator]="true"
+      [rows]="20"
+      [rowsPerPageOptions]="[20, 50, 100]"
+      [scrollable]="true"
+      [tableStyle]="{ 'min-width': '60rem' }"
+    >
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          @for (col of columns; track col.field) {
+            <th>{{ col.header }}</th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row let-columns="columns">
+        <tr>
+          @for (col of columns; track col.field) {
+            <td>{{ row[col.field] }}</td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</p-dialog>
+
+<p-dialog
+  [visible]="maxFilesModalVisible()"
+  (visibleChange)="maxFilesModalVisible.set($event)"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="limit-modal"
+  [style]="{ width: '500px', 'max-width': 'calc(100vw - 32px)' }"
+  aria-labelledby="limit-modal-title"
+>
+  <ng-template #header>
+    <div class="limit-modal__header">
+      <span class="limit-modal__icon"><i class="pi pi-exclamation-triangle"></i></span>
+      <div class="limit-modal__heading">
+        <span id="limit-modal-title" class="limit-modal__title">Límite de archivos alcanzado</span>
+        <span class="limit-modal__subtitle">Capacidad de carga por lote técnico completada</span>
+      </div>
+      <button
+        type="button"
+        class="limit-modal__close"
+        aria-label="Cerrar"
+        (click)="maxFilesModalVisible.set(false)"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  </ng-template>
+
+  <div class="limit-modal__body">
+    <p class="limit-modal__text">
+      Solo se permite un máximo de <strong>{{ maxFiles }} archivos</strong> por lote analítico
+      simultáneo. Los archivos adicionales no fueron agregados al sistema.
+    </p>
+
+    <div class="limit-modal__usage">
+      <div class="limit-modal__usage-row">
+        <span class="limit-modal__usage-label">Estado del almacenamiento del lote</span>
+        <span class="limit-modal__usage-badge">
+          {{ acceptedNames().length }} de {{ maxFiles }} archivos ({{ limitUsagePercent() }}%)
+        </span>
+      </div>
+      <div
+        class="limit-modal__bar"
+        role="progressbar"
+        [attr.aria-valuenow]="limitUsagePercent()"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [style.--used.%]="limitUsagePercent()"
+        [style.--prev.%]="limitPreviousPercent()"
+      ></div>
+    </div>
+  </div>
+
+  <div class="limit-modal__audit">
+    <h3 class="limit-modal__audit-title">Auditoría del intento de carga</h3>
+    <ul class="limit-modal__audit-list">
+      @for (row of limitAuditRows(); track $index) {
+        <li class="limit-modal__row" [class.limit-modal__row--rejected]="row.rejected">
+          <span class="limit-modal__dot"></span>
+          <span class="limit-modal__file" [title]="row.name">{{ $index + 1 }}. {{ row.name }}</span>
+          <span class="limit-modal__tag">{{ row.rejected ? 'Excluido' : 'Aceptado' }}</span>
+        </li>
+      }
+    </ul>
+    <p class="limit-modal__note">
+      <i class="pi pi-info-circle"></i>
+      Quite alguno de los archivos existentes en la tabla si desea reemplazarlo por uno distinto.
+    </p>
+  </div>
+
+  <ng-template #footer>
+    <div class="limit-modal__footer">
+      <button type="button" class="limit-modal__btn limit-modal__btn--secondary" (click)="manageFiles()">
+        Gestionar archivos existentes
+      </button>
+      <button
+        type="button"
+        class="limit-modal__btn limit-modal__btn--primary"
+        autofocus
+        (click)="maxFilesModalVisible.set(false)"
+      >
+        Entendido <i class="pi pi-check"></i>
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
 
 <p-dialog
   [visible]="processErrorModalVisible()"

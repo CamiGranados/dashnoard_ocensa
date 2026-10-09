@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChartModule } from 'primeng/chart';
 import { MicrobiologyService } from '../../../../core/services/microbiology.service';
@@ -64,14 +64,35 @@ export class Microbiology {
   // La leyenda del residual es de ESTADO (≤20% ok / >20% deficiente), igual que las barras que
   // realmente se pintan (--chart-residual-ok / --chart-residual-bad). El ítem gris único
   // anterior no correspondía con ningún elemento del gráfico.
-  readonly legendItems = computed<ChartLegendItem[]>(() => [
-    { label: 'BSR', color: chartToken(SCATTER_SERIES.bsrPlanct.token), shape: 'circle' },
-    { label: 'BPA', color: chartToken(SCATTER_SERIES.bpaPlanct.token), shape: 'triangle' },
-    { label: 'BHT', color: chartToken(SCATTER_SERIES.bhtPlanct.token), shape: 'rect' },
-    { label: 'BAnT', color: chartToken(SCATTER_SERIES.bAntPlanct.token), shape: 'rectRot' },
-    { label: 'Residual ≤20%', color: chartToken('--chart-residual-ok'), shape: 'rect' },
-    { label: 'Residual >20%', color: chartToken('--chart-residual-bad'), shape: 'rect' },
-  ]);
+  // Variables ocultas desde la leyenda (clic en BSR/BPA/BHT/BAnT).
+  readonly hiddenSeries = signal<ReadonlySet<MicroVariableKey>>(new Set());
+
+  toggleSeries(key: MicroVariableKey): void {
+    this.hiddenSeries.update((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  }
+
+  readonly legendItems = computed<ChartLegendItem[]>(() => {
+    const hidden = this.hiddenSeries();
+    const series = (key: MicroVariableKey): ChartLegendItem => ({
+      key,
+      label: SCATTER_SERIES[key].label,
+      color: chartToken(SCATTER_SERIES[key].token),
+      shape: SCATTER_SERIES[key].pointStyle,
+      hidden: hidden.has(key),
+    });
+    return [
+      series('bsrPlanct'),
+      series('bpaPlanct'),
+      series('bhtPlanct'),
+      series('bAntPlanct'),
+      { label: 'Residual ≤20%', color: chartToken('--chart-residual-ok'), shape: 'rect' },
+      { label: 'Residual >20%', color: chartToken('--chart-residual-bad'), shape: 'rect' },
+    ];
+  });
 
   // ----------------- Gráfica superior: ciclo Pre → Post → Seg por bache -----------------
   readonly timelinePoints = computed<TimelinePoint[]>(() => buildTimelinePoints(this.records()));
@@ -80,7 +101,7 @@ export class Microbiology {
   readonly bacheCharts = computed<BacheChart[]>(() =>
     this.bacheColumns().map((column, index) => ({
       column,
-      data: this.buildBacheLineData(column),
+      data: this.buildBacheLineData(column, this.hiddenSeries()),
       options: this.buildBacheLineOptions(index === 0),
     })),
   );
@@ -144,7 +165,10 @@ export class Microbiology {
   //   return values.every((v) => v <= this.RESIDUAL_MIN);
   // }
 
-  private buildBacheLineData(column: BacheColumn): { labels: string[][]; datasets: unknown[] } {
+  private buildBacheLineData(
+    column: BacheColumn,
+    hiddenSeries: ReadonlySet<MicroVariableKey>,
+  ): { labels: string[][]; datasets: unknown[] } {
     const keys = Object.keys(SCATTER_SERIES) as MicroVariableKey[];
 
     const datasets = keys.map((key) => {
@@ -152,6 +176,7 @@ export class Microbiology {
       const color = chartToken(cfg.token);
       return {
         label: cfg.label,
+        hidden: hiddenSeries.has(key),
         data: column.samples.map((s) => s.logs[key]),
         borderColor: color,
         backgroundColor: color,

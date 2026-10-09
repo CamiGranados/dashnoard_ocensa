@@ -30,6 +30,10 @@ export interface BacheGroup {
   // Postbache suelto), se arrastra el valor vigente -> la fecha "se repite".
   ultimoBacheDate: Date | null;
   ultimoBacheLabel: string;
+  // Prebache propio del bache (o el vigente si no lo tiene). Lo usan las columnas de
+  // continuación: sus seguimientos ya tienen como "último bache" a este.
+  prebacheDate: Date | null;
+  prebacheLabel: string;
   // Muestras del ciclo ordenadas cronológicamente (Pre, Post, Seg 1, Seg 2…).
   samples: BacheSample[];
 }
@@ -74,7 +78,11 @@ interface WorkingGroup {
   samples: BacheSample[];
 }
 
-function finalizeGroup(group: WorkingGroup, lastPrebacheDate: Date | null): BacheGroup {
+function finalizeGroup(
+  group: WorkingGroup,
+  previousPrebacheDate: Date | null,
+  ownPrebacheDate: Date | null,
+): BacheGroup {
   const samples = group.samples.slice().sort((a, b) => a.date.getTime() - b.date.getTime());
 
   // Numera los seguimientos en orden cronológico: Seg 1, Seg 2…
@@ -87,8 +95,10 @@ function finalizeGroup(group: WorkingGroup, lastPrebacheDate: Date | null): Bach
   }
 
   return {
-    ultimoBacheDate: lastPrebacheDate,
-    ultimoBacheLabel: lastPrebacheDate ? formatShortDate(lastPrebacheDate) : '—',
+    ultimoBacheDate: previousPrebacheDate,
+    ultimoBacheLabel: previousPrebacheDate ? formatShortDate(previousPrebacheDate) : '—',
+    prebacheDate: ownPrebacheDate,
+    prebacheLabel: ownPrebacheDate ? formatShortDate(ownPrebacheDate) : '—',
     samples,
   };
 }
@@ -109,7 +119,7 @@ export function buildBacheGroups(points: TimelinePoint[]): BacheGroup[] {
 
   const flush = () => {
     if (current && current.samples.length) {
-      groups.push(finalizeGroup(current, previousPrebacheDate));
+      groups.push(finalizeGroup(current, previousPrebacheDate, lastPrebacheDate));
     }
     current = null;
   };
@@ -145,9 +155,11 @@ export function buildBacheColumns(points: TimelinePoint[]): BacheColumn[] {
   return buildBacheGroups(points).flatMap((group) => {
     const chunkCount = Math.max(1, Math.ceil(group.samples.length / MAX_SAMPLES_PER_COLUMN));
 
+    // Primera columna: Prebache del bache anterior. Columnas de continuación (solo
+    // seguimientos): el Prebache del propio bache, que ya es su "último bache".
     return Array.from({ length: chunkCount }, (_, i): BacheColumn => ({
-      ultimoBacheDate: group.ultimoBacheDate,
-      ultimoBacheLabel: group.ultimoBacheLabel,
+      ultimoBacheDate: i === 0 ? group.ultimoBacheDate : group.prebacheDate,
+      ultimoBacheLabel: i === 0 ? group.ultimoBacheLabel : group.prebacheLabel,
       samples: group.samples.slice(i * MAX_SAMPLES_PER_COLUMN, (i + 1) * MAX_SAMPLES_PER_COLUMN),
     }));
   });

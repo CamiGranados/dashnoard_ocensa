@@ -1,0 +1,30 @@
+<footer class="status-bar">
+  <span class="status-bar__item"><i class="pi pi-desktop"></i> Sistema</span>
+
+  @if (lastSync(); as sync) {
+    <span class="status-bar__item">
+      <i class="pi pi-circle-fill status-bar__dot status-bar__dot--ok"></i>
+      Datos sincronizados <strong>{{ sync }}</strong>
+    </span>
+  }
+
+  @if (modelActive() !== null) {
+    <span class="status-bar__item">
+      Modelo IA
+      <i
+        class="pi pi-circle-fill status-bar__dot"
+        [class.status-bar__dot--ok]="modelActive()"
+        [class.status-bar__dot--off]="!modelActive()"
+      ></i>
+      <strong>{{ modelActive() ? 'Activo' : 'Inactivo' }}</strong>
+    </span>
+  }
+
+  @if (lastModelRun(); as run) {
+    <span class="status-bar__item"><i class="pi pi-clock"></i> Última corrida del modelo <strong>{{ run }}</strong></span>
+  }
+
+  @if (version(); as v) {
+    <span class="status-bar__item status-bar__item--end"><i class="pi pi-info-circle"></i> Versión {{ v }}</span>
+  }
+</footer>

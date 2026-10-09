@@ -119,3 +119,6 @@
   z-index: 0;
   filter: brightness(10);
 }
+.shell__status {
+  margin-inline-start: var(--app-sidebar-width);
+}

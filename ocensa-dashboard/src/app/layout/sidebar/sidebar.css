@@ -62,6 +62,31 @@
 
 /* Marca */
 
+.app-sidebar__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.app-sidebar__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--sb-header-border);
+}
+
+.app-sidebar__version {
+  padding: 2px 8px;
+  border: 1px solid var(--sb-header-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--sb-brand-subtitle);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
 .app-sidebar__brand {
   display: flex;
   align-items: center;
@@ -79,6 +104,20 @@
   background: var(--color-primary);
   color: #ffffff;
   font-size: 1.05rem;
+  /* Borde interior + dos anillos exteriores difuminados */
+  border: 1px solid color-mix(in srgb, var(--color-primary) 60%, #ffffff 40%);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent),
+    0 0 0 6px color-mix(in srgb, var(--color-primary) 15%, transparent),
+    0 0 14px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  overflow: hidden;
+}
+
+.app-sidebar__brand-logo {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
 }
 
 .app-sidebar__brand-text {
@@ -91,7 +130,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.95rem;
+  font-size: 12px;
   font-weight: 700;
   color: var(--sb-brand-title);
 }
@@ -102,8 +141,8 @@
   border-radius: 4px;
   background: var(--sb-badge-bg);
   color: var(--sb-badge-text);
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 
@@ -167,7 +206,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--sb-item-text);
-  font-size: 0.85rem;
+  font-size: 12px;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -264,8 +303,8 @@
 }
 
 .app-sidebar__footer-logo {
-  width: 32px;
-  height: 32px;
+  width: 45px;
+  height: 45px;
   flex-shrink: 0;
   object-fit: contain;
 }
@@ -276,11 +315,11 @@
   line-height: 1.25;
 }
 
-.app-sidebar__footer-title {
+/* .app-sidebar__footer-title {
   color: var(--sb-hover-text);
   font-size: 0.75rem;
   font-weight: 600;
-}
+} */
 
 .app-sidebar__footer-subtitle {
   color: var(--sb-section-title);
