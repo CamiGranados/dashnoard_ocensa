@@ -22,7 +22,12 @@ export interface BoxAnnotationsOptions {
   band: { min: number; max: number } | null;
   /** Umbral/límite: línea horizontal discontinua. */
   limit: number | null;
+  /** Color de las líneas del papel cuadriculado del área de trazado. */
+  gridColor?: string;
 }
+
+/** Paso (px) del papel cuadriculado. */
+const GRID_STEP = 12;
 
 /** Distancia (px) al punto rojo para considerarlo "bajo el puntero". */
 const HOVER_RADIUS = 8;
@@ -41,6 +46,33 @@ export function isOutlierHovered(chart: Chart): boolean {
  */
 export const boxAnnotationsPlugin: Plugin<'boxplot'> = {
   id: 'boxAnnotations',
+
+  /** Papel cuadriculado sólo dentro del área de trazado: los ejes quedan fuera de la cuadrícula. */
+  beforeDraw(chart: Chart, _args, options: BoxAnnotationsOptions) {
+    if (!options?.gridColor) return;
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+    const { left, right, top, bottom } = chartArea;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(left, top, right - left, bottom - top);
+    ctx.clip();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(left, top, right - left, bottom - top);
+    ctx.strokeStyle = options.gridColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = left; x <= right; x += GRID_STEP) {
+      ctx.moveTo(Math.round(x) + 0.5, top);
+      ctx.lineTo(Math.round(x) + 0.5, bottom);
+    }
+    for (let y = bottom; y >= top; y -= GRID_STEP) {
+      ctx.moveTo(left, Math.round(y) + 0.5);
+      ctx.lineTo(right, Math.round(y) + 0.5);
+    }
+    ctx.stroke();
+    ctx.restore();
+  },
 
   beforeDatasetsDraw(chart: Chart, _args, options: BoxAnnotationsOptions) {
     if (!options?.band) return;
@@ -98,11 +130,11 @@ export const boxAnnotationsPlugin: Plugin<'boxplot'> = {
       ctx.fillText(`Máx ${format(stats.max)}`, chart.width - 2, 7);
     }
     ctx.fillStyle = options.textColor;
-    ctx.fillText(`Mín ${format(stats.min)}`, chart.width - 2, chart.height - 7);
+    ctx.fillText(`Mín ${format(stats.min)}`, chartArea.right - 2, chartArea.bottom - 7);
 
-    // Q2 a la izquierda, a la altura de la mediana.
+    // Q2 arriba a la izquierda, a la altura de Máx (a la altura de la mediana tapaba el eje Y).
     ctx.textAlign = 'left';
-    ctx.fillText(`Q2=${format(stats.median)}`, 2, px(stats.median));
+    ctx.fillText(`Q2=${format(stats.median)}`, chartArea.left + 2, 7);
 
     // Etiqueta del outlier bajo el puntero (sólo al pasar el mouse sobre el punto rojo).
     const hovered = hoveredOutlier.get(chart);

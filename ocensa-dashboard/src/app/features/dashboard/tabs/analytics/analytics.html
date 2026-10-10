@@ -59,42 +59,35 @@
                 <p>Sin datos suficientes.</p>
               </div>
             }
-            @if (thpsDelta(); as delta) {
-              <p class="analytics-thps-delta">
-                Diferencia entre estados: <strong>{{ delta > 0 ? '+' : '' }}{{ delta | number: '1.1-1' }} p.p.</strong>
-                de THPS promedio (no controlado vs. controlado)
-              </p>
-            }
           </app-chart-frame>
 
           @if (activeDiagnosis(); as d) {
             <section class="analytics-diagnosis">
               <header class="analytics-diagnosis__header">
-                <h4>Diagnóstico de principio activo</h4>
-                <span class="analytics-diagnosis__method">Método HPLC UV-Vis</span>
               </header>
               <div class="analytics-diagnosis__grid">
                 <div class="analytics-diagnosis__card">
-                  <span class="analytics-diagnosis__label">Eficiencia biocida</span>
-                  <strong class="analytics-diagnosis__title" [attr.data-tone]="d.efficiency.tone">
-                    {{ d.efficiency.title }}
-                  </strong>
-                  <p>{{ d.efficiency.detail }}</p>
+                  <span class="analytics-diagnosis__badge">Relación residual vs. control</span>
+                  <p class="analytics-thps-delta">
+                    <strong>Controlado:</strong> Muestra posterior a una inyección en la que los 4 grupos de bacterias 
+                                        (BSR, BPA, BHT, BAnT) quedaron por debajo de 10² Bact/mL. <strong>No controlado:</strong> Al menos una
+                    bacteria llegó a mas de 10². Cada barra es el THPS promedio de las muestras de ese grupo; las muestras
+                    «antes» no se incluyen.
+                  </p>
                 </div>
                 <div class="analytics-diagnosis__card">
-                  <span class="analytics-diagnosis__label">Riesgo en emulsión</span>
-                  <strong class="analytics-diagnosis__title" [attr.data-tone]="d.emulsion.tone">
-                    {{ d.emulsion.title }}
-                  </strong>
-                  <p>{{ d.emulsion.detail }}</p>
+                  <span class="analytics-diagnosis__badge">Tamaño de muestra</span>
+                  <p>{{ d.reliability.detail }}</p>
                 </div>
               </div>
-              @if (d.correlation; as c) {
+              @if (d.windowSummary; as c) {
                 <p class="analytics-diagnosis__footer">
-                  Correlación Dosis vs. Eficacia Global
-                  <strong [attr.data-tone]="c.tone">
-                    {{ c.percent | number: '1.0-1' }}% control ventana ({{ c.label }})
-                  </strong>
+                  Control por ventana: es el % de inyecciones en que todas las muestras posteriores quedaron bajo el
+                  umbral (una sola muestra fuera lo marca como no controlado).
+                  <strong [attr.data-tone]="c.tone">{{ c.percent | number: '1.0-1' }}% ({{ c.label }})</strong>
+                  @if (c.reboundDays != null) {
+                    · Rebote promedio: <strong>{{ c.reboundDays | number: '1.0-1' }} días</strong>
+                  }
                 </p>
               }
             </section>

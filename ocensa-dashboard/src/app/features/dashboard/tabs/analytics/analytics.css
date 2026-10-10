@@ -265,35 +265,48 @@
 
 .analytics-diagnosis__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 0.9rem;
+  margin-top: 14px;
+}
+
+@media (max-width: 720px) {
+  .analytics-diagnosis__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .analytics-diagnosis__card {
-  padding: 0.7rem 0.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  --diag-accent: var(--color-primary);
+  position: relative;
+  padding: 28px 20px 20px;
+  border: 2px solid color-mix(in srgb, var(--diag-accent) 40%, transparent);
+  border-radius: 16px;
   background: var(--color-white);
 }
 
-.analytics-diagnosis__label {
-  display: block;
-  color: var(--color-gray-dark);
-  font-size: 0.72rem;
+.analytics-diagnosis__badge {
+  position: absolute;
+  top: 0;
+  right: 16px;
+  transform: translateY(-50%);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: var(--diag-accent);
+  color: var(--color-white);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-}
-
-.analytics-diagnosis__title {
-  display: block;
-  margin: 0.25rem 0;
-  font-size: 1rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
 }
 
 .analytics-diagnosis__card p {
   margin: 0;
-  color: var(--color-gray-dark);
-  font-size: 0.78rem;
+  color: var(--color-text-body);
+  font-size: 12.5px;
+  line-height: 1.5;
 }
 
 .analytics-diagnosis__footer {

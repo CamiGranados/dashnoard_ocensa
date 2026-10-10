@@ -200,6 +200,7 @@ export class Analytics {
         limitColor: chartToken('--chart-bx-limit', '#d92d20'),
         bandColor: chartToken('--chart-bx-band', 'rgba(24,138,86,0.1)'),
         outliers,
+        gridColor: chartToken('--chart-grid', '#e5e9f2'),
         band: cfg?.safeBand ?? null,
         limit: cfg?.limit ?? null,
       };
@@ -238,7 +239,7 @@ export class Analytics {
         options: {
           responsive: true,
           animation: false,
-          layout: { padding: { top: 14, bottom: 14, left: 2, right: 2 } },
+          layout: { padding: { top: 14, bottom: 4, left: 0, right: 2 } },
           plugins: {
             legend: { display: false },
             boxAnnotations: annotations,
@@ -251,9 +252,8 @@ export class Analytics {
             },
           },
           scales: {
-            x: { display: false },
+            x: { grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0 } },
             y: {
-              display: false,
               grid: { display: false },
               grace: '10%',
               ...(refValues.length
@@ -378,46 +378,55 @@ export class Analytics {
   });
 
   // Diagnóstico de principio activo, derivado de THPS por estado y % de control de ventana.
-  // Los umbrales de los textos (90 % consumo, 50/80 % de control) son criterio de presentación
-  // del frontend, no vienen del backend.
+  // Los cortes de 50/80 % del tono del pie son criterio de presentación del frontend, no vienen
+  // del backend. La lectura de residual sólo depende del signo de la diferencia entre estados.
   readonly activeDiagnosis = computed(() => {
     const rows = this.thpsByControlStatus();
     const controlled = rows.find((r) => r.controlled) ?? null;
     const notControlled = rows.find((r) => !r.controlled) ?? null;
     if (!controlled && !notControlled) return null;
 
-    const consumed = controlled ? 100 - controlled.averageThpsPercent : null;
     const delta = this.thpsDelta();
-    const falseResidual = delta != null && delta > 0;
+    const residual =
+      delta == null
+        ? {
+            title: 'Sin comparación',
+            tone: 'warn',
+            detail: 'Se necesitan muestras controladas y no controladas para comparar el residual.',
+          }
+        : delta < 0
+          ? {
+              title: 'Residual insuficiente',
+              tone: 'warn',
+              detail:
+                'Las muestras sin control tienen menos THPS que las controladas: el biocida no se mantiene en concentración suficiente. Revisar dosis o frecuencia.',
+            }
+          : {
+              title: 'Residual sin efecto',
+              tone: 'warn',
+              detail:
+                'Las muestras sin control no tienen menos THPS que las controladas: la causa no parece ser la concentración. Revisar resistencia, mezcla, punto de aplicación o biofilm.',
+            };
 
-    const windowControl = this.byInjectionWindow()?.controlPercent ?? null;
-    const correlation =
+    const reliability = {
+      title: 'Confiabilidad de la lectura',
+      tone: 'ok',
+      detail: `Muestras analizadas: ${controlled?.samplesCount ?? 0} controladas y ${notControlled?.samplesCount ?? 0} no controladas. Con pocas muestras la diferencia es una tendencia, no una conclusión estadística.`,
+    };
+
+    const w = this.byInjectionWindow();
+    const windowControl = w?.controlPercent ?? null;
+    const windowSummary =
       windowControl == null
         ? null
         : {
             percent: windowControl,
             label: windowControl < 50 ? 'Crítico' : windowControl < 80 ? 'Moderado' : 'Óptimo',
             tone: windowControl < 50 ? 'danger' : windowControl < 80 ? 'warn' : 'ok',
+            reboundDays: w?.averageDaysToRebound ?? null,
           };
 
-    return {
-      efficiency: {
-        title: consumed != null && consumed >= 90 ? 'Consumo Óptimo' : 'Consumo Parcial',
-        tone: consumed != null && consumed >= 90 ? 'ok' : 'warn',
-        detail:
-          consumed != null
-            ? `${consumed.toFixed(1)}% de molécula activa consumida en erradicación.`
-            : 'Sin muestras controladas para estimar el consumo.',
-      },
-      emulsion: {
-        title: falseResidual ? 'Falso Residual' : 'Sin Falso Residual',
-        tone: falseResidual ? 'warn' : 'ok',
-        detail: falseResidual
-          ? 'THPS acumulado sin contacto efectivo con biofilm activo.'
-          : 'El THPS residual no supera al de las muestras controladas.',
-      },
-      correlation,
-    };
+    return { residual, reliability, windowSummary };
   });
 
   // Diferencia entre el THPS promedio de "No controlado" y "Controlado", en puntos porcentuales.
