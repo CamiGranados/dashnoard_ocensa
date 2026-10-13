@@ -48,7 +48,7 @@ export class FiltersService {
     months.forEach(m => { params = params.append('months', m); });
 
     if (companyId) {
-      params = params.set('companyId', companyId);
+      params = params.append('companies', companyId);
     }
 
     return this.http.get<Measurement[]>(`${this.apiUrl}/Tanks/fwv`, { params });

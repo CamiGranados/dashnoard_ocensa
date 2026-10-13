@@ -24,7 +24,7 @@ export class ThpsReviewService {
         tankId: tank,
         years: years,
         months: months,
-        companyId: company,
+        companies: company ? [Number(company)] : [],
       },
     };
   });

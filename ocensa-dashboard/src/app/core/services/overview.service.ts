@@ -20,7 +20,7 @@ export class OverviewService {
         const { tank, years, months, company } = this.filtersState.filters();
 
         // Sin tanque seleccionado no hay nada que pedir todavía.
-        console.log('tank', tank, 'years', years, 'months', months)
+        // console.log('tank', tank, 'years', years, 'months', months, 'company', company);
         if (!tank) {
             return undefined;
         }
@@ -32,7 +32,7 @@ export class OverviewService {
                 tankId: tank,
                 years: years,
                 months: months,
-                companyId: company,
+                companies: company ? [Number(company)] : [],
             },
         };
     });
