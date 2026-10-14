@@ -1,3 +1,4 @@
 export const environment = {
-  apiUrl: 'http://localhost:5285/api',
+  production: true,
+  apiUrl: 'https://corfus.corrosioncic.com/apianalytics',
 };
