@@ -1,0 +1,84 @@
+<section class="pf" [attr.aria-labelledby]="uid + '-title'">
+  <p class="pf__eyebrow" [id]="uid + '-title'">De la planta a la decisión</p>
+
+  <div class="pf__stage">
+    <!-- Línea base que une las tarjetas por detrás + destello que la recorre -->
+    <div class="pf__rail" aria-hidden="true"><span class="pf__beam"></span></div>
+
+    <ol class="pf__steps">
+      <!-- 01 · Planta / Monitoreo: nodo con pulso + traza de telemetría -->
+      <li class="pf__step">
+        <span class="pf__glow" aria-hidden="true"></span>
+        <svg class="pf__chart" viewBox="0 0 100 48" aria-hidden="true">
+          <line class="pf-grid" x1="0" y1="10" x2="100" y2="10" />
+          <line class="pf-grid" x1="0" y1="44" x2="100" y2="44" />
+          <path class="pf-ecg" [attr.d]="ecgPath" />
+          <path class="pf-ecg-hi" [attr.d]="ecgPath" pathLength="100" />
+          <circle class="pf-ring" cx="50" cy="28" r="4" />
+          <circle class="pf-ring pf-ring--late" cx="50" cy="28" r="4" />
+          <circle class="pf-node-halo" cx="50" cy="28" r="4" />
+          <circle class="pf-node" cx="50" cy="28" r="2" />
+        </svg>
+        <span class="pf__num">01</span>
+        <span class="pf__title">Planta</span>
+        <span class="pf__sub">Monitoreo</span>
+      </li>
+
+      <!-- 02 · Datos / Análisis LIMS: partículas que convergen en un nodo de procesamiento -->
+      <li class="pf__step">
+        <span class="pf__glow" aria-hidden="true"></span>
+        <svg class="pf__chart" viewBox="0 0 100 48" aria-hidden="true">
+          @for (p of particles; track $index) {
+            <line
+              class="pf-route"
+              [attr.x1]="p.x"
+              [attr.y1]="p.y"
+              [attr.x2]="hub.x"
+              [attr.y2]="hub.y"
+            />
+          }
+          @for (p of particles; track $index) {
+            <circle
+              class="pf-particle"
+              [attr.cx]="p.x"
+              [attr.cy]="p.y"
+              r="1.5"
+              [style.--dx]="p.dx"
+              [style.--dy]="p.dy"
+              [style.animation-delay]="p.delay"
+            />
+          }
+          <circle class="pf-hub-orbit" [attr.cx]="hub.x" [attr.cy]="hub.y" r="9" />
+          <circle class="pf-hub" [attr.cx]="hub.x" [attr.cy]="hub.y" r="5" />
+          <circle class="pf-hub-core" [attr.cx]="hub.x" [attr.cy]="hub.y" r="2" />
+        </svg>
+        <span class="pf__num">02</span>
+        <span class="pf__title">Datos</span>
+        <span class="pf__sub">Análisis LIMS</span>
+      </li>
+
+      <!-- 03 · Decisiones / Dosificación: tendencia que se dibuja, relleno y punto final -->
+      <li class="pf__step">
+        <span class="pf__glow" aria-hidden="true"></span>
+        <svg class="pf__chart" viewBox="0 0 100 48" aria-hidden="true">
+          <defs>
+            <linearGradient [attr.id]="uid + '-area'" x1="0" y1="0" x2="0" y2="1">
+              <stop class="pf-stop-top" offset="0" />
+              <stop class="pf-stop-bottom" offset="1" />
+            </linearGradient>
+          </defs>
+          <line class="pf-grid" x1="0" y1="14" x2="100" y2="14" />
+          <line class="pf-grid" x1="0" y1="30" x2="100" y2="30" />
+          <line class="pf-grid" x1="0" y1="46" x2="100" y2="46" />
+          <path class="pf-area" [attr.d]="trendAreaPath" [attr.fill]="'url(#' + uid + '-area)'" />
+          <path class="pf-line" [attr.d]="trendPath" pathLength="100" />
+          <circle class="pf-end-halo" cx="96" cy="8" r="3" />
+          <circle class="pf-end" cx="96" cy="8" r="2.4" />
+        </svg>
+        <span class="pf__num">03</span>
+        <span class="pf__title">Decisiones</span>
+        <span class="pf__sub">Dosificación</span>
+      </li>
+    </ol>
+  </div>
+</section>

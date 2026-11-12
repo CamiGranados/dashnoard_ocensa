@@ -106,6 +106,49 @@
   --color-rose-badge-border: #fda4af;
   --color-surface-soft:   #f8fafb;
   --color-line-soft:      #f1f3f5;
+
+  /* — Login (src/app/auth/login) — */
+  /* Panel izquierdo (hero oscuro) */
+  --login-page-bg:            #dde3ec;
+  --login-hero-bg-start:      #0b1f3a;
+  --login-hero-bg-end:        #0a2a4f;
+  --login-hero-surface:       rgba(255, 255, 255, 0.04);
+  /* Tono sólido del hero bajo las tarjetas del flujo: tapa la línea de conexión que pasa por detrás */
+  --login-hero-surface-solid: #0a2648;
+  --login-hero-border:        rgba(120, 170, 255, 0.18);
+  --login-hero-divider:       rgba(255, 255, 255, 0.08);
+  --login-hero-grid:          rgba(120, 170, 255, 0.05);
+  --login-hero-text:          #e6eefb;
+  --login-hero-muted:         #9fb2cc;
+  --login-hero-faint:         #6f86a6;
+  --login-accent:             #4fa3ff;
+  --login-accent-soft:        #7cc4ff;
+  --login-accent-glow:        rgba(79, 163, 255, 0.45);
+  --login-accent-glow-soft:   rgba(79, 163, 255, 0.16);
+  /* Flujo animado "De la planta a la decisión" (process-flow) */
+  --login-flow-line:          rgba(120, 170, 255, 0.22);
+  --login-flow-route:         rgba(124, 196, 255, 0.28);
+  --login-flow-grid:          rgba(120, 170, 255, 0.14);
+  --login-flow-glow-border:   rgba(124, 196, 255, 0.7);
+  /* Panel derecho (formulario) */
+  --login-form-bg:            #f4f6fa;
+  --login-primary:            #0b2e59;
+  --login-primary-hover:      #0f3a70;
+  --login-primary-shadow:     rgba(11, 46, 89, 0.22);
+  --login-heading:            #0b1f3a;
+  --login-label:              #2e3f59;
+  --login-text:               #4a5a73;
+  --login-muted:              #7a879c;
+  --login-placeholder:        #a3adbd;
+  --login-input-border:       #d6dde8;
+  --login-input-border-hover: #b9c4d4;
+  --login-focus-ring:         rgba(79, 163, 255, 0.22);
+  --login-error-ring:         rgba(178, 59, 59, 0.16);
+  --login-link:               #1e6fd9;
+  --login-chip-bg:            #eaeff6;
+  --login-info-bg:            #eef6ff;
+  --login-info-border:        #b7d7fb;
+  --login-font-mono:          ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
 }
 
 * {

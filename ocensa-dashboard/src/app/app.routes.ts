@@ -1,6 +1,11 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  // Fuera del Shell: el login no lleva sidebar ni cabecera del dashboard.
+  {
+    path: 'login',
+    loadComponent: () => import('./auth/login/login').then(m => m.Login),
+  },
   {
     path: '',
     loadComponent: () => import('./layout/shell/shell').then(m => m.Shell),
