@@ -118,6 +118,8 @@
   --login-hero-border:        rgba(120, 170, 255, 0.18);
   --login-hero-divider:       rgba(255, 255, 255, 0.08);
   --login-hero-grid:          rgba(120, 170, 255, 0.05);
+  --login-hero-ring:          rgba(120, 170, 255, 0.07);
+  --login-hero-ring-soft:     rgba(120, 170, 255, 0.045);
   --login-hero-text:          #e6eefb;
   --login-hero-muted:         #9fb2cc;
   --login-hero-faint:         #6f86a6;

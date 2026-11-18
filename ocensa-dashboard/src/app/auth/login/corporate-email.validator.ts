@@ -3,7 +3,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 /** Dominios corporativos autorizados para iniciar sesión. */
 export const CORPORATE_EMAIL_DOMAINS: readonly string[] = [
   'ocensa.com.co',
-  'corrosion.cict.org.co',
+  'corrosioncic.com',
 ];
 
 const LOCAL_PART = /^[a-z0-9._%+-]+$/i;

@@ -11,17 +11,13 @@
           <span class="brand__tagline">Visualización e integración de datos</span>
         </span>
       </div>
-      <span class="hero__badge">
-        <span class="hero__badge-dot" aria-hidden="true"></span>
-        Ocensa Pro
-      </span>
     </header>
 
     <div class="hero__body">
-      <span class="hero__tag">Sistema integral LIMS &amp; telemetría</span>
+      <span class="hero__tag">Inteligencia para tu operación</span>
       <h2 class="hero__title">
-        Integridad Operativa &amp; <span class="hero__title-accent">Gestión Analítica</span> de
-        Tratamiento Químico
+        Gestión Analítica <span class="hero__title-accent">de Tratamiento</span>
+        Químico Biocida
       </h2>
       <p class="hero__desc">
         Plataforma centralizada para la toma de decisiones técnicas, dosificación predictiva de
@@ -35,10 +31,8 @@
         <img class="partner__logo" src="images/Logo CIC.png" alt="Logo CIC" />
         <span class="partner__text">
           <span class="partner__name">Corporación para la Investigación de la Corrosión</span>
-          <span class="partner__role">Aliado Tecnológico &amp; Científico</span>
         </span>
       </div>
-      <span class="hero__version">v3.4.2 Telemetría Segura</span>
     </footer>
   </aside>
 
@@ -46,20 +40,18 @@
   <main class="access">
     <div class="access__secure">
       <i class="pi pi-lock" aria-hidden="true"></i>
-      <span>Conexión Cifrada SSL/TLS 256-bit</span>
-      <span class="access__secure-sep" aria-hidden="true">·</span>
-      <span>SSO Corporativo Habilitado</span>
+      <span>Conexión segura</span>
     </div>
 
     <div class="access__main">
       <div class="access__card">
         <p class="access__eyebrow">
           <span class="access__eyebrow-dot" aria-hidden="true"></span>
-          Portal de control de acceso
+          Bienvenido
         </p>
         <h1 class="access__title">Iniciar Sesión</h1>
         <p class="access__subtitle">
-          Ingrese sus credenciales autorizadas o acceda mediante la federación de identidad de red.
+          Ingrese sus credenciales para acceder a la plataforma.
         </p>
 
         <form class="form" [formGroup]="form" (ngSubmit)="submit()">
@@ -68,27 +60,9 @@
           @let usernameInvalid = username.touched && username.invalid;
           @let passwordInvalid = password.touched && password.invalid;
 
-          <!-- Estación / terminal -->
-          <div class="field">
-            <label class="field__label" for="login-terminal">Estación o terminal operativa</label>
-            <div class="field__control">
-              <i class="pi pi-map-marker field__icon" aria-hidden="true"></i>
-              <select
-                id="login-terminal"
-                class="field__input field__input--select"
-                formControlName="terminal"
-              >
-                @for (t of terminals; track t.value) {
-                  <option [value]="t.value">{{ t.label }}</option>
-                }
-              </select>
-              <i class="pi pi-chevron-down field__chevron" aria-hidden="true"></i>
-            </div>
-          </div>
-
           <!-- Usuario / correo -->
           <div class="field">
-            <label class="field__label" for="login-username">Usuario corporativo o correo</label>
+            <label class="field__label" for="login-username">Correo Corporativo</label>
             <div class="field__control" [class.is-invalid]="usernameInvalid">
               <i class="pi pi-user field__icon" aria-hidden="true"></i>
               <input
@@ -97,7 +71,7 @@
                 type="email"
                 formControlName="username"
                 autocomplete="username"
-                placeholder="nombre.apellido@ocensa.com.co"
+                placeholder="Ingresa tu usuario"
                 [attr.aria-invalid]="usernameInvalid"
                 [attr.aria-describedby]="
                   usernameInvalid
@@ -116,21 +90,11 @@
                 }
               </p>
             }
-            <p class="field__hint" id="login-username-hint">
-              Formatos válidos:
-              @for (domain of allowedDomains; track domain) {
-                <code class="field__chip">&#64;{{ domain }}</code>
-              }
-            </p>
           </div>
 
           <!-- Contraseña -->
           <div class="field">
-            <div class="field__label-row">
-              <label class="field__label" for="login-password">Contraseña de seguridad</label>
-              <!-- TODO: enlazar al flujo de recuperación cuando exista -->
-              <button type="button" class="field__link">¿Olvidó su contraseña?</button>
-            </div>
+            <label class="field__label" for="login-password">Contraseña de seguridad</label>
             <div class="field__control" [class.is-invalid]="passwordInvalid">
               <i class="pi pi-key field__icon" aria-hidden="true"></i>
               <input
@@ -156,17 +120,21 @@
                 ></i>
               </button>
             </div>
-            @if (passwordInvalid) {
-              <p class="field__error" id="login-password-error">
-                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-                Ingrese su contraseña.
-              </p>
-            }
+            <div class="field__footer">
+              @if (passwordInvalid) {
+                <p class="field__error" id="login-password-error">
+                  <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                  Ingrese su contraseña.
+                </p>
+              }
+              <!-- TODO: enlazar al flujo de recuperación cuando exista -->
+              <button type="button" class="field__link">¿Olvidó su contraseña?</button>
+            </div>
           </div>
 
           <label class="form__check">
             <input type="checkbox" formControlName="rememberTerminal" />
-            <span>Recordar terminal activa en esta estación de trabajo</span>
+            <span>Recordar sesión</span>
           </label>
 
           <button
@@ -185,31 +153,14 @@
             }
           </button>
         </form>
-
-        <div class="access__note" role="note">
-          <i class="pi pi-shield" aria-hidden="true"></i>
-          <p>
-            Sesión protegida por política de doble factor (2FA). Al ingresar desde redes externas,
-            se solicitará validación en Microsoft Authenticator.
-          </p>
-        </div>
       </div>
     </div>
 
     <footer class="access__footer">
       <p>
-        © 2026 Oleoducto Central S.A. (OCENSA) &amp; Corporación CIC. Todos los derechos reservados.
+        © 2026 Corporación para la invesigación de la corrosion.
       </p>
       <!-- TODO: destinos de soporte pendientes -->
-      <nav class="access__links" aria-label="Soporte">
-        <button type="button">Mesa de Ayuda CIC</button>
-        <span class="access__links-sep" aria-hidden="true">·</span>
-        <button type="button">Soporte LIMS</button>
-        <span class="access__links-sep" aria-hidden="true">·</span>
-        <button type="button">
-          <span class="access__status-dot" aria-hidden="true"></span>Servicios Operacionales 100%
-        </button>
-      </nav>
     </footer>
   </main>
 </div>

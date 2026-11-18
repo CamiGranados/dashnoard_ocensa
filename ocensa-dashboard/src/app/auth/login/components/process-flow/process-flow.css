@@ -14,6 +14,30 @@
   --pf-cycle: 3s;
 }
 
+.hero__badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--login-accent-soft);
+  box-shadow:
+    0 0 0 3px var(--login-accent-glow-soft),
+    0 0 8px var(--login-accent);
+}
+
+.hero__badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border: 1px solid var(--login-hero-border);
+  border-radius: 999px;
+  background: var(--login-hero-surface);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--login-hero-text);
+}
+
 .pf__eyebrow {
   display: flex;
   align-items: center;
@@ -120,10 +144,11 @@
   position: absolute;
   top: 50%;
   left: calc(var(--pf-gap) / -2);
-  width: 6px;
-  height: 6px;
-  border-top: 1.5px solid var(--login-accent);
-  border-right: 1.5px solid var(--login-accent);
+  width: 11px;
+  height: 11px;
+  border-top: 2px solid var(--login-accent);
+  border-right: 2px solid var(--login-accent);
+  filter: drop-shadow(0 0 3px var(--login-accent-glow));
   transform: translate(-70%, -50%) rotate(45deg);
 }
 
@@ -146,20 +171,21 @@
   width: 100%;
   max-width: 100px;
   height: auto;
-  margin-bottom: 10px;
+  margin: 0 auto 10px; /* centrada en la tarjeta */
   overflow: visible;
   filter: drop-shadow(0 0 2.5px var(--login-accent-glow));
 }
 
 .pf__num {
-  font-family: var(--login-font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  /* font-family: var(--login-font-mono); */
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   color: var(--login-accent);
 }
 
 .pf__title {
+  margin-top:5px;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.25;
