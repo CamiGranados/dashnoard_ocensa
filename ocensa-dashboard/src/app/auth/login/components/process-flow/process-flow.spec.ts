@@ -19,8 +19,10 @@ describe('ProcessFlow', () => {
   });
 
   it('pinta las 3 etapas en orden', () => {
-    const titles = Array.from(el.querySelectorAll('.pf__title'), (t) => t.textContent?.trim());
-    expect(titles).toEqual(['Planta', 'Datos', 'Decisiones']);
+    const titles = Array.from(el.querySelectorAll('.hero__badge-title'), (t) =>
+      t.textContent?.trim(),
+    );
+    expect(titles).toEqual(['Monitoreo', 'Datos', 'Decisiones']);
   });
 
   it('crea las partículas como elementos SVG con su desplazamiento hacia el nodo', () => {

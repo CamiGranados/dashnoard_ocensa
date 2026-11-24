@@ -14,7 +14,22 @@
   --pf-cycle: 3s;
 }
 
+/* Píldora de cada tarjeta: punto · título | subtítulo */
+.hero__badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px; /* baja el recuadro respecto a la mini-gráfica */
+  padding: 7px 14px;
+  border: 1px solid var(--login-hero-border);
+  border-radius: 12px;
+  background: var(--login-hero-surface);
+  color: var(--login-hero-text);
+}
+
 .hero__badge-dot {
+  flex: none;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -24,18 +39,21 @@
     0 0 8px var(--login-accent);
 }
 
-.hero__badge {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 12px;
-  border: 1px solid var(--login-hero-border);
-  border-radius: 999px;
-  background: var(--login-hero-surface);
-  font-size: 11.5px;
+.hero__badge-text {
+  display: flex;
+  flex-wrap: wrap; /* en tarjetas angostas el subtítulo baja a la línea siguiente */
+  /* flex-direction: column; */
+  gap: 1px;
+  min-width: 0;
+  padding-left: 10px;
+  /* border-right: 1px solid var(--login-hero-divider); separación punto ↔ texto */
+}
+
+.hero__badge-title {
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--login-hero-text);
+  line-height: 1.2;
+  margin-right: 10px;
 }
 
 .pf__eyebrow {
@@ -166,36 +184,26 @@
   animation: pf-glow var(--pf-cycle) ease-in-out var(--pf-delay) infinite;
 }
 
+/* Las 3 mini-gráficas comparten caja: misma proporción que el viewBox (100×48), así el
+   dibujo llena la caja sin franjas vacías y las 3 miden igual. A lo ancho de escritorio
+   quedan en 150×72; en tarjetas angostas se encogen en proporción. */
 .pf__chart {
   display: block;
   width: 100%;
-  max-width: 100px;
+  max-width: 108px;
   height: auto;
-  margin: 0 auto 10px; /* centrada en la tarjeta */
+  aspect-ratio: 100 / 48;
+  margin: 4px auto 0; /* centrada en la tarjeta */
   overflow: visible;
   filter: drop-shadow(0 0 2.5px var(--login-accent-glow));
-}
-
-.pf__num {
-  /* font-family: var(--login-font-mono); */
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--login-accent);
-}
-
-.pf__title {
-  margin-top:5px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--color-white);
 }
 
 .pf__sub {
   font-size: 11px;
   line-height: 1.3;
   color: var(--login-hero-muted);
+  padding-left: 10px;
+  border-left: 2px solid var(--login-hero-divider);
 }
 
 /* ---------- Mini-gráficas (SVG) ---------- */

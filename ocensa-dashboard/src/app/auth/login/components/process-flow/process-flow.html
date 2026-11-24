@@ -1,5 +1,5 @@
 <section class="pf" [attr.aria-labelledby]="uid + '-title'">
-  <p class="pf__eyebrow" [id]="uid + '-title'">De la planta a la decisión</p>
+  <p class="pf__eyebrow" [id]="uid + '-title'">Agregar Texto</p>
 
   <div class="pf__stage">
     <!-- Línea base que une las tarjetas por detrás + destello que la recorre -->
@@ -19,8 +19,13 @@
           <circle class="pf-node-halo" cx="50" cy="28" r="4" />
           <circle class="pf-node" cx="50" cy="28" r="2" />
         </svg>
-        <span class="pf__title"><span class="pf__num">01.</span> Monitoreo</span>
-        <span class="pf__sub">Corrosion</span>
+        <span class="hero__badge">
+          <span class="hero__badge-dot" aria-hidden="true"></span>
+          <span class="hero__badge-text">
+            <span class="hero__badge-title">Monitoreo</span>
+            <span class="pf__sub">Corrosion</span>
+          </span>
+        </span>
       </li>
 
       <!-- 02 · Datos / Análisis LIMS: partículas que convergen en un nodo de procesamiento -->
@@ -51,10 +56,12 @@
           <circle class="pf-hub" [attr.cx]="hub.x" [attr.cy]="hub.y" r="5" />
           <circle class="pf-hub-core" [attr.cx]="hub.x" [attr.cy]="hub.y" r="2" />
         </svg>
-        <!-- <span class="pf__title"><span class="pf__num">02.</span> Datos</span> -->
         <span class="hero__badge">
-          <span class="hero__badge-dot" aria-hidden="true"></span> Datos
-          <span class="pf__sub">Análisis</span>
+          <span class="hero__badge-dot" aria-hidden="true"></span>
+          <span class="hero__badge-text">
+            <span class="hero__badge-title">Datos</span>
+            <span class="pf__sub">Análisis</span>
+          </span>
         </span>
       </li>
 
@@ -76,8 +83,13 @@
           <circle class="pf-end-halo" cx="96" cy="8" r="3" />
           <circle class="pf-end" cx="96" cy="8" r="2.4" />
         </svg>
-        <span class="pf__title"><span class="pf__num">03.</span> Decisiones</span>
-        <span class="pf__sub">Dosificación</span>
+        <span class="hero__badge">
+          <span class="hero__badge-dot" aria-hidden="true"></span>
+          <span class="hero__badge-text">
+            <span class="hero__badge-title">Decisiones</span>
+            <span class="pf__sub">Dosificación</span>
+          </span>
+        </span>
       </li>
     </ol>
   </div>
