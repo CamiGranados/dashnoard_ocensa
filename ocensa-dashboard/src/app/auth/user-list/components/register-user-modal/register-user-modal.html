@@ -1,0 +1,170 @@
+@if (visible()) {
+  <div
+    class="register-modal__overlay"
+    animate.leave="register-modal__overlay--leaving"
+    (mousedown)="onOverlayMouseDown($event)"
+    (click)="onOverlayClick($event)"
+  >
+    <div
+      class="register-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="idDe('titulo')"
+      [attr.aria-describedby]="idDe('subtitulo')"
+      [attr.aria-busy]="guardando()"
+      pFocusTrap
+      (keydown.escape)="cerrar()"
+    >
+      <button
+        type="button"
+        class="register-modal__close"
+        aria-label="Cerrar"
+        [disabled]="guardando()"
+        (click)="cerrar()"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+
+      <header class="register-modal__header">
+        <span class="register-modal__badge" aria-hidden="true">
+          <i class="pi pi-id-card"></i>
+        </span>
+        <div>
+          <h2 class="register-modal__title" [id]="idDe('titulo')">Registrar Nuevo Usuario</h2>
+          <p class="register-modal__subtitle" [id]="idDe('subtitulo')">
+            Complete los datos para crear el acceso del usuario.
+          </p>
+        </div>
+      </header>
+
+      <form [formGroup]="form" novalidate (ngSubmit)="guardar()">
+        <div class="register-modal__grid">
+          <!-- Nombres · Apellidos · Correo -->
+          @for (campo of camposTexto; track campo.key) {
+            <div class="register-modal__field">
+              <label class="register-modal__label" [for]="idDe(campo.key)">{{ campo.label }}</label>
+              <div class="register-modal__control">
+                <i class="register-modal__icon {{ campo.icon }}" aria-hidden="true"></i>
+                <input
+                  class="register-modal__input"
+                  [class.register-modal__input--invalid]="mostrarError(campo.key)"
+                  [id]="idDe(campo.key)"
+                  [type]="campo.type"
+                  [formControlName]="campo.key"
+                  [placeholder]="campo.placeholder"
+                  [attr.autocomplete]="campo.autocomplete"
+                  [attr.aria-invalid]="mostrarError(campo.key)"
+                  [attr.aria-describedby]="mostrarError(campo.key) ? idDe(campo.key + '-error') : null"
+                />
+              </div>
+              @if (mostrarError(campo.key)) {
+                <p class="register-modal__error" [id]="idDe(campo.key + '-error')">
+                  {{ mensajeError(campo.key) }}
+                </p>
+              }
+            </div>
+          }
+
+          <!-- Empresa: select si llega catálogo, texto libre si no -->
+          <div class="register-modal__field">
+            <label class="register-modal__label" [for]="idDe('empresa')">Empresa</label>
+            <div class="register-modal__control">
+              <i class="register-modal__icon pi pi-building" aria-hidden="true"></i>
+              @if (empresas().length) {
+                <select
+                  class="register-modal__input register-modal__input--select"
+                  [class.register-modal__input--placeholder]="!form.controls.empresa.value"
+                  [class.register-modal__input--invalid]="mostrarError('empresa')"
+                  [id]="idDe('empresa')"
+                  formControlName="empresa"
+                  [attr.aria-invalid]="mostrarError('empresa')"
+                  [attr.aria-describedby]="mostrarError('empresa') ? idDe('empresa-error') : null"
+                >
+                  <option value="" disabled>Seleccione una empresa</option>
+                  @for (empresa of empresas(); track empresa) {
+                    <option [value]="empresa">{{ empresa }}</option>
+                  }
+                </select>
+                <i class="register-modal__chevron pi pi-chevron-down" aria-hidden="true"></i>
+              } @else {
+                <input
+                  class="register-modal__input"
+                  [class.register-modal__input--invalid]="mostrarError('empresa')"
+                  [id]="idDe('empresa')"
+                  type="text"
+                  formControlName="empresa"
+                  placeholder="Nombre de la empresa"
+                  autocomplete="organization"
+                  [attr.aria-invalid]="mostrarError('empresa')"
+                  [attr.aria-describedby]="mostrarError('empresa') ? idDe('empresa-error') : null"
+                />
+              }
+            </div>
+            @if (mostrarError('empresa')) {
+              <p class="register-modal__error" [id]="idDe('empresa-error')">
+                {{ mensajeError('empresa') }}
+              </p>
+            }
+          </div>
+
+          <!-- Rol (ancho completo) -->
+          <div class="register-modal__field register-modal__field--full">
+            <label class="register-modal__label" [for]="idDe('rol')">Rol</label>
+            <div class="register-modal__control">
+              <i class="register-modal__icon pi pi-shield" aria-hidden="true"></i>
+              <select
+                class="register-modal__input register-modal__input--select"
+                [class.register-modal__input--placeholder]="!form.controls.rol.value"
+                [class.register-modal__input--invalid]="mostrarError('rol')"
+                [id]="idDe('rol')"
+                formControlName="rol"
+                [attr.aria-invalid]="mostrarError('rol')"
+                [attr.aria-describedby]="mostrarError('rol') ? idDe('rol-error') : null"
+              >
+                <option value="" disabled>Seleccione un rol</option>
+                @for (rol of roles(); track rol.value) {
+                  <option [value]="rol.value">{{ rol.label }}</option>
+                }
+              </select>
+              <i class="register-modal__chevron pi pi-chevron-down" aria-hidden="true"></i>
+            </div>
+            @if (mostrarError('rol')) {
+              <p class="register-modal__error" [id]="idDe('rol-error')">{{ mensajeError('rol') }}</p>
+            }
+          </div>
+        </div>
+
+        @if (errorGeneral(); as error) {
+          <div class="register-modal__alert" role="alert">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            <span>{{ error }}</span>
+          </div>
+        }
+
+        <footer class="register-modal__footer">
+          <button
+            type="button"
+            class="register-modal__btn register-modal__btn--secondary"
+            [disabled]="guardando()"
+            (click)="cerrar()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="register-modal__btn register-modal__btn--primary"
+            [disabled]="guardando()"
+          >
+            @if (guardando()) {
+              <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+              <span>Guardando…</span>
+            } @else {
+              <i class="pi pi-user-plus" aria-hidden="true"></i>
+              <span>Guardar Usuario</span>
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

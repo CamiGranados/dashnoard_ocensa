@@ -2,11 +2,15 @@ import { Injectable, computed, signal } from '@angular/core';
 import {
   CuentaAutorizada,
   EstadoCuenta,
+  NuevoUsuario,
   RolPlataforma,
 } from '../models/cuenta-autorizada.model';
 
 /** Total de registros que simula el directorio mientras no exista el endpoint. */
 const TOTAL_SIMULADO = 38;
+
+/** Latencia simulada del alta de cuenta mientras no exista el endpoint. */
+const LATENCIA_REGISTRO_MS = 900;
 
 /** Fecha local `dias` días antes de `ahora`, a las hh:mm. */
 function haceDias(ahora: Date, dias: number, horas: number, minutos: number): Date {
@@ -147,4 +151,15 @@ function crearCuentasMock(ahora: Date): CuentaAutorizada[] {
 export class CuentasAutorizadasService {
   readonly cuentas = signal<CuentaAutorizada[]>(crearCuentasMock(new Date())).asReadonly();
   readonly total = computed(() => this.cuentas().length);
+
+  /**
+   * Da de alta una cuenta.
+   *
+   * TODO(backend): hoy sólo simula la latencia y no agrega nada al directorio. Cuando exista el
+   * endpoint: `firstValueFrom(this.http.post(`${environment.apiUrl}/...`, usuario))` y recargar
+   * `cuentas`.
+   */
+  registrar(usuario: NuevoUsuario): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, LATENCIA_REGISTRO_MS));
+  }
 }

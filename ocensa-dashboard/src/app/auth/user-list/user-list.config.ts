@@ -31,6 +31,12 @@ export const ROL_CONFIG: Record<RolPlataforma, RolVista> = {
   },
 };
 
+/** Opciones del select "Rol" del modal de registro, en el mismo orden y con las mismas etiquetas. */
+export const OPCIONES_ROL = (Object.keys(ROL_CONFIG) as RolPlataforma[]).map((value) => ({
+  value,
+  label: ROL_CONFIG[value].label,
+}));
+
 export interface EstadoVista {
   label: string;
   cssClass: string;

@@ -154,6 +154,29 @@
   --login-info-bg:            #eef6ff;
   --login-info-border:        #b7d7fb;
   --login-font-mono:          ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+
+  /* — Modales de formulario (auth/user-list/components/register-user-modal) — */
+  --modal-overlay:            rgba(15, 23, 42, 0.6);
+  --modal-shadow:             0 24px 64px rgba(15, 23, 42, 0.28);
+  --modal-title:              #0b2545;
+  --modal-label:              #475569;
+  --modal-muted:              #64748b;
+  --modal-icon-bg:            #eaf1fb;
+  --modal-soft-bg:            #eef3fa;
+  --modal-soft-bg-hover:      #dde6f2;
+  --modal-input-bg:           #f7f9fc;
+  --modal-input-border:       #c9d3e0;
+  --modal-input-border-hover: #a9b7ca;
+  --modal-input-text:         #0f172a;
+  --modal-input-icon:         #94a3b8;
+  --modal-primary:            #0b3a66;
+  --modal-primary-hover:      #082c4d;
+  --modal-focus-ring:         rgba(11, 58, 102, 0.15);
+  --modal-error:              #dc2626;
+  --modal-error-ring:         rgba(220, 38, 38, 0.15);
+  --modal-error-text:         #b91c1c;
+  --modal-error-bg:           #fef2f2;
+  --modal-error-border:       #fecaca;
 }
 
 * {

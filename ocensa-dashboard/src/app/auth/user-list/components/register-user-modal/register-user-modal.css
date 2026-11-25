@@ -1,0 +1,376 @@
+/* Modal "Registrar Nuevo Usuario". Colores: tokens --modal-* de styles.css.
+   Archivo propio (no user-list.css) para no pasar el presupuesto anyComponentStyle (16 kB). */
+
+/* ------------------ Overlay ------------------ */
+/* `position: fixed` a pantalla completa (ningún ancestro del shell tiene transform/filter que lo
+   confine). Flex + `margin: auto` en el modal en vez de `place-items: center`: si el modal es más
+   alto que la ventana, el overlay hace scroll sin recortar la parte de arriba. */
+.register-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  background: var(--modal-overlay);
+  backdrop-filter: blur(3px);
+  animation: register-modal-fade-in 200ms ease-out;
+}
+
+/* Salida: Angular (`animate.leave`) pone esta clase y espera a que termine la animación */
+.register-modal__overlay--leaving {
+  animation: register-modal-fade-out 200ms ease-in forwards;
+}
+
+/* ------------------ Contenedor ------------------ */
+.register-modal {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--color-white);
+  box-shadow: var(--modal-shadow);
+  color: var(--modal-input-text);
+  animation: register-modal-scale-in 200ms ease-out;
+}
+
+.register-modal__overlay--leaving .register-modal {
+  animation: register-modal-scale-out 200ms ease-in forwards;
+}
+
+/* ------------------ Header ------------------ */
+.register-modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 26px;
+  padding-right: 44px; /* espacio para la X */
+}
+
+.register-modal__badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--modal-icon-bg);
+  color: var(--modal-primary);
+}
+
+/* El glifo pi-id-card ocupa poco de su caja: 26px para que llene el recuadro de 48px */
+.register-modal__badge i {
+  font-size: 22px;
+  filter: drop-shadow(3px 5px 2px rgba(6, 21, 90, 0.4));
+}
+
+.register-modal__title {
+  margin: 2px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--modal-title);
+}
+
+.register-modal__subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--modal-muted);
+}
+
+.register-modal__close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--modal-soft-bg);
+  color: var(--modal-label);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.register-modal__close i {
+  font-size: 13px;
+}
+
+.register-modal__close:not(:disabled):hover {
+  background: var(--modal-soft-bg-hover);
+}
+
+.register-modal__close:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ------------------ Campos ------------------ */
+.register-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
+}
+
+.register-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.register-modal__field--full {
+  grid-column: 1 / -1;
+}
+
+.register-modal__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--modal-label);
+}
+
+.register-modal__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Icono a la izquierda y chevron a la derecha: encima del input, sin capturar el clic */
+.register-modal__icon,
+.register-modal__chevron {
+  position: absolute;
+  z-index: 1;
+  color: var(--modal-input-icon);
+  pointer-events: none;
+}
+
+.register-modal__icon {
+  left: 14px;
+  font-size: 14px;
+}
+
+.register-modal__chevron {
+  right: 14px;
+  font-size: 12px;
+}
+
+.register-modal__input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px 0 40px;
+  border: 1px solid var(--modal-input-border);
+  border-radius: 10px;
+  background: var(--modal-input-bg);
+  color: var(--modal-input-text);
+  font: inherit;
+  font-size: 15px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.register-modal__input::placeholder {
+  color: var(--modal-muted);
+  opacity: 1;
+}
+
+.register-modal__input:not(:disabled):not(:focus):hover {
+  border-color: var(--modal-input-border-hover);
+}
+
+.register-modal__input:focus {
+  border-color: var(--modal-primary);
+  box-shadow: 0 0 0 3px var(--modal-focus-ring);
+  outline: none;
+}
+
+.register-modal__input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.register-modal__input--select {
+  appearance: none;
+  padding-right: 40px;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+/* "Seleccione…" en gris como un placeholder; las opciones de la lista vuelven al color normal */
+.register-modal__input--placeholder {
+  color: var(--modal-muted);
+}
+
+.register-modal__input--select option {
+  color: var(--modal-input-text);
+}
+
+.register-modal__input--invalid,
+.register-modal__input--invalid:not(:disabled):not(:focus):hover {
+  border-color: var(--modal-error);
+}
+
+.register-modal__input--invalid:focus {
+  border-color: var(--modal-error);
+  box-shadow: 0 0 0 3px var(--modal-error-ring);
+}
+
+.register-modal__error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--modal-error);
+}
+
+/* ------------------ Error general (rechazo de submitHook) ------------------ */
+.register-modal__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 12px 14px;
+  border: 1px solid var(--modal-error-border);
+  border-radius: 10px;
+  background: var(--modal-error-bg);
+  color: var(--modal-error-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.register-modal__alert i {
+  margin-top: 2px;
+  font-size: 14px;
+}
+
+/* ------------------ Footer ------------------ */
+.register-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.register-modal__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.register-modal__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.register-modal__btn--secondary {
+  background: var(--modal-soft-bg);
+  color: var(--modal-label);
+  font-weight: 500;
+}
+
+.register-modal__btn--secondary:not(:disabled):hover {
+  background: var(--modal-soft-bg-hover);
+}
+
+.register-modal__btn--primary {
+  background: var(--modal-primary);
+  color: var(--color-white);
+  font-weight: 600;
+}
+
+.register-modal__btn--primary:not(:disabled):hover {
+  background: var(--modal-primary-hover);
+}
+
+.register-modal__close:focus-visible,
+.register-modal__btn:focus-visible {
+  outline: 2px solid var(--modal-primary);
+  outline-offset: 2px;
+}
+
+/* ------------------ Animaciones ------------------ */
+@keyframes register-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes register-modal-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes register-modal-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes register-modal-scale-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .register-modal__overlay,
+  .register-modal__overlay--leaving,
+  .register-modal,
+  .register-modal__overlay--leaving .register-modal {
+    animation: none;
+  }
+}
+
+/* ------------------ Responsive (< 640px: una columna) ------------------ */
+@media (max-width: 639.98px) {
+  .register-modal__overlay {
+    padding: 0.75rem;
+  }
+
+  .register-modal {
+    padding: 22px 18px;
+  }
+
+  .register-modal__close {
+    top: 18px;
+    right: 18px;
+  }
+
+  .register-modal__title {
+    font-size: 19px;
+  }
+
+  .register-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Botones a todo el ancho; el primario queda arriba */
+  .register-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .register-modal__btn {
+    width: 100%;
+  }
+}

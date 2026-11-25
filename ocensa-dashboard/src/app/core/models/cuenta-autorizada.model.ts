@@ -17,3 +17,12 @@ export interface CuentaAutorizada {
   ipUltimoAcceso: string;
   estado: EstadoCuenta;
 }
+
+/** Alta de una cuenta (modal "Registrar Nuevo Usuario"). Campos ya normalizados (trim, correo en minúsculas). */
+export interface NuevoUsuario {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  empresa: string;
+  rol: RolPlataforma;
+}

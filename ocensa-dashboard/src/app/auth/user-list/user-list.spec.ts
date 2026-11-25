@@ -65,6 +65,14 @@ describe('UserList', () => {
     expect(host.querySelector('.user-list__empty')?.textContent).toContain('No hay usuarios');
   });
 
+  it('"Agregar usuario" abre el modal de registro', async () => {
+    expect(host.querySelector('[role="dialog"]')).toBeNull();
+    host.querySelector<HTMLButtonElement>('.user-list__add-btn')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(host.querySelector('app-register-user-modal [role="dialog"]')).toBeTruthy();
+  });
+
   it('los botones de solo icono llevan aria-label', () => {
     const botones = host.querySelectorAll<HTMLButtonElement>('.user-list__action button');
     expect(botones.length).toBe(30);

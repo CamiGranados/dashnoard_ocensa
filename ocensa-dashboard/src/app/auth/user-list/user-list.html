@@ -15,6 +15,12 @@
   </div>
 </div>
 
+<app-register-user-modal
+  [(visible)]="modalRegistroVisible"
+  [roles]="opcionesRol"
+  [submitHook]="registrarUsuario"
+/>
+
 
 <section class="panel user-list" aria-label="Directorio operativo de cuentas autorizadas">
   <!-- 1. Encabezado de la card -->

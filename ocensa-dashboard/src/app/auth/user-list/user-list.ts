@@ -9,14 +9,16 @@ import { Select } from 'primeng/select';
 import { TableModule, TablePageEvent } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Tooltip } from 'primeng/tooltip';
-import { CuentaAutorizada } from '../../core/models/cuenta-autorizada.model';
+import { CuentaAutorizada, NuevoUsuario } from '../../core/models/cuenta-autorizada.model';
 import { CuentasAutorizadasService } from '../../core/services/cuentas-autorizadas.service';
 import { CardHeader } from '../../shared/components/card-header/card-header';
 import { FechaRelativaPipe } from '../../shared/pipes/fecha-relativa.pipe';
+import { RegisterUserModal } from './components/register-user-modal/register-user-modal';
 import {
   ESTADO_CONFIG,
   EstadoVista,
   FILAS_POR_PAGINA,
+  OPCIONES_ROL,
   ROL_CONFIG,
   RolVista,
   inicialesDe,
@@ -54,6 +56,7 @@ interface FilaCuenta {
     Tooltip,
     CardHeader,
     FechaRelativaPipe,
+    RegisterUserModal,
   ],
   templateUrl: './user-list.html',
   styleUrl: './user-list.css',
@@ -154,11 +157,17 @@ export class UserList {
     if (this.cuentaDelMenu) accion(this.cuentaDelMenu);
   }
 
-  // --- Acciones (placeholders) ---
+  // --- Alta de usuario (modal) ---
+  protected readonly modalRegistroVisible = signal(false);
+  protected readonly opcionesRol = OPCIONES_ROL;
+  protected readonly registrarUsuario = (usuario: NuevoUsuario): Promise<void> =>
+    this.cuentasService.registrar(usuario);
 
   onAgregarUsuario(): void {
-    // TODO: abrir el formulario de alta de cuenta (nombre, correo corporativo, rol).
+    this.modalRegistroVisible.set(true);
   }
+
+  // --- Acciones (placeholders) ---
 
   onEditar(cuenta: CuentaAutorizada): void {
     // TODO: abrir el formulario de edición de la cuenta (rol, estado, datos de contacto).
