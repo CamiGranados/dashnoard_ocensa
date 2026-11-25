@@ -28,6 +28,14 @@
   min-width: 0;
 }
 
+/* Título + slot opcional `[badge]` (p. ej. contador de registros) a su derecha */
+.card-header__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+}
+
 .card-header__title {
   margin: 0;
   color: var(--color-primary);

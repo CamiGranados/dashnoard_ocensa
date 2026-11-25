@@ -15,6 +15,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/data-upload/data-upload').then(m => m.DataUpload),
       },
+      // Directorio de cuentas: dentro del Shell (con sidebar) pero sin filtros de tanque/año/mes.
+      {
+        path: 'user-list',
+        loadComponent: () => import('./auth/user-list/user-list').then(m => m.UserList),
+      },
       {
         path: '',
         loadComponent: () =>

@@ -90,6 +90,9 @@
   --radius-sm: 8px;
   --radius-md: 14px;
 
+  /* Tipografía monoespaciada (correos, IPs, metadatos técnicos) */
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+
   /* Modal de límite de archivos */
   --color-amber-light:    #fef3c7;
   --color-amber-border:   #fcd34d;

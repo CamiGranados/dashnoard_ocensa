@@ -3,8 +3,9 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 /**
  * Cabecera estándar de tarjeta: icono a la izquierda + título + subtítulo.
  * Uso: `<app-card-header icon="fa-solid fa-flask" title="…" subtitle="…" />`.
- * Slots: `[subtitle]` para un subtítulo con marcado propio; contenido por defecto = acciones
- * a la derecha (p. ej. `<app-chart-toolbar>`).
+ * Slots: `[subtitle]` para un subtítulo con marcado propio; `[badge]` para una píldora junto al
+ * título (p. ej. "38 Registros"); contenido por defecto = acciones a la derecha
+ * (p. ej. `<app-chart-toolbar>`).
  */
 @Component({
   selector: 'app-card-header',

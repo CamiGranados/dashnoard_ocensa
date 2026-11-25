@@ -4,7 +4,10 @@
   </div>
 }
 <div class="card-header__titles">
-  <h3 class="card-header__title">{{ title() }}</h3>
+  <div class="card-header__title-row">
+    <h3 class="card-header__title">{{ title() }}</h3>
+    <ng-content select="[badge]" />
+  </div>
   @if (subtitle()) {
     <p class="card-header__subtitle">{{ subtitle() }}</p>
   }

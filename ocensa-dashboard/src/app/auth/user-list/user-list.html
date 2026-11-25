@@ -1,0 +1,218 @@
+<div class="header">
+  <div class="header-left">
+    <h1 class="dashboard-title">Listado de Usuarios</h1>
+    <span class="header-subtitle">Gestión de Usuarios y control de accesos</span>
+  </div>
+  <div class="header-right">
+    <button
+      pButton
+      type="button"
+      label="Agregar usuario"
+      icon="pi pi-user-plus"
+      class="p-button-outlined p-button-secondary user-list__add-btn"
+      (click)="onAgregarUsuario()"
+    ></button>
+  </div>
+</div>
+
+
+<section class="panel user-list" aria-label="Directorio operativo de cuentas autorizadas">
+  <!-- 1. Encabezado de la card -->
+  <app-card-header
+    class="user-list__header"
+    icon="pi pi-users"
+    title="Directorio Operativo de Cuentas Autorizadas"
+  >
+    <span badge class="user-list__count">{{ total() }} Registros</span>
+  </app-card-header>
+
+  <!-- Búsqueda (encima de la tabla) -->
+  <div class="user-list__toolbar" role="search">
+    <input
+      pInputText
+      type="search"
+      class="user-list__search"
+      placeholder="Buscar usuario..."
+      aria-label="Buscar usuario"
+      [ngModel]="busqueda()"
+      (ngModelChange)="onBuscar($event)"
+    />
+    <button
+      type="button"
+      class="user-list__filter-btn"
+      aria-label="Filtrar usuarios"
+      pTooltip="Filtrar"
+      tooltipPosition="top"
+      (click)="onFiltrar()"
+    >
+      <i class="pi pi-filter-fill" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- 2. Tabla + 3. pie (paginador de p-table con plantillas izquierda/derecha) -->
+  <p-table
+    class="user-list__table"
+    [value]="filasFiltradas()"
+    [paginator]="true"
+    [alwaysShowPaginator]="true"
+    [rows]="filasPorPagina()"
+    [first]="primero()"
+    [showFirstLastIcon]="false"
+    [pageLinks]="5"
+    [scrollable]="true"
+    [tableStyle]="{ 'min-width': '64rem' }"
+    (onPage)="onPage($event)"
+  >
+    <ng-template #header>
+      <tr class="user-list__head-row">
+        <th scope="col">Usuario &amp; Identidad</th>
+        <th scope="col">Rol en plataforma</th>
+        <th scope="col">Último acceso</th>
+        <th scope="col">Estado</th>
+        <th scope="col" class="user-list__col-actions">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-fila>
+      <tr class="user-list__row">
+        <!-- Usuario & identidad -->
+        <td>
+          <div class="user-list__identity">
+            <p-avatar
+              class="user-list__avatar"
+              [label]="fila.iniciales"
+              shape="circle"
+              aria-hidden="true"
+            />
+            <div class="user-list__stack">
+              <span class="user-list__name">
+                {{ fila.cuenta.nombre }}
+                @if (fila.cuenta.enLinea) {
+                  <span class="user-list__online" role="img" aria-label="En línea" title="En línea"></span>
+                }
+              </span>
+              <span class="user-list__mono">{{ fila.cuenta.email }}</span>
+            </div>
+          </div>
+        </td>
+
+        <!-- Rol en plataforma -->
+        <td>
+          <span class="user-list__rol {{ fila.rol.cssClass }}">
+            <i class="user-list__rol-icon {{ fila.rol.icon }}" aria-hidden="true"></i>
+            <span>{{ fila.rol.label }}</span>
+          </span>
+        </td>
+
+        <!-- Último acceso -->
+        <td>
+          <div class="user-list__stack">
+            <span class="user-list__strong">{{ fila.cuenta.ultimoAcceso | fechaRelativa }}</span>
+          </div>
+        </td>
+
+        <!-- Estado -->
+        <td>
+          <p-tag
+            class="user-list__estado {{ fila.estado.cssClass }}"
+            [value]="fila.estado.label"
+            [rounded]="true"
+          >
+            <span class="user-list__estado-dot" aria-hidden="true"></span>
+          </p-tag>
+        </td>
+
+        <!-- Acciones -->
+        <td class="user-list__col-actions">
+          <div class="user-list__actions">
+            <p-button
+              class="user-list__action"
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              [ariaLabel]="'Editar a ' + fila.cuenta.nombre"
+              pTooltip="Editar"
+              tooltipPosition="top"
+              (onClick)="onEditar(fila.cuenta)"
+            />
+            <p-button
+              class="user-list__action"
+              icon="pi pi-history"
+              [text]="true"
+              [rounded]="true"
+              [ariaLabel]="'Historial de accesos de ' + fila.cuenta.nombre"
+              pTooltip="Historial de accesos"
+              tooltipPosition="top"
+              (onClick)="onVerHistorial(fila.cuenta)"
+            />
+            <p-button
+              class="user-list__action"
+              icon="pi pi-ellipsis-v"
+              [text]="true"
+              [rounded]="true"
+              [ariaLabel]="'Más acciones para ' + fila.cuenta.nombre"
+              pTooltip="Más acciones"
+              tooltipPosition="top"
+              (onClick)="abrirMenu($event, menuAcciones, fila.cuenta)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5" class="user-list__empty">
+          @if (busqueda().trim()) {
+            No hay usuarios que coincidan con «{{ busqueda().trim() }}».
+          } @else {
+            No hay cuentas autorizadas registradas.
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #paginatorleft>
+      <div class="user-list__footer-start">
+        <span>
+          Mostrando <strong>{{ rango().desde }}-{{ rango().hasta }}</strong> de
+          <strong>{{ totalFiltrado() }}</strong> usuarios registrados
+        </span>
+        <span class="user-list__rows-field">
+          <span aria-hidden="true">Mostrar:</span>
+          <p-select
+            class="user-list__rows-select"
+            [options]="opcionesFilas"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="filasPorPagina()"
+            (ngModelChange)="cambiarFilasPorPagina($event)"
+            ariaLabel="Filas por página"
+            appendTo="body"
+            size="small"
+          />
+        </span>
+      </div>
+    </ng-template>
+
+    <ng-template #paginatorright>
+      <!-- <span class="user-list__sync">
+        <i class="pi pi-sync" aria-hidden="true"></i>
+        <span>Última sincronización con Microsoft Azure AD</span>
+      </span> -->
+    </ng-template>
+  </p-table>
+
+  <!-- Menú "más acciones": una instancia para todas las filas (abrirMenu fija la cuenta) -->
+  <p-menu #menuAcciones [model]="menuItems" [popup]="true" appendTo="body" [baseZIndex]="2000">
+    <ng-template #item let-item>
+      <a
+        class="p-menu-item-link user-list__menu-link"
+        [class.user-list__menu-link--danger]="item.state?.peligro"
+      >
+        <i class="user-list__menu-icon {{ item.icon }}" aria-hidden="true"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    </ng-template>
+  </p-menu>
+</section>

@@ -1,0 +1,514 @@
+/* Separación lateral e inferior de la vista (mismo respiro que .dashboard-container en overview).
+   Título y card comparten esta sangría, así quedan alineados. */
+:host {
+  display: block;
+  min-width: 0;
+  padding: 0 1.5rem 1.5rem;
+}
+
+/* Card: fondo, borde, radio y sombra vienen de `.panel` (styles.css). Mismo cromo que las tarjetas
+   de tabla de overview (.ov-card-head + .ov-micro-scroll): cabecera gris a todo el ancho y, debajo,
+   la tabla enmarcada dentro del cuerpo blanco. */
+.user-list {
+  padding: 0;
+  overflow: hidden;
+  margin-top: 1.5rem;
+}
+/* ------------------ 1. Header ------------------ */
+/* Título de la vista a la izquierda, acciones ("Agregar usuario") a la derecha — mismo esquema que
+   .dashboard-header de overview. El botón usa el estilo global `p-button-secondary` (styles.css). */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Hover "elevar": mismo efecto que los botones de data-upload (sube 2px + --shadow-md).
+   `!important` en la sombra porque `button.p-button-secondary` (styles.css) la fija con !important. */
+.user-list__add-btn {
+  transition:
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out,
+    background-color 0.2s ease-in-out;
+}
+
+.user-list__add-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-list__add-btn:not(:disabled):hover {
+    transform: none;
+  }
+}
+
+/* ------------------ 1. Encabezado de la card (franja gris) ------------------ */
+.user-list__header {
+  padding: 0.75rem 1rem;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Recuadro de la tabla dentro del cuerpo blanco (incluye el pie/paginador) */
+.user-list__table {
+  display: block;
+  margin: 0.75rem 1rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* ------------------ Búsqueda (encima de la tabla, alineada a la derecha) ------------------ */
+.user-list__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin: 1rem 1rem 0;
+}
+
+.user-list__search {
+  width: 13rem;
+  height: 2.15rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  box-shadow: none;
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.user-list__search::placeholder {
+  color: var(--color-gray-mid);
+}
+
+.user-list__search:enabled:hover {
+  border-color: var(--color-info-border);
+}
+
+.user-list__search:enabled:focus {
+  border-color: var(--color-info);
+  box-shadow: 0 0 0 3px var(--color-info-light);
+  outline: none;
+}
+
+/* Botón de filtro: borde y embudo azul marino sobre fondo casi blanco (mismos tokens que
+   .btn-navy-outline de data-upload) */
+.user-list__filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: 1.5px solid var(--color-navy);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-light);
+  color: var(--color-navy);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.user-list__filter-btn i {
+  font-size: 13px;
+}
+
+.user-list__filter-btn:hover {
+  border-color: var(--color-navy-hover);
+  background: var(--color-primary-light);
+}
+
+.user-list__filter-btn:focus-visible {
+  outline: 2px solid var(--color-accent-dark);
+  outline-offset: 1px;
+}
+
+.user-list__count {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: var(--color-info-light);
+  color: var(--color-accent-dark);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.user-list__mode {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-amber-dark);
+  white-space: nowrap;
+}
+
+/* ------------------ 2. Tabla ------------------ */
+.user-list__head-row > th {
+  padding: 0.85rem 1rem;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.user-list__row > td {
+  padding: 1rem;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-gray-dark);
+  font-size: 12px;
+  vertical-align: middle;
+  transition: background-color 0.15s ease;
+}
+
+.user-list__row:hover > td {
+  background: var(--color-surface-soft);
+}
+
+.user-list__row:last-child > td {
+  border-bottom: none;
+}
+
+.user-list__col-actions {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.user-list__empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--color-text-body);
+}
+
+/* Texto en dos líneas (principal en negrita + secundario monoespaciado) */
+.user-list__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.user-list__strong {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.user-list__mono {
+  /* font-family: var(--font-mono); */
+  font-size: 11px;
+  color: var(--color-text-body);
+}
+
+/* --- Usuario & identidad --- */
+.user-list__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-list__avatar {
+  flex-shrink: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.user-list__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.user-list__online {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 2px var(--color-success-bg);
+}
+
+/* --- Rol en plataforma: píldora (color por modificador, ver ROL_CONFIG) --- */
+.user-list__rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.user-list__rol-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.user-list__rol--admin {
+  background: var(--color-line-soft);
+  color: var(--color-gray-dark);
+}
+
+.user-list__rol--ingesta,
+.user-list__rol--operacion {
+  background: var(--color-info-light);
+  color: var(--color-primary);
+}
+
+/* "Solo Lectura - Dashboards" puede partirse en 2 líneas */
+.user-list__rol--lectura {
+  max-width: 10.5rem;
+  background: var(--color-info-bg);
+  color: var(--color-primary);
+  white-space: normal;
+}
+
+/* --- Estado: p-tag tipo píldora con punto --- */
+.user-list__estado {
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.user-list__estado-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.user-list__estado--activo {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.user-list__estado--activo .user-list__estado-dot {
+  background: var(--color-success);
+}
+
+.user-list__estado--inactivo {
+  background: var(--color-line-soft);
+  color: var(--color-gray-dark);
+}
+
+.user-list__estado--inactivo .user-list__estado-dot {
+  background: var(--color-gray-mid);
+}
+
+.user-list__estado--bloqueado {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
+/* --- Acciones: p-button text/rounded en gris --- */
+.user-list__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.user-list__action ::ng-deep .p-button {
+  width: 2.1rem;
+  height: 2.1rem;
+  color: var(--color-gray-mid);
+}
+
+.user-list__action ::ng-deep .p-button:not(:disabled):hover {
+  background: var(--color-accent-sub);
+  color: var(--color-accent-dark);
+}
+
+.user-list__action ::ng-deep .p-button:focus-visible {
+  outline: 2px solid var(--color-accent-dark);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+
+/* Ítems del p-menu (plantilla propia → el CSS del componente sí llega aunque vaya a body) */
+.user-list__menu-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: inherit;
+  font-size: 13px;
+}
+
+.user-list__menu-icon {
+  font-size: 13px;
+  color: var(--color-gray-mid);
+}
+
+.user-list__menu-link--danger,
+.user-list__menu-link--danger .user-list__menu-icon {
+  color: var(--color-danger);
+}
+
+.user-list__menu-link--danger:hover {
+  background: var(--color-danger-light);
+}
+
+/* ------------------ 3. Pie: paginador de p-table en una sola fila ------------------ */
+/* Rejilla de 5 columnas (izquierda · ‹ · páginas · › · derecha) para que las páginas queden
+   centradas de verdad, sin depender del ancho de los textos laterales. */
+.user-list__table ::ng-deep .p-datatable-paginator-bottom {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto 1fr;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-white);
+}
+
+.user-list__table ::ng-deep .p-paginator-content-start {
+  justify-self: start;
+  margin: 0;
+}
+
+.user-list__table ::ng-deep .p-paginator-content-end {
+  justify-self: end;
+  margin: 0;
+}
+
+.user-list__table ::ng-deep .p-paginator-pages {
+  gap: 0.3rem;
+}
+
+.user-list__table ::ng-deep :is(.p-paginator-page, .p-paginator-prev, .p-paginator-next) {
+  min-width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-white);
+  color: var(--color-text-body);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.user-list__table
+  ::ng-deep
+  :is(.p-paginator-page, .p-paginator-prev, .p-paginator-next):not(.p-disabled):not(
+    .p-paginator-page-selected
+  ):hover {
+  border-color: var(--color-primary-muted);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.user-list__table ::ng-deep .p-paginator-page.p-paginator-page-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.user-list__table ::ng-deep :is(.p-paginator-prev, .p-paginator-next).p-disabled {
+  opacity: 0.45;
+}
+
+.user-list__footer-start {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 12px;
+  color: var(--color-text-body);
+}
+
+.user-list__footer-start strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.user-list__rows-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.user-list__rows-select {
+  border-color: var(--color-border);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.user-list__rows-select ::ng-deep .p-select-label {
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text);
+}
+
+.user-list__rows-select ::ng-deep .p-select-dropdown {
+  width: 1.75rem;
+}
+
+.user-list__sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-body);
+}
+
+.user-list__sync i {
+  font-size: 12px;
+  color: var(--color-primary-sub);
+}
+
+/* ------------------ Responsive ------------------ */
+/* < 1200px: la tabla hace scroll horizontal (min-width en [tableStyle] + [scrollable]) y el pie
+   se apila en tres filas centradas. */
+@media (max-width: 1199.98px) {
+  .user-list__table ::ng-deep .p-datatable-paginator-bottom {
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    row-gap: 0.75rem;
+  }
+
+  .user-list__table ::ng-deep :is(.p-paginator-content-start, .p-paginator-content-end) {
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .user-list__footer-start {
+    justify-content: center;
+  }
+}
